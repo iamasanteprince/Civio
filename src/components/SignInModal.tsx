@@ -241,7 +241,7 @@ export default function SignInModal({
           role="dialog"
           aria-modal="true"
           aria-labelledby="auth-title"
-          className="relative w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900/95 shadow-2xl animate-modalIn"
+          className="relative w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 shadow-2xl animate-modalIn"
           onClick={(event) => event.stopPropagation()}
         >
           <button
@@ -256,11 +256,10 @@ export default function SignInModal({
           <div className="p-6">
             <div className="mb-6 text-center">
               <div className="relative mb-3 inline-flex items-center justify-center">
-                <div className="absolute inset-0 animate-pulseGlow rounded-xl bg-indigo-500/30 blur-md" />
                 <img
                   src="/civio-logo.png"
                   alt="Civiohub Logo"
-                  className="relative h-12 w-12 rounded-xl border border-indigo-400/30 object-cover"
+                  className="relative h-12 w-12 rounded-lg border border-slate-700 object-cover"
                 />
               </div>
               <h2 id="auth-title" className="text-xl font-bold text-white">
@@ -434,7 +433,7 @@ export default function SignInModal({
                   password.length < 8 ||
                   (mode === 'sign-up' && !ageConsent)
                 }
-                className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50"
+                className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 disabled:opacity-50"
               >
                 {loading ? 'Connecting...' : waitSeconds > 0 ? `Please wait ${waitSeconds}s` : mode === 'sign-in' ? 'Sign In' : 'Create Account'}
               </button>
@@ -487,7 +486,7 @@ export function UserMenu({
     <>
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-1.5">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-blue-700 text-xs font-bold text-white">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
             {user.displayName.charAt(0).toUpperCase()}
           </div>
           <span className="hidden text-sm font-medium text-slate-200 sm:inline">{user.email}</span>

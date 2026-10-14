@@ -135,10 +135,10 @@ function useDebounce<T>(value: T, delay: number): T {
 function SchoolCard({ school }: { school: University }) {
   const feeStyle = FEE_WAIVER_STYLES[school.feeWaiverDetail];
   return (
-    <div className="group relative flex flex-col rounded-2xl border border-slate-800/80 bg-[#0c1322]/80 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:border-blue-500/50 hover:bg-[#0f1729]/90 hover:shadow-2xl hover:shadow-blue-950/30">
+    <div className="group relative flex flex-col rounded-xl border border-slate-800 bg-slate-900 overflow-hidden transition-colors duration-150 hover:border-slate-700">
       <div className="p-6">
         <div className="flex items-start gap-3 mb-4">
-          <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 w-11 h-11 flex-shrink-0">
+          <div className="flex items-center justify-center rounded-lg bg-blue-600 w-11 h-11 flex-shrink-0">
             <School className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -226,7 +226,7 @@ function SchoolCard({ school }: { school: University }) {
       </div>
 
       <div className="border-t border-slate-800 p-4 mt-auto">
-        <a href={school.portalUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-blue-500 hover:shadow-lg hover:shadow-blue-600/20 active:scale-[0.98]">
+        <a href={school.portalUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500">
           View Portal & Apply <ExternalLink className="w-4 h-4" />
         </a>
       </div>
@@ -238,10 +238,10 @@ function ApiSchoolCard({ apiUni }: { apiUni: ApiUniversity }) {
   const portalUrl = getUniversityWebsite(apiUni);
 
   return (
-    <div className="group relative flex flex-col rounded-2xl border border-slate-800/80 bg-[#0c1322]/80 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:border-indigo-500/40 hover:bg-[#0f1729]/90 hover:shadow-xl hover:shadow-indigo-950/20">
+    <div className="group relative flex flex-col rounded-xl border border-slate-800 bg-slate-900 overflow-hidden transition-colors duration-150 hover:border-slate-700">
       <div className="p-6">
         <div className="flex items-start gap-3 mb-4">
-          <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-slate-600 to-slate-700 w-11 h-11 flex-shrink-0">
+          <div className="flex items-center justify-center rounded-lg bg-slate-700 w-11 h-11 flex-shrink-0">
             <Building2 className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -287,7 +287,7 @@ function ApiSchoolCard({ apiUni }: { apiUni: ApiUniversity }) {
 
       <div className="border-t border-slate-800 p-4 mt-auto">
         {portalUrl && (
-          <a href={portalUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-all hover:bg-slate-700 hover:border-slate-600 active:scale-[0.98]">
+          <a href={portalUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-md border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-colors duration-150 hover:bg-slate-700 hover:border-slate-600">
             Visit Official Website <ExternalLink className="w-4 h-4" />
           </a>
         )}
@@ -413,7 +413,7 @@ export default function SchoolHub() {
         </p>
       </div>
 
-      <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-5">
+      <div className="mb-6 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
         <label htmlFor="global-university-search" className="mb-2 block text-sm font-semibold text-slate-200">
           Search global universities
         </label>
@@ -451,7 +451,7 @@ export default function SchoolHub() {
         </div>
       </div>
 
-      <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-5">
+      <div className="mb-6 rounded-xl border border-slate-800 bg-slate-900 p-5">
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2 text-sm text-slate-400">
             <Filter className="w-4 h-4" />
@@ -480,10 +480,10 @@ export default function SchoolHub() {
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Fee & Waiver Filters</label>
               <div className="flex flex-wrap gap-1.5">
-                <button onClick={() => setFreeOnly(!freeOnly)} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${freeOnly ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>
+                <button onClick={() => setFreeOnly(!freeOnly)} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${freeOnly ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>
                   <DollarSign className="w-3.5 h-3.5" />$0 / Waivers
                 </button>
-                <button onClick={() => setIeltsExemptOnly(!ieltsExemptOnly)} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${ieltsExemptOnly ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>
+                <button onClick={() => setIeltsExemptOnly(!ieltsExemptOnly)} className={`inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${ieltsExemptOnly ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>
                   <Languages className="w-3.5 h-3.5" />IELTS Exempt
                 </button>
               </div>

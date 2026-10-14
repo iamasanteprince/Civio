@@ -115,7 +115,7 @@ export default function CreatePostModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-modalIn max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg rounded-xl border border-slate-700 bg-slate-900 shadow-2xl animate-modalIn max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-slate-800">
@@ -266,7 +266,7 @@ export default function CreatePostModal({
           <button
             type="submit"
             disabled={!title.trim() || !organizer.trim() || !goal.trim() || !description.trim() || !verificationUrl.trim() || cooldownMs > 0}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
             {cooldownMs > 0 ? `Please wait ${Math.ceil(cooldownMs / 1000)}s` : 'Publish Initiative'}

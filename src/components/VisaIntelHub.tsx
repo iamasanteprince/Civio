@@ -44,10 +44,10 @@ function ProofOfFundsCalculator() {
   const currency = CURRENCY[destination];
 
   return (
-    <section className="mb-8 rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/30 to-slate-900/70 p-5 sm:p-6">
+    <section className="mb-8 rounded-xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
       <div className="mb-5 flex items-start gap-3">
-        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-2.5">
-          <Calculator className="h-5 w-5 text-emerald-300" />
+        <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-2.5">
+          <Calculator className="h-5 w-5 text-blue-300" />
         </div>
         <div>
           <h2 className="text-lg font-bold text-white">Proof-of-Funds Quick Calculator</h2>
@@ -61,7 +61,7 @@ function ProofOfFundsCalculator() {
           <select
             value={destination}
             onChange={(event) => setDestination(event.target.value as VisaDestination)}
-            className="mt-1.5 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-emerald-500/50"
+            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-blue-500/50"
           >
             <option value="us">United States (USD)</option>
             <option value="canada">Canada (CAD)</option>
@@ -78,7 +78,7 @@ function ProofOfFundsCalculator() {
             value={tuition}
             onChange={(event) => setTuition(event.target.value)}
             placeholder="Enter the amount on your offer or CAS"
-            className="mt-1.5 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-emerald-500/50"
+            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-blue-500/50"
           />
         </label>
 
@@ -92,7 +92,7 @@ function ProofOfFundsCalculator() {
               value={usLivingCosts}
               onChange={(event) => setUsLivingCosts(event.target.value)}
               placeholder="Use your school's first-year estimate"
-              className="mt-1.5 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-emerald-500/50"
+              className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-blue-500/50"
             />
           </label>
         )}
@@ -103,7 +103,7 @@ function ProofOfFundsCalculator() {
             <select
               value={ukLocation}
               onChange={(event) => setUkLocation(event.target.value as 'london' | 'outside')}
-              className="mt-1.5 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-emerald-500/50"
+              className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-blue-500/50"
             >
               <option value="london">London — £1,529 × 9 months</option>
               <option value="outside">Outside London — £1,171 × 9 months</option>
@@ -120,7 +120,7 @@ function ProofOfFundsCalculator() {
             value={additionalCosts}
             onChange={(event) => setAdditionalCosts(event.target.value)}
             placeholder="Add any additional required amount"
-            className="mt-1.5 w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-emerald-500/50"
+            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-blue-500/50"
           />
         </label>
       </div>
@@ -137,7 +137,7 @@ function ProofOfFundsCalculator() {
           </div>
           <div>
             <p className="text-xs text-slate-500">Estimated total to document</p>
-            <p className="mt-1 text-xl font-bold text-emerald-300">{formatMoney(total, currency)}</p>
+            <p className="mt-1 text-xl font-bold text-blue-300">{formatMoney(total, currency)}</p>
           </div>
         </div>
       )}
@@ -192,7 +192,7 @@ export default function VisaIntelHub() {
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {visaCards.map((visa) => {
           return (
-            <article key={visa.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-800/80 bg-[#0c1322]/90 shadow-lg shadow-black/10">
+            <article key={visa.id} className="flex flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
               <div className="p-5 sm:p-6">
                 <div className="mb-5 flex items-start gap-3">
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-sky-500/20 bg-sky-500/10 text-2xl">
