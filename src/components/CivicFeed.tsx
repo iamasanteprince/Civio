@@ -1,16 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
-  ThumbsUp,
   Users,
   MessageSquare,
   ArrowRight,
   Plus,
   Send,
   X,
-  Clock,
   ExternalLink,
 } from 'lucide-react';
 import type { Initiative, InitiativeCategory, Comment, CivioUser } from '@/types';
+import { sanitizePlainText } from '@/utils/inputSecurity';
 
 const CATEGORY_FILTERS: (InitiativeCategory | 'All')[] = [
   'All',
@@ -46,8 +45,9 @@ function CommentDrawer({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim()) return;
-    onAddComment(initiative.id, text.trim());
+    const sanitizedText = sanitizePlainText(text);
+    if (!sanitizedText) return;
+    onAddComment(initiative.id, sanitizedText.slice(0, 2000));
     setText('');
   };
 
@@ -106,26 +106,15 @@ function CommentDrawer({
 
 function InitiativeCard({
   initiative,
-  onEndorse,
   onVolunteer,
   onOpenComments,
-  currentUser,
 }: {
   initiative: Initiative;
-  onEndorse: (id: string) => void;
   onVolunteer: (id: string) => void;
   onOpenComments: (id: string) => void;
-  currentUser: CivioUser | null;
 }) {
-  const [endorsed, setEndorsed] = useState(false);
   const [volunteered, setVolunteered] = useState(false);
   const volunteerFull = initiative.volunteersJoined >= initiative.volunteersNeeded;
-
-  const handleEndorse = () => {
-    if (endorsed) return;
-    setEndorsed(true);
-    onEndorse(initiative.id);
-  };
 
   const handleVolunteer = () => {
     if (volunteered || volunteerFull) return;
@@ -141,18 +130,35 @@ function InitiativeCard({
             <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${CATEGORY_PILL_STYLES[initiative.category]}`}>
               {initiative.category}
             </span>
-            <span className="text-xs text-slate-500">
-              By <span className="text-slate-400 font-medium">{initiative.author}</span>
+            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+              initiative.verificationStatus === 'verified'
+                ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                : 'border-amber-500/30 bg-amber-500/10 text-amber-300'
+            }`}>
+              {initiative.verificationStatus === 'verified' ? 'Verified Organizer' : 'Verification pending'}
             </span>
           </div>
-          <span className="text-xs text-slate-500 flex items-center gap-1 flex-shrink-0">
-            <Clock className="w-3 h-3" />
-            {initiative.postedAt}
-          </span>
         </div>
 
         <h3 className="text-base font-bold text-white leading-snug mb-2">{initiative.title}</h3>
         <p className="text-sm text-slate-400 leading-relaxed mb-4">{initiative.description}</p>
+
+        <div className="mb-4 space-y-2 rounded-xl border border-slate-800 bg-slate-900/40 p-3 text-xs">
+          <p className="text-slate-400">
+            Organizer: <span className="font-medium text-slate-200">{initiative.organizer}</span>
+          </p>
+          <p className="text-slate-400">
+            Goal: <span className="text-slate-300">{initiative.goal}</span>
+          </p>
+          <a
+            href={initiative.verificationUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 font-medium text-indigo-400 hover:text-indigo-300"
+          >
+            Organizer evidence <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
 
         {initiative.link && (
           <a
@@ -166,17 +172,6 @@ function InitiativeCard({
         )}
 
         <div className="flex items-center gap-4 pt-3 border-t border-slate-800 flex-wrap">
-          <button
-            onClick={handleEndorse}
-            className={`inline-flex items-center gap-1.5 text-xs font-medium transition-all ${
-              endorsed ? 'text-emerald-400' : 'text-slate-400 hover:text-emerald-400'
-            }`}
-          >
-            <ThumbsUp className={`w-4 h-4 ${endorsed ? 'fill-emerald-400' : ''}`} />
-            <span className="tabular-nums">{initiative.endorsements}</span>
-            <span className="hidden sm:inline">{endorsed ? 'Endorsed' : 'Endorse'}</span>
-          </button>
-
           <div className="flex items-center gap-1.5 text-xs text-slate-400">
             <Users className="w-4 h-4" />
             <span className="tabular-nums">{initiative.volunteersJoined}/{initiative.volunteersNeeded}</span>
@@ -222,41 +217,22 @@ function InitiativeCard({
 
 export default function CivicFeed({
   currentUser,
-  searchQuery,
   initiatives,
-  onEndorse,
   onVolunteer,
   onAddComment,
   onOpenCreatePost,
 }: {
   currentUser: CivioUser | null;
-  searchQuery: string;
   initiatives: Initiative[];
-  onEndorse: (id: string) => void;
   onVolunteer: (id: string) => void;
   onAddComment: (initId: string, content: string) => void;
   onOpenCreatePost: () => void;
 }) {
   const [activeFilter, setActiveFilter] = useState<InitiativeCategory | 'All'>('All');
   const [commentInitId, setCommentInitId] = useState<string | null>(null);
-
-  const filtered = useMemo(() => {
-    let result = initiatives;
-    if (activeFilter !== 'All') {
-      result = result.filter((i) => i.category === activeFilter);
-    }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      result = result.filter(
-        (i) =>
-          i.title.toLowerCase().includes(q) ||
-          i.description.toLowerCase().includes(q) ||
-          i.category.toLowerCase().includes(q) ||
-          i.author.toLowerCase().includes(q)
-      );
-    }
-    return result;
-  }, [initiatives, activeFilter, searchQuery]);
+  const filtered = activeFilter === 'All'
+    ? initiatives
+    : initiatives.filter((initiative) => initiative.category === activeFilter);
 
   const commentInitiative = commentInitId
     ? initiatives.find((i) => i.id === commentInitId) || null
@@ -306,8 +282,19 @@ export default function CivicFeed({
       {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-8 py-12">
-            <p className="text-slate-400 text-lg font-medium">No initiatives match your search</p>
-            <p className="text-slate-500 text-sm mt-1">Try adjusting filters or create a new initiative.</p>
+            <p className="text-slate-400 text-lg font-medium">
+              {initiatives.length === 0
+                ? 'No verified community initiatives have been submitted yet'
+                : 'No initiatives match this category'}
+            </p>
+            <p className="text-slate-500 text-sm mt-1">
+              {initiatives.length === 0
+                ? 'Share a project with organizer details and evidence to start the feed.'
+                : 'Choose another category or submit a new initiative.'}
+            </p>
+            <p className="mx-auto mt-4 max-w-lg text-xs text-slate-600">
+              This workspace has no shared project database or verification service. New submissions remain local to this app session and are marked pending.
+            </p>
           </div>
         </div>
       ) : (
@@ -316,10 +303,8 @@ export default function CivicFeed({
             <InitiativeCard
               key={init.id}
               initiative={init}
-              onEndorse={onEndorse}
               onVolunteer={onVolunteer}
               onOpenComments={setCommentInitId}
-              currentUser={currentUser}
             />
           ))}
         </div>

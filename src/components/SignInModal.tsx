@@ -1,191 +1,517 @@
-import { useState } from 'react';
-import { X, Mail, Lock, Landmark, LogOut } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { LogOut, Lock, Mail, X, ShieldCheck, Settings, Trash2 } from 'lucide-react';
+import type { User } from '@supabase/supabase-js';
 import type { CivioUser } from '@/types';
+import { isSupabaseConfigured, supabase } from '@/lib/supabase';
+import {
+  clearAuthCooldown,
+  getAuthCooldownRemaining,
+  recordAuthFailure,
+  sanitizePlainText,
+} from '@/utils/inputSecurity';
+
+const GENERIC_AUTH_ERROR = 'Unable to complete request. Please verify your email and password.';
+const AGE_CONSENT_TEXT = 'I am 18 or older, or I have permission from a parent or guardian to use this app.';
+
+function toCivioUser(user: User): CivioUser | null {
+  if (!user.email) return null;
+  const displayName =
+    typeof user.user_metadata.display_name === 'string'
+      ? sanitizePlainText(user.user_metadata.display_name).slice(0, 80)
+      : user.email.split('@')[0];
+  const isVerified = Boolean(
+    user.email_confirmed_at ||
+    user.app_metadata.provider === 'google' ||
+    (Array.isArray(user.identities) && user.identities.some((identity) => identity.provider === 'google'))
+  );
+  return { id: user.id, email: user.email, displayName: displayName || user.email.split('@')[0], isVerified };
+}
+
+function PrivacyModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      role="presentation"
+      onClick={onClose}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="privacy-title"
+        className="relative w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close privacy commitment"
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+        >
+          <X className="h-5 w-5" />
+        </button>
+        <h2 id="privacy-title" className="mb-3 pr-8 text-lg font-bold text-white">Privacy Commitment</h2>
+        <p className="text-sm leading-relaxed text-slate-300">
+          Civio Privacy Commitment: We only collect your email address, login credentials, and the timestamp of your age/guardian consent. We do not sell data, track personal browsing off-site, or store payment information.
+        </p>
+      </section>
+    </div>
+  );
+}
 
 export default function SignInModal({
   open,
   onClose,
   onSignIn,
+  captchaToken,
 }: {
   open: boolean;
   onClose: () => void;
   onSignIn: (user: CivioUser) => void;
+  captchaToken?: string;
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [ageConsent, setAgeConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<'sign-in' | 'sign-up'>('sign-in');
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [cooldownMs, setCooldownMs] = useState(() => getAuthCooldownRemaining());
+
+  useEffect(() => {
+    if (!open || cooldownMs <= 0) return;
+    const timer = window.setInterval(() => setCooldownMs(getAuthCooldownRemaining()), 250);
+    return () => window.clearInterval(timer);
+  }, [open, cooldownMs]);
 
   if (!open) return null;
 
-  const handleAuth = (userEmail?: string) => {
+  const waitSeconds = Math.ceil(cooldownMs / 1000);
+  const failRequest = () => {
+    recordAuthFailure();
+    setCooldownMs(getAuthCooldownRemaining());
+    setError(GENERIC_AUTH_ERROR);
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    setNotice('');
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) return;
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+    if (mode === 'sign-up' && !ageConsent) {
+      setError('Please confirm the age or parent/guardian permission statement.');
+      return;
+    }
+    if (waitSeconds > 0 || loading) return;
+    if (!supabase) {
+      failRequest();
+      return;
+    }
+
     setLoading(true);
-    const finalEmail = userEmail || email.trim();
-    if (!finalEmail) return;
-    setTimeout(() => {
-      const displayName = finalEmail.split('@')[0];
-      onSignIn({ email: finalEmail, displayName });
-      setLoading(false);
+    try {
+      if (mode === 'sign-up') {
+        const { data, error: authError } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password,
+          options: {
+            ...(captchaToken ? { captchaToken } : {}),
+            data: {
+              age_consent_given: true,
+              age_consent_timestamp: new Date().toISOString(),
+            },
+          },
+        });
+        if (authError) {
+          failRequest();
+          return;
+        }
+        clearAuthCooldown();
+        setCooldownMs(0);
+        if (data.session && data.user) {
+          const user = toCivioUser(data.user);
+          if (user) {
+            onSignIn(user);
+            setEmail('');
+            setPassword('');
+            setAgeConsent(false);
+            onClose();
+            return;
+          }
+        }
+        setNotice('If your account can be created, check your email for the next step.');
+        return;
+      }
+
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      });
+      if (authError) {
+        failRequest();
+        return;
+      }
+      const user = data.user ? toCivioUser(data.user) : null;
+      if (!user) {
+        failRequest();
+        return;
+      }
+      clearAuthCooldown();
+      setCooldownMs(0);
+      onSignIn(user);
       setEmail('');
       setPassword('');
       onClose();
-    }, 1000);
+    } catch {
+      failRequest();
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
-    handleAuth();
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setNotice('');
+    if (waitSeconds > 0 || loading) return;
+    if (!supabase) {
+      failRequest();
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error: authError } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin },
+      });
+      if (authError) {
+        failRequest();
+        setLoading(false);
+      }
+    } catch {
+      failRequest();
+      setLoading(false);
+    }
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn"
-      onClick={onClose}
-    >
+    <>
       <div
-        className="relative w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900/95 backdrop-blur-xl shadow-2xl animate-modalIn"
-        onClick={(e) => e.stopPropagation()}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fadeIn"
+        onClick={onClose}
       >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auth-title"
+          className="relative w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900/95 shadow-2xl animate-modalIn"
+          onClick={(event) => event.stopPropagation()}
         >
-          <X className="w-5 h-5" />
-        </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close sign in"
+            className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
+          >
+            <X className="h-5 w-5" />
+          </button>
 
-        <div className="p-6">
-          <div className="mb-6 text-center">
-            <div className="relative inline-flex items-center justify-center mb-3">
-              <div className="absolute inset-0 rounded-xl bg-indigo-500/30 blur-md animate-pulseGlow" />
-              <div className="relative flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 w-12 h-12 border border-indigo-400/30">
-                <Landmark className="w-6 h-6 text-white" />
+          <div className="p-6">
+            <div className="mb-6 text-center">
+              <div className="relative mb-3 inline-flex items-center justify-center">
+                <div className="absolute inset-0 animate-pulseGlow rounded-xl bg-indigo-500/30 blur-md" />
+                <img
+                  src="/civio-logo.png"
+                  alt="Civiohub Logo"
+                  className="relative h-12 w-12 rounded-xl border border-indigo-400/30 object-cover"
+                />
               </div>
+              <h2 id="auth-title" className="text-xl font-bold text-white">
+                {mode === 'sign-in' ? 'Sign In to Civiohub' : 'Create Your Civiohub Account'}
+              </h2>
+              <p className="mt-1 text-sm text-slate-400">
+                {mode === 'sign-in'
+                  ? 'Connect to submit initiatives and join community discussions.'
+                  : 'Create a free account to join the Civiohub community.'}
+              </p>
             </div>
-            <h2 className="text-xl font-bold text-white">
-              {mode === 'sign-in' ? 'Sign In to Civio' : 'Create Your Civio Account'}
-            </h2>
-            <p className="text-sm text-slate-400 mt-1">
-              {mode === 'sign-in'
-                ? 'Connect to post initiatives, vote, and join discussions.'
-                : 'Join the Civio community to make your voice heard.'}
+
+            <div className="mb-5 flex gap-1 rounded-xl bg-slate-800/60 p-1">
+              {(['sign-in', 'sign-up'] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => {
+                    setMode(option);
+                    setError('');
+                    setNotice('');
+                  }}
+                  aria-pressed={mode === option}
+                  className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
+                    mode === option ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  {option === 'sign-in' ? 'Sign In' : 'Create Account'}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="auth-email" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  <input
+                    id="auth-email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500 focus:border-indigo-500/50 focus:bg-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="auth-password" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-500">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+                  <input
+                    id="auth-password"
+                    type="password"
+                    autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
+                    minLength={8}
+                    required
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="At least 8 characters"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500 focus:border-indigo-500/50 focus:bg-slate-800"
+                  />
+                </div>
+              </div>
+
+              {mode === 'sign-up' && (
+                <div className="rounded-lg border border-slate-800 bg-slate-800/30 p-3">
+                  <div className="flex items-start gap-2">
+                    <input
+                      id="age-consent"
+                      type="checkbox"
+                      checked={ageConsent}
+                      onChange={(event) => setAgeConsent(event.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500"
+                    />
+                    <label htmlFor="age-consent" className="text-xs leading-relaxed text-slate-300">
+                      {AGE_CONSENT_TEXT}
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPrivacyOpen(true)}
+                    className="ml-6 mt-1 inline-flex items-center gap-1 text-xs text-indigo-300 underline decoration-indigo-500/40 underline-offset-2 hover:text-indigo-200"
+                  >
+                    Privacy
+                  </button>
+                </div>
+              )}
+
+              {error && <p role="alert" className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs text-rose-300">{error}</p>}
+              {notice && <p role="status" className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">{notice}</p>}
+              {!isSupabaseConfigured() && (
+                <p className="text-xs text-slate-500">
+                  Account services are not configured. Public browsing remains available.
+                </p>
+              )}
+
+              <button
+                type="submit"
+                disabled={
+                  loading ||
+                  waitSeconds > 0 ||
+                  !email.trim() ||
+                  !password ||
+                  password.length < 8 ||
+                  (mode === 'sign-up' && !ageConsent)
+                }
+                className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50"
+              >
+                {loading ? 'Connecting...' : waitSeconds > 0 ? `Please wait ${waitSeconds}s` : mode === 'sign-in' ? 'Sign In' : 'Create Account'}
+              </button>
+            </form>
+
+            <div className="my-4 flex items-center gap-3">
+              <div className="h-px flex-1 bg-slate-800" />
+              <span className="text-xs text-slate-500">or</span>
+              <div className="h-px flex-1 bg-slate-800" />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void handleGoogleSignIn()}
+              disabled={loading || waitSeconds > 0}
+              className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-all hover:border-slate-600 hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
+            >
+              <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              Continue with Google
+            </button>
+            <p className="mt-3 text-center text-[11px] text-slate-500">
+              <ShieldCheck className="mr-1 inline h-3.5 w-3.5" />
+              Authentication is handled by Supabase. Civio never stores your password.
             </p>
           </div>
-
-          {/* Tab toggle */}
-          <div className="flex gap-1 p-1 rounded-xl bg-slate-800/60 mb-5">
-            <button
-              onClick={() => setMode('sign-in')}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                mode === 'sign-in'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              onClick={() => setMode('sign-up')}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                mode === 'sign-up'
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              Create Account
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">
-                Email
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-800/60 pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-800/60 pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !email.trim() || !password.trim()}
-              className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 active:scale-[0.98] disabled:opacity-50"
-            >
-              {loading ? 'Connecting...' : mode === 'sign-in' ? 'Sign In' : 'Create Account'}
-            </button>
-          </form>
-
-          <div className="my-4 flex items-center gap-3">
-            <div className="flex-1 h-px bg-slate-800" />
-            <span className="text-xs text-slate-500">or</span>
-            <div className="flex-1 h-px bg-slate-800" />
-          </div>
-
-          <button
-            onClick={() => handleAuth('demo.user@gmail.com')}
-            disabled={loading}
-            className="w-full inline-flex items-center justify-center gap-2.5 rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm font-semibold text-slate-200 transition-all hover:border-slate-600 hover:bg-slate-800 active:scale-[0.98] disabled:opacity-50"
-          >
-            <svg className="w-4 h-4" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
-            </svg>
-            Continue with Google
-          </button>
         </div>
       </div>
-    </div>
+      {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
+    </>
   );
 }
 
 export function UserMenu({
   user,
   onSignOut,
+  onDeleteAccount,
 }: {
   user: CivioUser;
   onSignOut: () => void;
+  onDeleteAccount: () => Promise<void>;
 }) {
+  const [settingsOpen, setSettingsOpen] = useState(false);
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-1.5">
-        <div className="flex items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-blue-700 w-7 h-7 text-xs font-bold text-white">
-          {user.displayName.charAt(0).toUpperCase()}
+    <>
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-1.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-blue-700 text-xs font-bold text-white">
+            {user.displayName.charAt(0).toUpperCase()}
+          </div>
+          <span className="hidden text-sm font-medium text-slate-200 sm:inline">{user.email}</span>
         </div>
-        <span className="text-sm text-slate-200 font-medium hidden sm:inline">{user.email}</span>
+        <button
+          type="button"
+          onClick={() => setSettingsOpen(true)}
+          aria-label="Account settings"
+          className="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-900/80 p-2 text-slate-300 transition-all hover:bg-slate-800 hover:text-white"
+        >
+          <Settings className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={onSignOut}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-medium text-slate-300 transition-all hover:bg-slate-800 hover:text-white"
+          title="Sign Out"
+        >
+          <LogOut className="h-4 w-4" />
+          <span className="hidden sm:inline">Sign Out</span>
+        </button>
       </div>
-      <button
-        onClick={onSignOut}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-medium text-slate-300 transition-all hover:bg-slate-800 hover:text-white"
-        title="Sign Out"
+      {settingsOpen && (
+        <AccountSettingsModal
+          onClose={() => setSettingsOpen(false)}
+          onDeleteAccount={onDeleteAccount}
+        />
+      )}
+    </>
+  );
+}
+
+function AccountSettingsModal({
+  onClose,
+  onDeleteAccount,
+}: {
+  onClose: () => void;
+  onDeleteAccount: () => Promise<void>;
+}) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState('');
+
+  const deleteAccount = async () => {
+    setDeleting(true);
+    setError('');
+    try {
+      await onDeleteAccount();
+    } catch {
+      setError('Unable to delete your account right now. Please try again or contact support.');
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      role="presentation"
+      onClick={onClose}
+    >
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="account-settings-title"
+        className="w-full max-w-lg rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+        onClick={(event) => event.stopPropagation()}
       >
-        <LogOut className="w-4 h-4" />
-        <span className="hidden sm:inline">Sign Out</span>
-      </button>
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div>
+            <h2 id="account-settings-title" className="text-xl font-bold text-white">Account Settings</h2>
+            <p className="mt-1 text-sm text-slate-400">Manage your account and personal data.</p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close account settings" className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <section className="rounded-xl border border-rose-500/40 bg-rose-500/5 p-4">
+          <h3 className="flex items-center gap-2 font-bold text-rose-200">
+            <Trash2 className="h-4 w-4" /> Danger Zone
+          </h3>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300">
+            Permanently delete your account and associated personal data.
+          </p>
+          {!confirmDelete ? (
+            <button
+              type="button"
+              onClick={() => setConfirmDelete(true)}
+              className="mt-4 rounded-lg border border-rose-500/40 bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-500"
+            >
+              Delete Account
+            </button>
+          ) : (
+            <div className="mt-4 rounded-lg border border-rose-500/30 bg-slate-950/50 p-3">
+              <p className="text-sm font-medium leading-relaxed text-rose-100">
+                Are you sure you want to delete your account? This action is permanent and removes your profile and personal data.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => void deleteAccount()}
+                  disabled={deleting}
+                  className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-500 disabled:opacity-50"
+                >
+                  {deleting ? 'Deleting…' : 'Permanently Delete'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={deleting}
+                  className="rounded-lg border border-slate-700 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          {error && <p role="alert" className="mt-3 text-sm text-rose-300">{error}</p>}
+        </section>
+      </section>
     </div>
   );
 }

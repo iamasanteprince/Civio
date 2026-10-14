@@ -1,6 +1,18 @@
-import type { LucideIcon } from 'lucide-react';
+export type View = 'visa' | 'hub' | 'opportunities' | 'asante' | 'forum';
 
-export type View = 'feed' | 'polls' | 'hub' | 'opportunities' | 'copilot';
+export interface DiscussionComment {
+  id: string;
+  author: string;
+  content: string;
+  timestamp: string;
+  likes: number;
+  verified: boolean;
+  userId?: string;
+  guestSessionId?: string;
+  editedAt?: string;
+}
+
+export type DiscussionStore = Record<string, DiscussionComment[]>;
 
 export type InitiativeCategory =
   | 'Education'
@@ -21,30 +33,19 @@ export interface Initiative {
   id: string;
   category: InitiativeCategory;
   author: string;
+  organizer: string;
+  goal: string;
+  verificationUrl: string;
+  verificationStatus: 'pending' | 'verified';
   title: string;
   description: string;
-  endorsements: number;
   volunteersNeeded: number;
   volunteersJoined: number;
   comments: Comment[];
   postedAt: string;
   link?: string;
-}
-
-export interface PollOption {
-  id: string;
-  label: string;
-  votes: number;
-}
-
-export interface Poll {
-  id: string;
-  question: string;
-  description: string;
-  options: PollOption[];
-  totalVotes: number;
-  author: string;
-  postedAt: string;
+  userId?: string;
+  guestSessionId?: string;
 }
 
 export type ApplicationFeeType = 'free' | 'waiver' | 'paid';
@@ -91,29 +92,45 @@ export interface University {
   established: string;
 }
 
-export interface ChatMessage {
+export interface AsanteMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  results?: CopilotResult[];
+  results?: AsanteResult[];
 }
 
-export interface CopilotUniversityResult {
+export interface AsanteUniversityResult {
   kind: 'university';
   university: University;
 }
 
-export interface CopilotInitiativeResult {
+export interface AsanteInitiativeResult {
   kind: 'initiative';
   initiative: Initiative;
 }
 
-export type CopilotResult = CopilotUniversityResult | CopilotInitiativeResult;
+export interface AsanteApiUniversityResult {
+  kind: 'global-university';
+  university: ApiUniversity;
+}
+
+export interface AsanteOpportunityResult {
+  kind: 'opportunity';
+  opportunity: Opportunity;
+}
+
+export type AsanteResult =
+  | AsanteUniversityResult
+  | AsanteInitiativeResult
+  | AsanteApiUniversityResult
+  | AsanteOpportunityResult;
 
 export interface CivioUser {
+  id: string;
   email: string;
   displayName: string;
+  isVerified: boolean;
 }
 
 export type OpportunityCategory =
@@ -151,7 +168,7 @@ export interface ApiUniversity {
   name: string;
   alpha_two_code: string;
   country: string;
-  web_page: string;
+  web_pages: string[];
   domains: string[];
 }
 

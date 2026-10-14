@@ -1,131 +1,349 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Landmark,
-  Search,
-  X,
-  Radio,
+  ShieldCheck,
   GraduationCap,
   Compass,
   Menu,
   Plus,
   LogIn,
-  BarChart3,
   Briefcase,
-  DollarSign,
-  Plane,
-  Languages,
-  Code2,
+  MessageSquare,
 } from 'lucide-react';
-import type { View, Initiative, CivioUser } from '@/types';
-import CivicFeed from '@/components/CivicFeed';
-import CivicPolls from '@/components/CivicPolls';
+import type { View, Initiative, CivioUser, DiscussionComment, DiscussionStore } from '@/types';
 import SchoolHub from '@/components/SchoolHub';
 import OpportunitiesHub from '@/components/OpportunitiesHub';
-import CivioCopilot from '@/components/CivioCopilot';
+import Asante from '@/components/Asante';
+import VisaIntelHub from '@/components/VisaIntelHub';
+import StudentForum from '@/components/StudentForum';
 import CreatePostModal from '@/components/CreatePostModal';
 import SignInModal, { UserMenu } from '@/components/SignInModal';
-import { initiatives as initialInitiatives } from '@/data/initiatives';
+import AdminActivityDrawer from '@/components/AdminActivityDrawer';
+import { DISCUSSION_STORAGE_KEY, parseDiscussionStore } from '@/data/discussions';
+import { supabase } from '@/lib/supabase';
+import { parseAdminAnalytics, type AdminAnalytics } from '@/lib/adminAnalytics';
+import { getGuestSessionId, resetGuestSessionId, sanitizePlainText } from '@/utils/inputSecurity';
 
-const TABS: { id: View; label: string; icon: typeof Radio; description: string; mobileLabel: string }[] = [
-  { id: 'feed', label: 'Initiatives', icon: Radio, description: 'Civic & Educational Feed', mobileLabel: 'Initiatives' },
-  { id: 'polls', label: 'Civic Polls & Votes', icon: BarChart3, description: 'Interactive polling & discussions', mobileLabel: 'Polls' },
+const ADMIN_EMAIL = 'iamasanteprince@gmail.com';
+
+const TABS: { id: View; label: string; icon: typeof ShieldCheck; description: string; mobileLabel: string }[] = [
+  { id: 'visa', label: 'Visa & Immigration', icon: ShieldCheck, description: 'Student Visa & Immigration Intel', mobileLabel: 'Visa Intel' },
   { id: 'hub', label: 'Admissions Hub', icon: GraduationCap, description: 'Universities, $0 App Fees, Waivers', mobileLabel: 'Hub' },
   { id: 'opportunities', label: 'Opportunities', icon: Briefcase, description: 'Conferences, Fellowships, Internships', mobileLabel: 'Opps' },
-  { id: 'copilot', label: 'Civio Copilot', icon: Compass, description: 'AI Advisor', mobileLabel: 'Copilot' },
-];
-
-const QUICK_FILTERS: { label: string; icon: typeof DollarSign; view: View; query: string }[] = [
-  { label: 'Universities with No Application Fee', icon: DollarSign, view: 'hub', query: '' },
-  { label: 'Fully Funded Conferences with Flight Sponsorship', icon: Plane, view: 'opportunities', query: '' },
-  { label: 'IELTS Exempt for African Applicants', icon: Languages, view: 'hub', query: '' },
-  { label: 'Remote Tech Internships', icon: Code2, view: 'opportunities', query: 'coding' },
+  { id: 'asante', label: 'Asante', icon: Compass, description: 'Admissions, opportunities & intelligence', mobileLabel: 'Asante' },
+  { id: 'forum', label: 'Student Forum', icon: MessageSquare, description: 'Applicant discussions and questions', mobileLabel: 'Forum' },
 ];
 
 function Logo() {
   return (
     <div className="flex items-center gap-3">
-      <div className="bg-indigo-600 p-2.5 rounded-xl shadow-lg shadow-indigo-600/30">
-        <Landmark className="w-5 h-5 text-white" />
-      </div>
-      <div className="hidden sm:block">
-        <h1 className="text-lg font-black text-white leading-none tracking-tight">Civio</h1>
-        <p className="text-xs text-indigo-400 font-medium mt-0.5">Civic Engagement & Educational Empowerment</p>
-      </div>
-    </div>
-  );
-}
-
-function SearchBar({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div className="relative flex-1 max-w-md">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Search initiatives, universities, topics..."
-        className="w-full rounded-xl border border-slate-700 bg-slate-800/60 pl-10 pr-10 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800 focus:ring-2 focus:ring-indigo-500/10"
+      <img
+        src="/civio-logo.png"
+        alt="Civiohub Logo"
+        className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-indigo-500/25 border border-indigo-500/30"
       />
-      {value && (
-        <button
-          onClick={() => onChange('')}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-0.5 text-slate-500 transition hover:bg-slate-700 hover:text-slate-300"
-        >
-          <X className="w-3.5 h-3.5" />
-        </button>
-      )}
-    </div>
-  );
-}
-
-function QuickFilterTags({
-  onNavigate,
-}: {
-  activeView: View;
-  searchQuery: string;
-  onNavigate: (view: View, query?: string) => void;
-}) {
-  return (
-    <div className="hidden xl:flex items-center gap-1.5">
-      {QUICK_FILTERS.map(({ label, icon: Icon, view, query }) => (
-        <button
-          key={label}
-          onClick={() => onNavigate(view, query || undefined)}
-          className="inline-flex items-center gap-1.5 rounded-full border border-slate-700/60 bg-slate-800/40 px-3 py-1.5 text-xs font-medium text-slate-400 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/10 hover:text-indigo-300 whitespace-nowrap"
-        >
-          <Icon className="w-3.5 h-3.5" />
-          {label}
-        </button>
-      ))}
+      <div className="hidden sm:block">
+        <h1 className="text-lg font-black text-white leading-none tracking-tight">Civiohub</h1>
+        <p className="text-xs text-indigo-400 font-medium mt-0.5">Civic Engagement, Admissions &amp; Global Opportunities</p>
+      </div>
     </div>
   );
 }
 
 export default function App() {
-  const [activeView, setActiveView] = useState<View>('feed');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeView, setActiveView] = useState<View>('visa');
   const [signInOpen, setSignInOpen] = useState(false);
   const [createPostOpen, setCreatePostOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<CivioUser | null>(null);
-  const [initiatives, setInitiatives] = useState<Initiative[]>(initialInitiatives);
+  const [initiatives, setInitiatives] = useState<Initiative[]>([]);
+  const [discussions, setDiscussions] = useState<DiscussionStore>({});
+  const [discussionsReady, setDiscussionsReady] = useState(false);
+  const [discussionError, setDiscussionError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
+  const [adminRefreshKey, setAdminRefreshKey] = useState(0);
+  const [adminAnalytics, setAdminAnalytics] = useState<AdminAnalytics | null>(null);
+  const [adminAnalyticsLoading, setAdminAnalyticsLoading] = useState(false);
+  const [adminAnalyticsError, setAdminAnalyticsError] = useState<string | null>(null);
+  const isAdmin = currentUser?.email.trim().toLowerCase() === ADMIN_EMAIL;
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    let active = true;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user;
+      if (!active || !user?.email) {
+        if (active) setCurrentUser(null);
+        return;
+      }
+      const displayName =
+        typeof user.user_metadata.display_name === 'string'
+          ? sanitizePlainText(user.user_metadata.display_name).slice(0, 80)
+          : user.email.split('@')[0];
+      const isVerified = Boolean(
+        user.email_confirmed_at ||
+        user.app_metadata.provider === 'google' ||
+        user.identities?.some((identity) => identity.provider === 'google')
+      );
+      setCurrentUser({ id: user.id, email: user.email, displayName: displayName || user.email.split('@')[0], isVerified });
+      setAuthError(null);
+    });
+
+    void supabase.auth.getSession().then(({ data, error }) => {
+      if (!active) return;
+      if (error) {
+        setAuthError('Unable to restore your account session. Please sign in again.');
+        return;
+      }
+      const user = data.session?.user;
+      if (!user?.email) return;
+      const displayName =
+        typeof user.user_metadata.display_name === 'string'
+          ? sanitizePlainText(user.user_metadata.display_name).slice(0, 80)
+          : user.email.split('@')[0];
+      const isVerified = Boolean(
+        user.email_confirmed_at ||
+        user.app_metadata.provider === 'google' ||
+        user.identities?.some((identity) => identity.provider === 'google')
+      );
+      setCurrentUser({ id: user.id, email: user.email, displayName: displayName || user.email.split('@')[0], isVerified });
+    }).catch(() => {
+      if (active) setAuthError('Unable to restore your account session. Please sign in again.');
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      setAdminAnalytics(null);
+      setAdminAnalyticsError(null);
+      setAdminAnalyticsLoading(false);
+      setAdminDrawerOpen(false);
+      return;
+    }
+    if (!supabase) {
+      setAdminAnalyticsError('Admin analytics are unavailable because account services are not configured.');
+      return;
+    }
+
+    let active = true;
+    setAdminAnalyticsLoading(true);
+    setAdminAnalyticsError(null);
+    void (async () => {
+      try {
+        const { data, error } = await supabase.rpc('admin_activity_summary');
+        if (!active) return;
+        if (error) {
+          setAdminAnalytics(null);
+          setAdminAnalyticsError('Could not load admin analytics. Apply the admin activity migration and try again.');
+          return;
+        }
+        try {
+          setAdminAnalytics(parseAdminAnalytics(data));
+        } catch {
+          setAdminAnalytics(null);
+          setAdminAnalyticsError('Admin analytics returned an unexpected response.');
+        }
+      } catch {
+        if (active) {
+          setAdminAnalytics(null);
+          setAdminAnalyticsError('Could not load admin analytics. Check the connection and try again.');
+        }
+      } finally {
+        if (active) setAdminAnalyticsLoading(false);
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [isAdmin, adminRefreshKey]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DISCUSSION_STORAGE_KEY);
+      setDiscussions(saved ? parseDiscussionStore(saved) : {});
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Could not read saved discussions.';
+      setDiscussionError(`Discussion storage is unavailable or invalid: ${message}`);
+    } finally {
+      setDiscussionsReady(true);
+    }
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== DISCUSSION_STORAGE_KEY) return;
+      try {
+        setDiscussions(event.newValue ? parseDiscussionStore(event.newValue) : {});
+        setDiscussionError(null);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Could not read updated discussions.';
+        setDiscussionError(`Could not sync discussions from another Civio tab: ${message}`);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   const handleSignIn = (user: CivioUser) => {
     setCurrentUser(user);
+    setAuthError(null);
   };
 
   const handleSignOut = () => {
+    if (!supabase) return;
+    void supabase.auth.signOut().then(({ error }) => {
+      if (error) setAuthError('Unable to sign out right now. Please try again.');
+      else {
+        setCurrentUser(null);
+        setAuthError(null);
+      }
+    }).catch(() => setAuthError('Unable to sign out right now. Please try again.'));
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!supabase || !currentUser) throw new Error('Account services are unavailable.');
+    const { error } = await supabase.rpc('delete_my_account');
+    if (error) throw error;
+
+    const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
+    if (signOutError) setAuthError('Account deleted. A local session could not be fully cleared; please close this browser tab.');
+    try {
+      const ownedKeys = Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index))
+        .filter((key): key is string => Boolean(key && key.startsWith('civio-')));
+      ownedKeys.forEach((key) => localStorage.removeItem(key));
+      const projectRef = new URL(import.meta.env.VITE_SUPABASE_URL).hostname.split('.')[0];
+      localStorage.removeItem(`sb-${projectRef}-auth-token`);
+      sessionStorage.clear();
+      resetGuestSessionId();
+    } catch {
+      setDiscussionError('Account deleted, but browser storage could not be fully cleared. Clear this site’s storage in browser settings.');
+    }
     setCurrentUser(null);
+    setInitiatives([]);
+    setDiscussions({});
+    setActiveView('visa');
+    setAdminDrawerOpen(false);
+    setAdminAnalytics(null);
+    setAuthError(null);
   };
 
   const handleCreateInitiative = (initiative: Initiative) => {
     setInitiatives((prev) => [initiative, ...prev]);
+  };
+
+  const canManageInitiative = (initiative: Initiative) =>
+    isAdmin ||
+    Boolean(currentUser && initiative.userId === currentUser.id) ||
+    Boolean(initiative.guestSessionId && initiative.guestSessionId === getGuestSessionId());
+
+  const updateInitiative = (
+    initiativeId: string,
+    fields: Pick<Initiative, 'title' | 'description' | 'goal'>
+  ) => {
+    setInitiatives((previous) => previous.map((initiative) =>
+      initiative.id === initiativeId && canManageInitiative(initiative)
+        ? { ...initiative, ...fields }
+        : initiative
+    ));
+  };
+
+  const deleteInitiative = (initiativeId: string) => {
+    const initiative = initiatives.find((item) => item.id === initiativeId);
+    if (!initiative || !canManageInitiative(initiative)) return;
+    setInitiatives((previous) => previous.filter((initiative) =>
+      initiative.id !== initiativeId || !canManageInitiative(initiative)
+    ));
+    const nextDiscussions = { ...discussions };
+    delete nextDiscussions[`initiative:${initiativeId}`];
+    saveDiscussions(nextDiscussions);
+  };
+
+  const saveDiscussions = (next: DiscussionStore) => {
+    setDiscussions(next);
+    try {
+      localStorage.setItem(DISCUSSION_STORAGE_KEY, JSON.stringify(next));
+      setDiscussionError(null);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown storage error.';
+      setDiscussionError(`Your discussion is visible in this session but could not be saved in this browser: ${message}`);
+    }
+  };
+
+  const addDiscussionComment = (threadId: string, content: string, accountPost = false) => {
+    if (!discussionsReady) return;
+    const sanitizedContent = sanitizePlainText(content).slice(0, 2000);
+    if (!sanitizedContent) return;
+    const comment: DiscussionComment = {
+      id: crypto.randomUUID(),
+      author: accountPost
+        ? sanitizePlainText(currentUser?.displayName || 'Member').slice(0, 80) || 'Member'
+        : 'Guest',
+      content: sanitizedContent,
+      timestamp: new Date().toISOString(),
+      likes: 0,
+      verified: accountPost && Boolean(currentUser?.isVerified),
+      userId: accountPost ? currentUser?.id : undefined,
+      guestSessionId: accountPost ? undefined : getGuestSessionId(),
+    };
+    saveDiscussions({ ...discussions, [threadId]: [...(discussions[threadId] ?? []), comment] });
+  };
+
+  const canManageComment = (comment: DiscussionComment) =>
+    isAdmin ||
+    Boolean(currentUser && comment.userId === currentUser.id) ||
+    Boolean(comment.guestSessionId && comment.guestSessionId === getGuestSessionId());
+
+  const editDiscussionComment = (threadId: string, commentId: string, content: string) => {
+    const thread = discussions[threadId] ?? [];
+    const target = thread.find((comment) => comment.id === commentId);
+    const sanitizedContent = sanitizePlainText(content).slice(0, 2000);
+    if (!target || !sanitizedContent || !canManageComment(target)) return;
+    saveDiscussions({
+      ...discussions,
+      [threadId]: thread.map((comment) => comment.id === commentId
+        ? { ...comment, content: sanitizedContent, editedAt: new Date().toISOString() }
+        : comment),
+    });
+  };
+
+  const deleteDiscussionComment = (threadId: string, commentId: string) => {
+    const thread = discussions[threadId] ?? [];
+    const target = thread.find((comment) => comment.id === commentId);
+    if (!target || !canManageComment(target)) return;
+    const remainingComments = thread.filter((comment) => comment.id !== commentId);
+    const next = { ...discussions };
+    if (remainingComments.length === 0) delete next[threadId];
+    else next[threadId] = remainingComments;
+    saveDiscussions(next);
+  };
+
+  const likeDiscussionComment = (threadId: string, commentId: string) => {
+    if (!discussionsReady) return;
+    const thread = discussions[threadId] ?? [];
+    if (!thread.some((comment) => comment.id === commentId)) return;
+    saveDiscussions({
+      ...discussions,
+      [threadId]: thread.map((comment) =>
+        comment.id === commentId ? { ...comment, likes: comment.likes + 1 } : comment
+      ),
+    });
+  };
+
+  const removeDiscussionComment = (threadId: string, commentId: string) => {
+    if (!discussionsReady) return;
+    const remainingComments = (discussions[threadId] ?? []).filter((comment) => comment.id !== commentId);
+    if (remainingComments.length === (discussions[threadId] ?? []).length) return;
+    const next = { ...discussions };
+    if (remainingComments.length === 0) delete next[threadId];
+    else next[threadId] = remainingComments;
+    saveDiscussions(next);
   };
 
   return (
@@ -143,20 +361,26 @@ export default function App() {
           <div className="flex items-center justify-between gap-4 py-3">
             <Logo />
 
-            <div className="flex-1 flex justify-center px-4">
-              <SearchBar value={searchQuery} onChange={setSearchQuery} />
-            </div>
-            <QuickFilterTags
-              activeView={activeView}
-              searchQuery={searchQuery}
-              onNavigate={(view, query) => {
-                setActiveView(view);
-                if (query !== undefined) setSearchQuery(query);
-              }}
-            />
             <div className="flex items-center gap-2">
+              {isAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdminDrawerOpen(true);
+                    setAdminRefreshKey((key) => key + 1);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 text-[10px] font-semibold text-amber-200 transition hover:border-amber-400/50 hover:bg-amber-500/15 sm:px-3 sm:text-xs"
+                  aria-label={`Open admin analytics. Members: ${adminAnalytics?.totalMembers ?? 'unavailable'}`}
+                >
+                  🛡️ Admin · 👥 Members: {adminAnalyticsLoading ? '…' : adminAnalytics?.totalMembers.toLocaleString() ?? '—'}
+                </button>
+              )}
               {currentUser ? (
-                <UserMenu user={currentUser} onSignOut={handleSignOut} />
+                <UserMenu
+                  user={currentUser}
+                  onSignOut={handleSignOut}
+                  onDeleteAccount={handleDeleteAccount}
+                />
               ) : (
                 <button
                   onClick={() => setSignInOpen(true)}
@@ -263,46 +487,74 @@ export default function App() {
 
       {/* Main Content */}
       <main className="relative z-10 pb-20 lg:pb-0">
-        {activeView === 'feed' && (
-          <CivicFeed
+        {discussionError && (
+          <div role="alert" className="mx-auto mt-4 max-w-7xl rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            {discussionError}
+          </div>
+        )}
+        {authError && (
+          <div role="alert" className="mx-auto mt-4 max-w-7xl rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+            {authError}
+          </div>
+        )}
+        {activeView === 'visa' && (
+          <VisaIntelHub
             currentUser={currentUser}
-            searchQuery={searchQuery}
-            initiatives={initiatives}
-            onEndorse={(id) =>
-              setInitiatives((prev) =>
-                prev.map((i) => (i.id === id ? { ...i, endorsements: i.endorsements + 1 } : i))
-              )
-            }
-            onVolunteer={(id) =>
-              setInitiatives((prev) =>
-                prev.map((i) =>
-                  i.id === id && i.volunteersJoined < i.volunteersNeeded
-                    ? { ...i, volunteersJoined: i.volunteersJoined + 1 }
-                    : i
-                )
-              )
-            }
-            onAddComment={(initId, content) => {
-              const author = currentUser ? currentUser.email : 'anonymous';
-              const newComment = {
-                id: `c-${Date.now()}`,
-                author,
-                content,
-                timestamp: new Date().toLocaleDateString('en-GB'),
-              };
-              setInitiatives((prev) =>
-                prev.map((i) =>
-                  i.id === initId ? { ...i, comments: [...i.comments, newComment] } : i
-                )
-              );
-            }}
-            onOpenCreatePost={() => setCreatePostOpen(true)}
+            discussions={discussions}
+            onAddComment={addDiscussionComment}
+            onLikeComment={likeDiscussionComment}
+            onEditComment={editDiscussionComment}
+            onDeleteComment={deleteDiscussionComment}
+            onRequestSignIn={() => setSignInOpen(true)}
           />
         )}
-        {activeView === 'polls' && <CivicPolls />}
-        {activeView === 'hub' && <SchoolHub searchQuery={searchQuery} />}
-        {activeView === 'opportunities' && <OpportunitiesHub searchQuery={searchQuery} />}
-        {activeView === 'copilot' && <CivioCopilot />}
+        {activeView === 'hub' && (
+          <SchoolHub
+            currentUser={currentUser}
+            discussions={discussions}
+            onAddComment={addDiscussionComment}
+            onLikeComment={likeDiscussionComment}
+            onEditComment={editDiscussionComment}
+            onDeleteComment={deleteDiscussionComment}
+            onRequestSignIn={() => setSignInOpen(true)}
+          />
+        )}
+        {activeView === 'opportunities' && (
+          <OpportunitiesHub
+            currentUser={currentUser}
+            discussions={discussions}
+            onAddComment={addDiscussionComment}
+            onLikeComment={likeDiscussionComment}
+            onEditComment={editDiscussionComment}
+            onDeleteComment={deleteDiscussionComment}
+            onRequestSignIn={() => setSignInOpen(true)}
+          />
+        )}
+        {activeView === 'asante' && (
+          <Asante
+            initiatives={initiatives}
+            currentUser={currentUser}
+            discussions={discussions}
+            onAddComment={addDiscussionComment}
+            onLikeComment={likeDiscussionComment}
+            onEditComment={editDiscussionComment}
+            onDeleteComment={deleteDiscussionComment}
+            onUpdateInitiative={updateInitiative}
+            onDeleteInitiative={deleteInitiative}
+            onRequestSignIn={() => setSignInOpen(true)}
+          />
+        )}
+        {activeView === 'forum' && (
+          <StudentForum
+            currentUser={currentUser}
+            discussions={discussions}
+            onAddComment={addDiscussionComment}
+            onLikeComment={likeDiscussionComment}
+            onEditComment={editDiscussionComment}
+            onDeleteComment={deleteDiscussionComment}
+            onRequestSignIn={() => setSignInOpen(true)}
+          />
+        )}
       </main>
 
       {/* Footer */}
@@ -310,8 +562,8 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-slate-500">
-              <Landmark className="w-4 h-4 text-indigo-400" />
-              <span>Civio · Civic Engagement & Educational Empowerment</span>
+              <img src="/civio-logo.png" alt="Civiohub Logo" className="h-5 w-5 rounded object-cover" />
+              <span>Civiohub · Civic Engagement, Admissions &amp; Global Opportunities</span>
             </div>
             <p className="text-xs text-slate-600">
               Community-driven. Transparent. Empowering the next generation.
@@ -321,6 +573,18 @@ export default function App() {
       </footer>
 
       <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} onSignIn={handleSignIn} />
+      {isAdmin && (
+        <AdminActivityDrawer
+          open={adminDrawerOpen}
+          onClose={() => setAdminDrawerOpen(false)}
+          onRefresh={() => setAdminRefreshKey((key) => key + 1)}
+          analytics={adminAnalytics}
+          loading={adminAnalyticsLoading}
+          error={adminAnalyticsError}
+          discussions={discussions}
+          onRemoveComment={removeDiscussionComment}
+        />
+      )}
       <CreatePostModal
         open={createPostOpen}
         onClose={() => setCreatePostOpen(false)}
