@@ -13,6 +13,10 @@ import {
 const GENERIC_AUTH_ERROR = 'Unable to complete request. Please verify your email and password.';
 const AGE_CONSENT_TEXT = 'I am 18 or older, or I have permission from a parent or guardian to use this app.';
 
+function getRequestErrorMessage(error: unknown, fallback = GENERIC_AUTH_ERROR): string {
+  return error instanceof Error && error.message ? error.message : fallback;
+}
+
 function toCivioUser(user: User): CivioUser | null {
   if (!user.email) return null;
   const displayName =
@@ -88,10 +92,10 @@ export default function SignInModal({
   if (!open) return null;
 
   const waitSeconds = Math.ceil(cooldownMs / 1000);
-  const failRequest = () => {
+  const failRequest = (message = GENERIC_AUTH_ERROR) => {
     recordAuthFailure();
     setCooldownMs(getAuthCooldownRemaining());
-    setError(GENERIC_AUTH_ERROR);
+    setError(message);
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -129,7 +133,7 @@ export default function SignInModal({
           },
         });
         if (authError) {
-          failRequest();
+          failRequest(authError.message);
           return;
         }
         clearAuthCooldown();
@@ -154,7 +158,7 @@ export default function SignInModal({
         password,
       });
       if (authError) {
-        failRequest();
+        failRequest(authError.message);
         return;
       }
       const user = data.user ? toCivioUser(data.user) : null;
@@ -168,8 +172,8 @@ export default function SignInModal({
       setEmail('');
       setPassword('');
       onClose();
-    } catch {
-      failRequest();
+    } catch (requestError) {
+      failRequest(getRequestErrorMessage(requestError));
     } finally {
       setLoading(false);
     }
@@ -188,13 +192,17 @@ export default function SignInModal({
 
     setLoading(true);
     try {
-      await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
         redirectTo: `${window.location.origin}/#reset-password`,
       });
-    } catch {
-      // Keep the same confirmation for all reset outcomes to prevent account enumeration.
-    } finally {
+      if (resetError) {
+        setError(resetError.message);
+        return;
+      }
       setNotice('If an account exists for this email, a reset link has been sent.');
+    } catch (requestError) {
+      setError(getRequestErrorMessage(requestError, 'Unable to send the reset link. Please try again.'));
+    } finally {
       setLoading(false);
     }
   };
@@ -214,11 +222,11 @@ export default function SignInModal({
         options: { redirectTo: window.location.origin },
       });
       if (authError) {
-        failRequest();
+        failRequest(authError.message);
         setLoading(false);
       }
-    } catch {
-      failRequest();
+    } catch (requestError) {
+      failRequest(getRequestErrorMessage(requestError));
       setLoading(false);
     }
   };
@@ -552,14 +560,14 @@ function AccountSettingsModal({
     try {
       const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
       if (updateError) {
-        setPasswordError('Unable to update your password. Please try again.');
+        setPasswordError(updateError.message);
         return;
       }
       setNewPassword('');
       setConfirmPassword('');
       setPasswordNotice('Password updated successfully.');
-    } catch {
-      setPasswordError('Unable to update your password. Please try again.');
+    } catch (requestError) {
+      setPasswordError(getRequestErrorMessage(requestError, 'Unable to update your password. Please try again.'));
     } finally {
       setPasswordLoading(false);
     }
@@ -725,7 +733,7 @@ export function SetNewPasswordModal({
     try {
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) {
-        setError('Unable to update your password. Request a new reset link and try again.');
+        setError(updateError.message);
         return;
       }
 
@@ -737,8 +745,8 @@ export function SetNewPasswordModal({
       setPassword('');
       setConfirmPassword('');
       setSuccess(true);
-    } catch {
-      setError('Unable to update your password. Request a new reset link and try again.');
+    } catch (requestError) {
+      setError(getRequestErrorMessage(requestError, 'Unable to update your password. Request a new reset link and try again.'));
     } finally {
       setLoading(false);
     }
