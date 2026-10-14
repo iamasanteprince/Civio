@@ -16,7 +16,7 @@ import Asante from '@/components/Asante';
 import VisaIntelHub from '@/components/VisaIntelHub';
 import StudentForum from '@/components/StudentForum';
 import CreatePostModal from '@/components/CreatePostModal';
-import SignInModal, { UserMenu } from '@/components/SignInModal';
+import SignInModal, { SetNewPasswordModal, UserMenu } from '@/components/SignInModal';
 import AdminActivityDrawer from '@/components/AdminActivityDrawer';
 import { DISCUSSION_STORAGE_KEY, parseDiscussionStore } from '@/data/discussions';
 import { supabase } from '@/lib/supabase';
@@ -52,6 +52,7 @@ function Logo() {
 export default function App() {
   const [activeView, setActiveView] = useState<View>('visa');
   const [signInOpen, setSignInOpen] = useState(false);
+  const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [createPostOpen, setCreatePostOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<CivioUser | null>(null);
@@ -73,7 +74,11 @@ export default function App() {
     let active = true;
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setSignInOpen(false);
+        setResetPasswordOpen(true);
+      }
       const user = session?.user;
       if (!active || !user?.email) {
         if (active) setCurrentUser(null);
@@ -118,6 +123,18 @@ export default function App() {
       active = false;
       subscription.unsubscribe();
     };
+  }, []);
+
+  useEffect(() => {
+    const openRecoveryFromHash = () => {
+      if (window.location.hash.toLowerCase().includes('reset-password')) {
+        setSignInOpen(false);
+        setResetPasswordOpen(true);
+      }
+    };
+    openRecoveryFromHash();
+    window.addEventListener('hashchange', openRecoveryFromHash);
+    return () => window.removeEventListener('hashchange', openRecoveryFromHash);
   }, []);
 
   useEffect(() => {
@@ -543,6 +560,9 @@ export default function App() {
       </footer>
 
       <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} onSignIn={handleSignIn} />
+      {resetPasswordOpen && (
+        <SetNewPasswordModal onClose={() => setResetPasswordOpen(false)} />
+      )}
       {isAdmin && (
         <AdminActivityDrawer
           open={adminDrawerOpen}
