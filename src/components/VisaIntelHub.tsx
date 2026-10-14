@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react';
 import { ArrowRight, BadgeCheck, Calculator, ExternalLink, ShieldCheck } from 'lucide-react';
-import type { CivioUser, DiscussionComment, DiscussionStore } from '@/types';
-import DiscussionThread from '@/components/DiscussionThread';
 import LivePolicyUpdates from '@/components/LivePolicyUpdates';
 import {
   VISA_CALCULATOR_LIVING_FUNDS,
@@ -9,16 +7,6 @@ import {
   VISA_INTEL,
   type VisaDestination,
 } from '@/data/visaIntel';
-
-interface VisaIntelHubProps {
-  currentUser: CivioUser | null;
-  discussions: DiscussionStore;
-  onAddComment: (threadId: string, content: string, verified?: boolean) => void;
-  onLikeComment: (threadId: string, commentId: string) => void;
-  onEditComment: (threadId: string, commentId: string, content: string) => void;
-  onDeleteComment: (threadId: string, commentId: string) => void;
-  onRequestSignIn: () => void;
-}
 
 const CURRENCY: Record<VisaDestination, string> = {
   us: 'USD',
@@ -160,15 +148,7 @@ function ProofOfFundsCalculator() {
   );
 }
 
-export default function VisaIntelHub({
-  currentUser,
-  discussions,
-  onAddComment,
-  onLikeComment,
-  onEditComment,
-  onDeleteComment,
-  onRequestSignIn,
-}: VisaIntelHubProps) {
+export default function VisaIntelHub() {
   const [activeCountry, setActiveCountry] = useState<string>('all');
   const visaCards = useMemo(
     () => activeCountry === 'all' ? VISA_INTEL : VISA_INTEL.filter((item) => item.id === activeCountry),
@@ -211,8 +191,6 @@ export default function VisaIntelHub({
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {visaCards.map((visa) => {
-          const threadId = `visa:${visa.id}`;
-          const comments: DiscussionComment[] = discussions[threadId] ?? [];
           return (
             <article key={visa.id} className="flex flex-col overflow-hidden rounded-2xl border border-slate-800/80 bg-[#0c1322]/90 shadow-lg shadow-black/10">
               <div className="p-5 sm:p-6">
@@ -255,17 +233,6 @@ export default function VisaIntelHub({
                 </div>
               </div>
 
-              <DiscussionThread
-                threadId={threadId}
-                title={visa.title}
-                comments={comments}
-                currentUser={currentUser}
-                onAddComment={onAddComment}
-                onLikeComment={onLikeComment}
-                onEditComment={onEditComment}
-                onDeleteComment={onDeleteComment}
-                onRequestSignIn={onRequestSignIn}
-              />
             </article>
           );
         })}

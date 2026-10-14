@@ -16,15 +16,12 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import type {
-  CivioUser,
-  DiscussionStore,
   Opportunity,
   OpportunityCategory,
   FundingType,
   TargetAudience,
 } from '@/types';
 import { opportunities } from '@/data/opportunities';
-import DiscussionThread from '@/components/DiscussionThread';
 
 const CATEGORY_ICON: Record<OpportunityCategory, typeof Award> = {
   'Youth & Civic Summit': Megaphone,
@@ -184,29 +181,13 @@ function PreferenceChoices<T extends string>({
 function OpportunityCard({
   opportunity,
   match,
-  discussions,
-  currentUser,
-  onAddComment,
-  onLikeComment,
-  onEditComment,
-  onDeleteComment,
-  onRequestSignIn,
 }: {
   opportunity: Opportunity;
   match?: ReturnType<typeof getOpportunityMatch>;
-  discussions: DiscussionStore;
-  currentUser: CivioUser | null;
-  onAddComment: (threadId: string, content: string, verified?: boolean) => void;
-  onLikeComment: (threadId: string, commentId: string) => void;
-  onEditComment: (threadId: string, commentId: string, content: string) => void;
-  onDeleteComment: (threadId: string, commentId: string) => void;
-  onRequestSignIn: () => void;
 }) {
   const catStyle = CATEGORY_STYLES[opportunity.category];
   const CatIcon = CATEGORY_ICON[opportunity.category];
   const FundIcon = FUNDING_ICON[opportunity.fundingType];
-  const threadId = `opportunity:${opportunity.id}`;
-
   return (
     <div className="group relative flex flex-col rounded-2xl border border-slate-800/80 bg-[#0c1322]/80 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:border-indigo-500/40 hover:bg-[#0f1729]/90 hover:shadow-xl hover:shadow-indigo-950/20">
       <div className="p-5">
@@ -279,40 +260,11 @@ function OpportunityCard({
           View & Apply <ExternalLink className="w-4 h-4" />
         </a>
       </div>
-      <DiscussionThread
-        threadId={threadId}
-        title={opportunity.title}
-        comments={discussions[threadId] ?? []}
-        currentUser={currentUser}
-        onAddComment={onAddComment}
-        onLikeComment={onLikeComment}
-        onEditComment={onEditComment}
-        onDeleteComment={onDeleteComment}
-        onRequestSignIn={onRequestSignIn}
-      />
     </div>
   );
 }
 
-interface OpportunitiesHubProps {
-  discussions: DiscussionStore;
-  currentUser: CivioUser | null;
-  onAddComment: (threadId: string, content: string, verified?: boolean) => void;
-  onLikeComment: (threadId: string, commentId: string) => void;
-  onEditComment: (threadId: string, commentId: string, content: string) => void;
-  onDeleteComment: (threadId: string, commentId: string) => void;
-  onRequestSignIn: () => void;
-}
-
-export default function OpportunitiesHub({
-  discussions,
-  currentUser,
-  onAddComment,
-  onLikeComment,
-  onEditComment,
-  onDeleteComment,
-  onRequestSignIn,
-}: OpportunitiesHubProps) {
+export default function OpportunitiesHub() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<OpportunityCategory | 'All'>('All');
   const [selectedFunding, setSelectedFunding] = useState<FundingType | 'All'>('All');
@@ -585,13 +537,6 @@ export default function OpportunitiesHub({
               key={opp.id}
               opportunity={opp}
               match={recommendationsOnly ? getOpportunityMatch(opp, preferences) : undefined}
-              discussions={discussions}
-              currentUser={currentUser}
-              onAddComment={onAddComment}
-              onLikeComment={onLikeComment}
-              onEditComment={onEditComment}
-              onDeleteComment={onDeleteComment}
-              onRequestSignIn={onRequestSignIn}
             />
           ))}
         </div>

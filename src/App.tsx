@@ -30,7 +30,7 @@ const TABS: { id: View; label: string; icon: typeof ShieldCheck; description: st
   { id: 'hub', label: 'Admissions Hub', icon: GraduationCap, description: 'Universities, $0 App Fees, Waivers', mobileLabel: 'Hub' },
   { id: 'opportunities', label: 'Opportunities', icon: Briefcase, description: 'Conferences, Fellowships, Internships', mobileLabel: 'Opps' },
   { id: 'asante', label: 'Asante', icon: Compass, description: 'Admissions, opportunities & intelligence', mobileLabel: 'Asante' },
-  { id: 'forum', label: 'Student Forum', icon: MessageSquare, description: 'Applicant discussions and questions', mobileLabel: 'Forum' },
+  { id: 'forum', label: 'Forum', icon: MessageSquare, description: 'Applicant discussions and questions', mobileLabel: 'Forum' },
 ];
 
 function Logo() {
@@ -498,50 +498,20 @@ export default function App() {
           </div>
         )}
         {activeView === 'visa' && (
-          <VisaIntelHub
-            currentUser={currentUser}
-            discussions={discussions}
-            onAddComment={addDiscussionComment}
-            onLikeComment={likeDiscussionComment}
-            onEditComment={editDiscussionComment}
-            onDeleteComment={deleteDiscussionComment}
-            onRequestSignIn={() => setSignInOpen(true)}
-          />
+          <VisaIntelHub />
         )}
         {activeView === 'hub' && (
-          <SchoolHub
-            currentUser={currentUser}
-            discussions={discussions}
-            onAddComment={addDiscussionComment}
-            onLikeComment={likeDiscussionComment}
-            onEditComment={editDiscussionComment}
-            onDeleteComment={deleteDiscussionComment}
-            onRequestSignIn={() => setSignInOpen(true)}
-          />
+          <SchoolHub />
         )}
         {activeView === 'opportunities' && (
-          <OpportunitiesHub
-            currentUser={currentUser}
-            discussions={discussions}
-            onAddComment={addDiscussionComment}
-            onLikeComment={likeDiscussionComment}
-            onEditComment={editDiscussionComment}
-            onDeleteComment={deleteDiscussionComment}
-            onRequestSignIn={() => setSignInOpen(true)}
-          />
+          <OpportunitiesHub />
         )}
         {activeView === 'asante' && (
           <Asante
             initiatives={initiatives}
             currentUser={currentUser}
-            discussions={discussions}
-            onAddComment={addDiscussionComment}
-            onLikeComment={likeDiscussionComment}
-            onEditComment={editDiscussionComment}
-            onDeleteComment={deleteDiscussionComment}
             onUpdateInitiative={updateInitiative}
             onDeleteInitiative={deleteInitiative}
-            onRequestSignIn={() => setSignInOpen(true)}
           />
         )}
         {activeView === 'forum' && (

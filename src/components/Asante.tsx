@@ -10,8 +10,6 @@ import {
   CheckCircle,
   XCircle,
   Users,
-  MessageSquare,
-  Compass,
   Award,
   Pencil,
   Trash2,
@@ -23,31 +21,27 @@ import type {
   AsanteMessage,
   AsanteResult,
   CivioUser,
-  DiscussionStore,
   Initiative,
   Opportunity,
   University,
 } from '@/types';
-import { getAsanteAnswer } from '@/data/asanteEngine';
+import { getAsanteAnswer, getAsanteLocalAnswer } from '@/data/asanteEngine';
 import { getUniversityWebsite } from '@/data/universityDirectory';
-import DiscussionThread from '@/components/DiscussionThread';
 import { getGuestSessionId, sanitizePlainText } from '@/utils/inputSecurity';
 
 const QUICK_PROMPTS = [
-  'How much is the German blocked account?',
-  'What are Canada’s proof-of-funds requirements?',
-  'How does the UK CAS IELTS waiver work?',
-  'Find universities with $0 application fee',
-  'List fully funded scholarships',
-  'Check WAEC/IELTS waiver guidelines',
-  'Search 9,000+ global universities',
+  'Find universities with $0 application fees',
+  'Which schools accept WAEC/WASSCE instead of IELTS?',
+  'How much is the German blocked account (Sperrkonto)?',
+  "Explain Canada's PAL & proof-of-funds requirements",
+  'Show fully funded scholarships for African students',
 ];
 
 const WELCOME_MESSAGE: AsanteMessage = {
   id: 'welcome',
   role: 'assistant',
   content:
-    "Welcome to Asante. I can answer student-visa and proof-of-funds questions from Civio's country guidance, search admissions records, look up institutions in the Hipo global directory, and find opportunities. Visa summaries are not live feeds; follow the official links and verify current rules before applying.",
+    "Hello! I'm Asante, your guide across Civiohub. Ask me about universities with $0 application fees, IELTS/WAEC waivers, visa proof-of-funds rules, or global scholarships.",
   timestamp: new Date(),
 };
 
@@ -60,11 +54,12 @@ function formatMessageContent(content: string): React.ReactNode {
       return <div key={i} className="h-2" />;
     }
 
-    if (trimmed.startsWith('• ')) {
+    if (/^(?:•|-|\*)\s/.test(trimmed)) {
+      const bulletContent = trimmed.replace(/^(?:•|-|\*)\s/, '');
       return (
         <div key={i} className="flex gap-2 mb-0.5 pl-1">
           <span className="text-slate-500 flex-shrink-0">•</span>
-          <span className="flex-1">{renderInline(trimmed.slice(2))}</span>
+          <span className="flex-1">{renderInline(bulletContent)}</span>
         </div>
       );
     }
@@ -127,22 +122,18 @@ const CATEGORY_PILL_STYLES: Record<string, string> = {
   'Tech & Coding': 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25',
 };
 
-interface AsanteDiscussionProps {
-  discussions: DiscussionStore;
+interface InitiativeManagementProps {
   currentUser: CivioUser | null;
-  onAddComment: (threadId: string, content: string, verified?: boolean) => void;
-  onLikeComment: (threadId: string, commentId: string) => void;
-  onEditComment: (threadId: string, commentId: string, content: string) => void;
-  onDeleteComment: (threadId: string, commentId: string) => void;
   onUpdateInitiative: (initiativeId: string, fields: Pick<Initiative, 'title' | 'description' | 'goal'>) => void;
   onDeleteInitiative: (initiativeId: string) => void;
-  onRequestSignIn: () => void;
 }
 
-function UniversityResultCard({
-  university,
-  ...discussionProps
-}: AsanteDiscussionProps & { university: University }) {
+function UniversityResultCard({ university }: { university: University }) {
+  const feeStatusLabel = university.applicationFeeType === 'free'
+    ? '$0 App Fee'
+    : university.applicationFeeType === 'waiver'
+      ? 'Fee Waiver Available'
+      : 'Standard Fee';
   const feeColor =
     university.applicationFeeType === 'free'
       ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25'
@@ -166,7 +157,7 @@ function UniversityResultCard({
         <div className="flex flex-wrap gap-1.5 mb-3">
           <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${feeColor}`}>
             <DollarSign className="w-3 h-3" />
-            {university.applicationFeeDisplay}
+            {feeStatusLabel}{university.applicationFeeType === 'paid' ? ` · ${university.applicationFeeDisplay}` : ''}
           </span>
           {university.englishWaiver.available ? (
             <span className="inline-flex items-center gap-1 rounded-md border bg-emerald-500/10 text-emerald-300 border-emerald-500/20 px-2 py-0.5 text-[11px] font-medium">
@@ -188,7 +179,7 @@ function UniversityResultCard({
           </div>
           <div className="flex gap-2">
             <span className="text-slate-500 font-semibold flex-shrink-0">English:</span>
-            <span>{university.englishWaiver.detail}</span>
+            <span>{university.englishWaiver.detail}{university.englishWaiver.acceptedProofs.length > 0 ? ` Accepted evidence: ${university.englishWaiver.acceptedProofs.join(', ')}.` : ''}</span>
           </div>
           <div className="flex gap-2">
             <span className="text-slate-500 font-semibold flex-shrink-0">Tests:</span>
@@ -210,25 +201,16 @@ function UniversityResultCard({
         Official Application Portal
         <ExternalLink className="w-3.5 h-3.5" />
       </a>
-      <DiscussionThread
-        threadId={`university:${university.id}`}
-        title={university.name}
-        comments={discussionProps.discussions[`university:${university.id}`] ?? []}
-        currentUser={discussionProps.currentUser}
-        onAddComment={discussionProps.onAddComment}
-        onLikeComment={discussionProps.onLikeComment}
-        onEditComment={discussionProps.onEditComment}
-        onDeleteComment={discussionProps.onDeleteComment}
-        onRequestSignIn={discussionProps.onRequestSignIn}
-      />
     </div>
   );
 }
 
 function InitiativeResultCard({
   initiative,
-  ...discussionProps
-}: AsanteDiscussionProps & { initiative: Initiative }) {
+  currentUser,
+  onUpdateInitiative,
+  onDeleteInitiative,
+}: InitiativeManagementProps & { initiative: Initiative }) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(initiative.title);
   const [description, setDescription] = useState(initiative.description);
@@ -241,8 +223,8 @@ function InitiativeResultCard({
     }
   })();
   const canManage = Boolean(
-    discussionProps.currentUser?.email.trim().toLowerCase() === 'iamasanteprince@gmail.com' ||
-    (discussionProps.currentUser && initiative.userId === discussionProps.currentUser.id) ||
+    currentUser?.email.trim().toLowerCase() === 'iamasanteprince@gmail.com' ||
+    (currentUser && initiative.userId === currentUser.id) ||
     (initiative.guestSessionId && initiative.guestSessionId === guestSessionId)
   );
   const saveEdits = () => {
@@ -250,7 +232,7 @@ function InitiativeResultCard({
     const safeDescription = sanitizePlainText(description).slice(0, 5000);
     const safeGoal = sanitizePlainText(goal).slice(0, 1000);
     if (!safeTitle || !safeDescription || !safeGoal) return;
-    discussionProps.onUpdateInitiative(initiative.id, {
+    onUpdateInitiative(initiative.id, {
       title: safeTitle,
       description: safeDescription,
       goal: safeGoal,
@@ -305,21 +287,7 @@ function InitiativeResultCard({
             <Users className="w-3.5 h-3.5" />
             {initiative.volunteersJoined}/{initiative.volunteersNeeded}
           </span>
-          <span className="flex items-center gap-1">
-            <MessageSquare className="w-3.5 h-3.5" />
-            {initiative.comments.length}
-          </span>
         </div>
-        {initiative.comments.length > 0 && (
-          <div className="mt-3 space-y-2 border-t border-slate-700/60 pt-3">
-            {initiative.comments.slice(-2).map((comment) => (
-              <div key={comment.id} className="rounded-lg bg-slate-900/60 p-2">
-                <p className="text-[11px] font-semibold text-indigo-300">{comment.author}</p>
-                <p className="mt-0.5 text-xs text-slate-400">{comment.content}</p>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {initiative.link && (
@@ -341,7 +309,7 @@ function InitiativeResultCard({
           <button
             type="button"
             onClick={() => {
-              if (window.confirm('Delete this post?')) discussionProps.onDeleteInitiative(initiative.id);
+              if (window.confirm('Delete this post?')) onDeleteInitiative(initiative.id);
             }}
             className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-rose-300/80 hover:bg-rose-500/10 hover:text-rose-300"
           >
@@ -349,26 +317,11 @@ function InitiativeResultCard({
           </button>
         </div>
       )}
-      <DiscussionThread
-        threadId={`initiative:${initiative.id}`}
-        title={initiative.title}
-        comments={discussionProps.discussions[`initiative:${initiative.id}`] ?? []}
-        currentUser={discussionProps.currentUser}
-        onAddComment={discussionProps.onAddComment}
-        onLikeComment={discussionProps.onLikeComment}
-        onEditComment={discussionProps.onEditComment}
-        onDeleteComment={discussionProps.onDeleteComment}
-        onRequestSignIn={discussionProps.onRequestSignIn}
-      />
     </div>
   );
 }
 
-function GlobalUniversityResultCard({
-  university,
-  ...discussionProps
-}: AsanteDiscussionProps & { university: ApiUniversity }) {
-  const threadId = `university:global:${university.alpha_two_code}:${university.name}`;
+function GlobalUniversityResultCard({ university }: { university: ApiUniversity }) {
   const portal = getUniversityWebsite(university);
   return (
     <div className="rounded-xl border border-slate-700/60 bg-slate-800/50 overflow-hidden">
@@ -383,7 +336,9 @@ function GlobalUniversityResultCard({
           </div>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-slate-400">
-          Global directory listing. Application fees and language-test exemptions are not provided by this directory; confirm requirements with the institution.
+          <span className="mb-1 block font-semibold text-slate-300">Application fee: Not indexed</span>
+          <span className="mb-1 block font-semibold text-slate-300">English-testing policy: Not indexed</span>
+          Global directory entries do not include admissions requirements. Confirm current fees and testing policies with the institution.
         </p>
       </div>
       {portal && (
@@ -396,26 +351,11 @@ function GlobalUniversityResultCard({
           Official institution website <ExternalLink className="h-3.5 w-3.5" />
         </a>
       )}
-      <DiscussionThread
-        threadId={threadId}
-        title={university.name}
-        comments={discussionProps.discussions[threadId] ?? []}
-        currentUser={discussionProps.currentUser}
-        onAddComment={discussionProps.onAddComment}
-        onLikeComment={discussionProps.onLikeComment}
-        onEditComment={discussionProps.onEditComment}
-        onDeleteComment={discussionProps.onDeleteComment}
-        onRequestSignIn={discussionProps.onRequestSignIn}
-      />
     </div>
   );
 }
 
-function OpportunityResultCard({
-  opportunity,
-  ...discussionProps
-}: AsanteDiscussionProps & { opportunity: Opportunity }) {
-  const threadId = `opportunity:${opportunity.id}`;
+function OpportunityResultCard({ opportunity }: { opportunity: Opportunity }) {
   return (
     <div className="rounded-xl border border-slate-700/60 bg-slate-800/50 overflow-hidden">
       <div className="p-4">
@@ -439,34 +379,34 @@ function OpportunityResultCard({
       >
         Official opportunity page <ExternalLink className="h-3.5 w-3.5" />
       </a>
-      <DiscussionThread
-        threadId={threadId}
-        title={opportunity.title}
-        comments={discussionProps.discussions[threadId] ?? []}
-        currentUser={discussionProps.currentUser}
-        onAddComment={discussionProps.onAddComment}
-        onLikeComment={discussionProps.onLikeComment}
-        onEditComment={discussionProps.onEditComment}
-        onDeleteComment={discussionProps.onDeleteComment}
-        onRequestSignIn={discussionProps.onRequestSignIn}
-      />
     </div>
   );
 }
 
-function ResultCard({ result, ...discussionProps }: AsanteDiscussionProps & { result: AsanteResult }) {
+function ResultCard({
+  result,
+  initiativeManagement,
+}: {
+  result: AsanteResult;
+  initiativeManagement: InitiativeManagementProps;
+}) {
   if (result.kind === 'university') {
-    return <UniversityResultCard university={result.university} {...discussionProps} />;
+    return <UniversityResultCard university={result.university} />;
   }
-  if (result.kind === 'initiative') return <InitiativeResultCard initiative={result.initiative} {...discussionProps} />;
-  if (result.kind === 'opportunity') return <OpportunityResultCard opportunity={result.opportunity} {...discussionProps} />;
-  return <GlobalUniversityResultCard university={result.university} {...discussionProps} />;
+  if (result.kind === 'initiative') {
+    return <InitiativeResultCard initiative={result.initiative} {...initiativeManagement} />;
+  }
+  if (result.kind === 'opportunity') return <OpportunityResultCard opportunity={result.opportunity} />;
+  return <GlobalUniversityResultCard university={result.university} />;
 }
 
 function MessageBubble({
   message,
-  ...discussionProps
-}: AsanteDiscussionProps & { message: AsanteMessage }) {
+  initiativeManagement,
+}: {
+  message: AsanteMessage;
+  initiativeManagement: InitiativeManagementProps;
+}) {
   const isUser = message.role === 'user';
 
   return (
@@ -496,7 +436,7 @@ function MessageBubble({
         {message.results && message.results.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-2xl">
             {message.results.map((result, idx) => (
-              <ResultCard key={idx} result={result} {...discussionProps} />
+              <ResultCard key={idx} result={result} initiativeManagement={initiativeManagement} />
             ))}
           </div>
         )}
@@ -505,21 +445,15 @@ function MessageBubble({
   );
 }
 
-interface AsanteProps extends AsanteDiscussionProps {
+interface AsanteProps extends InitiativeManagementProps {
   initiatives: Initiative[];
 }
 
 export default function Asante({
   initiatives,
-  discussions,
   currentUser,
-  onAddComment,
-  onLikeComment,
-  onEditComment,
-  onDeleteComment,
   onUpdateInitiative,
   onDeleteInitiative,
-  onRequestSignIn,
 }: AsanteProps) {
   const [messages, setMessages] = useState<AsanteMessage[]>([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
@@ -552,13 +486,51 @@ export default function Asante({
       let answer: Awaited<ReturnType<typeof getAsanteAnswer>>;
       try {
         answer = await getAsanteAnswer(trimmed, initiatives);
-      } catch (error) {
-        console.error('Asante request failed.', error);
+      } catch {
+        try {
+          answer = getAsanteLocalAnswer(trimmed, initiatives);
+        } catch {
+          answer = {
+            content: 'I could not load Civio’s indexed guidance right now. Please try again in a moment.',
+            results: [],
+          };
+        }
+      }
+
+      try {
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 22_000);
+        let response: Response;
+        try {
+          response = await fetch('/api/asante', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: trimmed, context: answer.content.slice(0, 16_000) }),
+            signal: controller.signal,
+          });
+        } finally {
+          window.clearTimeout(timeout);
+        }
+
+        if (!response.ok) throw new Error('Gemini is temporarily unavailable.');
+        const payload: unknown = await response.json();
+        if (
+          typeof payload !== 'object' ||
+          payload === null ||
+          !('text' in payload) ||
+          typeof payload.text !== 'string' ||
+          !payload.text.trim()
+        ) {
+          throw new Error('Gemini returned an invalid response.');
+        }
+        answer = { ...answer, content: payload.text.trim() };
+      } catch {
         answer = {
-          content: 'I could not reach the global university directory right now. Please try again shortly; Civio-indexed admissions and opportunity information remains available with a more specific question.',
-          results: [],
+          ...answer,
+          content: `${answer.content}\n\n_Gemini is unavailable right now; this response uses Civio's local indexed guidance._`,
         };
       }
+
       const assistantMsg: AsanteMessage = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
@@ -581,13 +553,13 @@ export default function Asante({
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6 text-center">
         <div className="inline-flex items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-600/20 to-blue-700/20 border border-indigo-500/30 w-14 h-14 mb-3">
-          <Compass className="w-7 h-7 text-indigo-300" />
+          <Sparkles className="w-7 h-7 text-indigo-300" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-1">
           Asante
         </h1>
         <p className="text-slate-400 text-sm">
-          Your Advanced Admissions, Opportunities &amp; Intelligence Assistant
+          Your Admissions, Visa &amp; Opportunity Intelligence Mentor
         </p>
       </div>
 
@@ -600,22 +572,14 @@ export default function Asante({
             <MessageBubble
               key={msg.id}
               message={msg}
-              discussions={discussions}
-              currentUser={currentUser}
-              onAddComment={onAddComment}
-              onLikeComment={onLikeComment}
-              onEditComment={onEditComment}
-              onDeleteComment={onDeleteComment}
-              onUpdateInitiative={onUpdateInitiative}
-              onDeleteInitiative={onDeleteInitiative}
-              onRequestSignIn={onRequestSignIn}
+              initiativeManagement={{ currentUser, onUpdateInitiative, onDeleteInitiative }}
             />
           ))}
 
           {isTyping && (
             <div className="flex gap-3">
               <div className="flex items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-blue-700 w-9 h-9 flex-shrink-0">
-                <Compass className="w-4 h-4 text-white" />
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div className="rounded-2xl bg-slate-800/80 border border-slate-700/50 px-4 py-3">
                 <div className="flex gap-1.5">
@@ -628,26 +592,24 @@ export default function Asante({
           )}
         </div>
 
-        {messages.length <= 1 && (
-          <div className="px-4 sm:px-6 pb-3 border-t border-slate-800/50 pt-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2 flex items-center gap-1.5">
-              <Sparkles className="w-3 h-3" />
-              Quick Prompts
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {QUICK_PROMPTS.map((prompt) => (
-                <button
-                  key={prompt}
-                  onClick={() => sendMessage(prompt)}
-                  disabled={isTyping}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-300 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/10 hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
+        <div className="px-4 sm:px-6 pb-3 border-t border-slate-800/50 pt-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2 flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3" />
+            Try asking Asante
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {QUICK_PROMPTS.map((prompt) => (
+              <button
+                key={prompt}
+                onClick={() => sendMessage(prompt)}
+                disabled={isTyping}
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-300 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/10 hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {prompt}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
 
         <form onSubmit={handleSubmit} className="border-t border-slate-800 p-3 sm:p-4">
           <div className="flex items-center gap-2">
@@ -668,6 +630,9 @@ export default function Asante({
               <Send className="w-4 h-4" />
             </button>
           </div>
+          <p className="mt-2 text-center text-[10px] text-slate-600">
+            When available, your question and relevant indexed guidance are sent to Google Gemini to generate a response.
+          </p>
         </form>
       </div>
     </div>

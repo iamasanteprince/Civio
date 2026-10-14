@@ -61,12 +61,14 @@ export const VISA_INTEL: VisaIntelRecord[] = [
     category: 'Canada Study Permit',
     facts: [
       { label: 'Proof of funds', value: 'For one applicant outside Quebec, the current published living-expense amount is CAD $22,895 for one year, in addition to first-year tuition and transportation. IRCC updates this amount; verify it for your application date.' },
+      { label: 'Fees', value: 'Study permit processing fee: CAD $150 per applicant. Biometrics fee: CAD $85 per applicant when required; family biometrics fees may be capped. Check IRCC’s current fee table before paying.' },
       { label: 'Provincial Attestation Letter', value: 'Most study-permit applicants need a PAL/TAL unless they qualify for an exemption. For the 2026 cap year, a PAL/TAL is generally valid through December 31, 2026; a PAL from a prior cap year cannot be reused. Confirm your case with the province or territory and institution.' },
       { label: 'Work rights', value: 'Eligible students may work up to 24 hours per week off campus during regular academic sessions. PGWP length depends on program and eligibility; some graduates may qualify for up to 3 years.' },
       { label: 'Financial evidence', value: 'Use acceptable evidence such as bank statements, scholarship or sponsor documents, or a GIC where applicable. The living-expense minimum is not a substitute for tuition and travel costs.' },
     ],
     sources: [
       { label: 'IRCC proof of funds', url: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/financial-support.html' },
+      { label: 'IRCC application fees', url: 'https://ircc.canada.ca/english/information/fees/fees.asp' },
       { label: 'PAL/TAL guidance', url: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/study-permit/get-documents/provincial-attestation-letter.html' },
       { label: 'Off-campus work', url: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/work-off-campus.html' },
       { label: 'Post-graduation work permit', url: 'https://www.canada.ca/en/immigration-refugees-citizenship/services/study-canada/work/after-graduation/about.html' },
@@ -104,14 +106,15 @@ export const VISA_INTEL: VisaIntelRecord[] = [
     category: 'Germany Study Visa',
     facts: [
       { label: 'Blocked account', value: 'The commonly published standard is €11,904 for one year (€992/month). Visa missions may update their required amount; confirm the current figure with the German mission handling your application before funding an account.' },
+      { label: 'Visa fee', value: 'The standard national visa fee is €75. Reductions or exemptions may apply in specific cases; confirm the amount with the German mission handling your application.' },
       { label: 'Tuition', value: 'Many public universities charge no general tuition, but semester contributions apply and tuition exceptions exist by state, institution, program, and student status.' },
       { label: 'Work rights', value: 'International students may generally work up to 140 full days or 280 half days per year, subject to current rules and any applicable alternatives.' },
       { label: 'After graduation', value: 'Graduates of German higher-education institutions may be eligible for an 18-month residence permit to seek qualified employment.' },
     ],
     sources: [
       { label: 'Study visa guidance', url: 'https://www.make-it-in-germany.com/en/visa-residence/types/studying' },
-      { label: 'DAAD: financing your studies', url: 'https://www.daad.de/en/studying-in-germany/living-in-germany/finances/' },
       { label: 'German Foreign Office visa information', url: 'https://www.auswaertiges-amt.de/en/visa-service' },
+      { label: 'DAAD: financing your studies', url: 'https://www.daad.de/en/studying-in-germany/living-in-germany/finances/' },
     ],
     notes: ['Blocked-account rules and the permitted form of financial proof can differ by mission. Public-university tuition is not universally free.'],
   },

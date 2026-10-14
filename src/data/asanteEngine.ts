@@ -84,8 +84,32 @@ function searchUniversitiesByName(query: string): University[] {
   if (!q) return [];
   return universities.filter((u) => {
     const nameHaystack = (u.name + ' ' + u.shortName + ' ' + u.city + ' ' + u.country).toLowerCase();
-    return nameHaystack.includes(q) || q.includes(u.shortName.toLowerCase());
+    return nameHaystack.includes(q) ||
+      q.includes(u.name.toLowerCase()) ||
+      q.includes(u.shortName.toLowerCase());
   });
+}
+
+function extractInstitutionQuery(query: string): string {
+  const ignoredTerms = new Set([
+    'a', 'an', 'and', 'are', 'at', 'about', 'can', 'do', 'does', 'for', 'from',
+    'how', 'i', 'in', 'is', 'it', 'me', 'my', 'of', 'on', 'or', 'please', 'the',
+    'their', 'tell', 'to', 'what', 'which', 'who', 'with', 'would', 'school',
+    'schools', 'university', 'universities', 'college', 'colleges', 'institution',
+    'institutions', 'admission', 'admissions', 'application', 'applications',
+    'fee', 'fees', 'waiver', 'waivers', 'code', 'codes', 'no', 'free', 'zero',
+    'accept', 'accepts', 'accepted', 'require', 'requires', 'requirements',
+    'english', 'language', 'test', 'tests', 'ielts', 'toefl', 'waec', 'wassce',
+    'duolingo', 'instead', 'policy', 'policies', 'their', 'doesn', 'doesnt',
+    'show', 'find', 'search', 'look', 'up', 'for', 'with',
+  ]);
+  return query
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .split(/\s+/)
+    .filter((term) => term.length > 1 && !ignoredTerms.has(term))
+    .join(' ')
+    .trim();
 }
 
 function searchUniversitiesBroad(query: string): University[] {
@@ -141,7 +165,7 @@ function formatUniversitySummary(u: University): string {
         ? u.feeWaiverDetail === 'auto-international'
           ? `${u.applicationFeeDisplay} (automatic waiver for eligible international applicants)`
           : `${u.applicationFeeDisplay} (${u.feeNote})`
-        : `${u.applicationFeeDisplay} (waiver upon request for eligible low-income applicants)`;
+        : `${u.applicationFeeDisplay} (standard fee; ${u.feeNote})`;
 
   const waiverLine = u.englishWaiver.available
     ? `English Proficiency Waiver: ${u.englishWaiver.detail}`
@@ -231,11 +255,19 @@ function handleFeeWaiver(): AsanteAnswer {
   };
 }
 
-function handleIeltsWaiver(): AsanteAnswer {
-  const withWaiver = universities.filter((u) => u.englishWaiver.available);
-  const withoutWaiver = universities.filter((u) => !u.englishWaiver.available);
+function handleIeltsWaiver(query: string): AsanteAnswer {
+  const asksForWaec = /\b(waec|wassce)\b/i.test(query);
+  const withWaiver = universities.filter((u) =>
+    u.englishWaiver.available &&
+    (!asksForWaec || u.englishWaiver.acceptedProofs.some((proof) => /\b(waec|wassce)\b/i.test(proof)))
+  );
+  const withoutWaiver = asksForWaec
+    ? []
+    : universities.filter((u) => !u.englishWaiver.available);
 
-  let content = `These are the English proficiency notes in Civio's local records. They are not independently verified; confirm current WAEC/IELTS policy with the specific program:\n\n`;
+  let content = asksForWaec
+    ? `These Civio admissions records explicitly list WAEC/WASSCE as accepted English-language evidence. Verify the required score, eligible applicant types, and current policy with the specific program:\n\n`
+    : `These are the English proficiency notes in Civio's local records. They are not independently verified; confirm current IELTS policy with the specific program:\n\n`;
 
   content += `**IELTS / TOEFL Waiver Available:**\n`;
   withWaiver.forEach((u) => {
@@ -243,10 +275,12 @@ function handleIeltsWaiver(): AsanteAnswer {
     content += `  Accepted proofs: ${u.englishWaiver.acceptedProofs.join(', ')}\n`;
   });
 
-  content += `\n**No Waiver (Test Required):**\n`;
-  withoutWaiver.forEach((u) => {
-    content += `• **${u.shortName}** (${u.country}) — ${u.englishWaiver.detail}\n`;
-  });
+  if (!asksForWaec) {
+    content += `\n**No Waiver (Test Required):**\n`;
+    withoutWaiver.forEach((u) => {
+      content += `• **${u.shortName}** (${u.country}) — ${u.englishWaiver.detail}\n`;
+    });
+  }
 
   content += `\n**How to check or request a waiver:**\n1. Review the current English-language policy for your specific program.\n2. Ask admissions whether a WAEC/WASSCE result or Medium of Instruction (MOI) letter is accepted.\n3. Submit only the evidence the institution requests. A waiver is not guaranteed and requirements differ by school.`;
 
@@ -256,33 +290,56 @@ function handleIeltsWaiver(): AsanteAnswer {
   };
 }
 
-function handleScholarshipInfo(initiativeData: Initiative[]): AsanteAnswer {
+function handleScholarshipInfo(query: string, initiativeData: Initiative[]): AsanteAnswer {
   const scholarshipSessions = initiativeData.filter(
     (i) => i.category === 'Education' && i.title.toLowerCase().includes('scholarship')
   );
-  const fundedOpportunities = opportunities.filter((opportunity) =>
-    opportunity.fundingType === 'Fully Funded' &&
-    (opportunity.category === 'Fellowship' || /scholarship|fellowship/i.test(opportunity.title))
-  );
+  const normalizedQuery = query.toLowerCase();
+  const isAfricanFocused = /\b(africa|african)\b/.test(normalizedQuery);
+  const namedProgramTerms = ['mastercard', 'daad', 'chevening', 'fulbright', 'commonwealth'];
+  const requestedPrograms = namedProgramTerms.filter((term) => normalizedQuery.includes(term));
+  const fundedOpportunities = opportunities.filter((opportunity) => {
+    const isFundedScholarship = opportunity.fundingType === 'Fully Funded' &&
+      (opportunity.category === 'Fellowship' || /scholarship|fellowship/i.test(opportunity.title));
+    if (!isFundedScholarship) return false;
 
-  let content = `Here are the scholarship and fellowship listings currently in Civio's opportunities catalogue. Confirm current funding and eligibility with each organizer before applying:\n\n`;
+    const searchable = [
+      opportunity.title,
+      opportunity.organization,
+      opportunity.targetAudience,
+      opportunity.region,
+      opportunity.description,
+      opportunity.eligibility,
+      ...opportunity.keywords,
+    ].join(' ').toLowerCase();
+    if (requestedPrograms.length > 0 && !requestedPrograms.some((term) => searchable.includes(term))) return false;
+    if (isAfricanFocused && !/\b(africa|african|sub-saharan)\b/.test(searchable)) return false;
+    return true;
+  });
 
-  content += `**Community Scholarship Resources:**\n`;
-  if (scholarshipSessions.length > 0) {
+  let content = `I searched Civio's opportunity catalogue for ${
+    requestedPrograms.length > 0
+      ? requestedPrograms.join(', ')
+      : isAfricanFocused
+        ? 'fully funded programs relevant to African students'
+        : 'scholarships and fellowships'
+  }. Confirm current funding and eligibility with each organizer before applying:\n\n`;
+
+  if (scholarshipSessions.length > 0 && requestedPrograms.length === 0) {
+    content += `**Community Scholarship Resources:**\n`;
     scholarshipSessions.forEach((s) => {
       content += `• ${s.title} — ${s.description}\n`;
     });
-  } else {
-    content += `• No community scholarship sessions are currently listed in Civio.\n`;
   }
 
   if (fundedOpportunities.length) {
-    content += `\n**Fully funded catalogue listings:**\n`;
+    content += `**Matching fully funded catalogue listings:**\n`;
     fundedOpportunities.forEach((opportunity) => {
-      content += `• ${opportunity.title} — ${opportunity.organization} (deadline: ${opportunity.deadline})\n`;
+      content += `• **${opportunity.title}** — ${opportunity.organization} (deadline: ${opportunity.deadline})\n`;
+      content += `  Eligibility: ${opportunity.eligibility}\n  Benefits: ${opportunity.benefits}\n`;
     });
   } else {
-    content += `\nNo fully funded scholarships or fellowships are currently listed in the opportunities catalogue.`;
+    content += `No matching fully funded listing is currently indexed. Try Mastercard Foundation, DAAD, Chevening, or a broader student opportunity search.`;
   }
   content += `\n\nUse the official links on the result cards to confirm current terms.`;
 
@@ -292,6 +349,23 @@ function handleScholarshipInfo(initiativeData: Initiative[]): AsanteAnswer {
   ];
 
   return { content, results };
+}
+
+function handleApplicationRoadmap(): AsanteAnswer {
+  return {
+    content: `Here is a practical admissions roadmap:\n\n` +
+      `1. Evaluate your credentials and request official transcripts from each school you attended.\n` +
+      `2. Secure application fee waivers before submitting; check each institution's current eligibility and process.\n` +
+      `3. Draft and align your Statement of Purpose (SOP) with the program's requirements and your academic goals.\n` +
+      `4. Submit your application through the institution's official application portal and save the confirmation.\n` +
+      `5. Prepare proof of funds and transition to the Visa & Immigration Intel tab to review destination-specific requirements and official sources.\n\n` +
+      `Requirements vary by school and country, so use the official portal and consular guidance for your situation.`,
+    results: [],
+  };
+}
+
+function isApplicationRoadmapQuery(query: string): boolean {
+  return /\b(how do i apply|how to apply|guide me step by step|step by step|application roadmap)\b/i.test(query);
 }
 
 function handleInitiativeSearch(query: string, initiativeData: Initiative[]): AsanteAnswer {
@@ -349,7 +423,7 @@ function handleVolunteerSearch(initiativeData: Initiative[]): AsanteAnswer {
 
 function handleGreeting(initiativeData: Initiative[]): AsanteAnswer {
   return {
-    content: `Hi! I'm Asante, your admissions, opportunities, and intelligence assistant. I search Civio's ${universities.length} detailed admissions records and ${initiativeData.length} current community initiative listings, and can query the live Hipo global university directory.\n\nAsk me about fee waivers, WAEC/IELTS requirements, fully funded opportunities, a university by name, or a community project. Always confirm changing eligibility and application details with the official source.`,
+    content: `Hello! I'm Asante, your guide across Civiohub. Ask me about universities with $0 application fees, IELTS/WAEC waivers, visa proof-of-funds rules, or global scholarships.\n\nI can also search ${universities.length} curated admissions records, the offline global university directory, ${opportunities.length} opportunity listings, and ${initiativeData.length} community initiatives. Always confirm changing eligibility and application details with the official source.`,
     results: [],
   };
 }
@@ -403,27 +477,9 @@ function handleVisaQuestion(query: string): AsanteAnswer | null {
   const visa = getVisaIntelForQuery(query);
   if (!visa) return null;
 
-  const normalized = query.toLowerCase();
-  const relevantFacts = visa.facts.filter((fact) => {
-    const label = fact.label.toLowerCase();
-    if (/\b(ielts|waec|english|cas|language test|language waiver)\b/.test(normalized)) {
-      return label.includes('english');
-    }
-    if (/\b(fee|fees|sevis|mrv|ihs)\b/.test(normalized)) return label.includes('fee');
-    if (/\b(work|opt|pgwp|graduate route|employment)\b/.test(normalized)) {
-      return label.includes('work') || label.includes('after graduation');
-    }
-    if (/\b(pal|attestation)\b/.test(normalized)) return label.includes('attestation');
-    if (/\b(funds?|blocked account|sperrkonto|maintenance|how much|amount|cost)\b/.test(normalized)) {
-      return /proof of funds|blocked account|maintenance funds/.test(label);
-    }
-    return true;
-  });
-  const facts = relevantFacts.length ? relevantFacts : visa.facts;
-
   return {
     content: `**${visa.country} — ${visa.title}**\n\n` +
-      facts.map((fact) => `• **${fact.label}:** ${fact.value}`).join('\n\n') +
+      visa.facts.map((fact) => `• **${fact.label}:** ${fact.value}`).join('\n\n') +
       '\n\nOpen the Visa & Immigration Intel tab for the official government sources and the proof-of-funds calculator. Requirements can change and your individual case may differ.',
     results: [],
   };
@@ -442,10 +498,14 @@ export function getAsanteLocalAnswer(query: string, initiativeData: Initiative[]
   const visaAnswer = handleVisaQuestion(query);
   if (visaAnswer) return visaAnswer;
 
+  if (isApplicationRoadmapQuery(query)) {
+    return handleApplicationRoadmap();
+  }
+
   const namedUni = searchUniversitiesByName(query);
   const intent = detectIntent(query);
 
-  if (namedUni.length > 0 && intent.type !== 'fee-waiver' && intent.type !== 'ielts-waiver' && intent.type !== 'greeting') {
+  if (namedUni.length > 0 && intent.type !== 'greeting') {
     return handleUniversitySearch(query);
   }
 
@@ -457,9 +517,9 @@ export function getAsanteLocalAnswer(query: string, initiativeData: Initiative[]
     case 'fee-waiver':
       return handleFeeWaiver();
     case 'ielts-waiver':
-      return handleIeltsWaiver();
+      return handleIeltsWaiver(query);
     case 'scholarship-info':
-      return handleScholarshipInfo(initiativeData);
+      return handleScholarshipInfo(query, initiativeData);
     case 'initiative-search':
       return handleInitiativeSearch(query, initiativeData);
     case 'coding-workspace':
@@ -473,21 +533,28 @@ export function getAsanteLocalAnswer(query: string, initiativeData: Initiative[]
 
 export async function getAsanteAnswer(query: string, initiativeData: Initiative[]): Promise<AsanteAnswer> {
   const localAnswer = getAsanteLocalAnswer(query, initiativeData);
-  if (getVisaIntelForQuery(query)) return localAnswer;
+  if (getVisaIntelForQuery(query) || isApplicationRoadmapQuery(query)) return localAnswer;
 
   const normalized = query.toLowerCase().trim();
   const intent = detectIntent(query);
   const globalDirectorySearch =
     /9,?000|global universities|global university|all universities|worldwide universities/i.test(normalized);
+  const institutionQuery = extractInstitutionQuery(query);
+  const hasCuratedUniversityMatch = searchUniversitiesByName(query).length > 0;
+  const searchableInstitutionQuestion = ['university-search', 'general-search', 'fee-waiver', 'ielts-waiver']
+    .includes(intent.type) && institutionQuery.length > 1 && !hasCuratedUniversityMatch;
   const shouldSearchGlobalDirectory =
     globalDirectorySearch ||
+    searchableInstitutionQuestion ||
     (localAnswer.results.length === 0 &&
       (intent.type === 'university-search' || intent.type === 'general-search'));
 
   if (!shouldSearchGlobalDirectory) return localAnswer;
 
-  const name = globalDirectorySearch ? '' : query.trim();
+  const name = globalDirectorySearch ? '' : institutionQuery || query.trim();
   const results = (await searchGlobalUniversities(name)).slice(0, 12);
+  if (!results.length && localAnswer.results.length > 0 && !globalDirectorySearch) return localAnswer;
+
   const globalResults: AsanteResult[] = results.map((university) => ({
     kind: 'global-university',
     university,
@@ -501,7 +568,7 @@ export async function getAsanteAnswer(query: string, initiativeData: Initiative[
   }
 
   return {
-    content: `${globalDirectorySearch ? 'Here are the first' : 'I found'} ${results.length} result(s) from the Hipo global university directory${globalDirectorySearch ? ' (showing the first 12; browse the full directory in Admissions Hub)' : ` matching "${query}"`}.\n\nThe directory provides institution names and website links, not accreditation, fees, application portals, deadlines, or test-waiver policies. Verify those details with each institution.`,
+    content: `${globalDirectorySearch ? 'Here are the first' : 'I found'} ${results.length} result(s) from the local Hipo global university directory${globalDirectorySearch ? ' (showing the first 12; browse the full directory in Admissions Hub)' : ` matching "${query}"`}.\n\nFor institutions with a Civio admissions profile, ask by the exact university name to see its fee and language-policy details. The global directory alone does not index admissions fees or test-waiver policies, so those details are marked unindexed rather than assumed.`,
     results: globalResults,
   };
 }

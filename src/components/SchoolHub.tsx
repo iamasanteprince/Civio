@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   ExternalLink,
   GraduationCap,
@@ -14,12 +14,11 @@ import {
   Search,
   Filter,
   Loader2,
-  Sparkles,
 } from 'lucide-react';
-import type { University, FeeWaiverDetail, ApiUniversity, CivioUser, DiscussionStore } from '@/types';
+import type { University, FeeWaiverDetail, ApiUniversity } from '@/types';
 import { universities, countries, degreeLevels } from '@/data/universities';
-import { getUniversityWebsite, searchGlobalUniversities } from '@/data/universityDirectory';
-import DiscussionThread from '@/components/DiscussionThread';
+import { loadGlobalUniversityIndex } from '@/data/globalUniversityIndex';
+import { getUniversityWebsite } from '@/data/universityDirectory';
 
 const FEE_WAIVER_STYLES: Record<FeeWaiverDetail, { badge: string; banner: string }> = {
   'always-free': { badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25', banner: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' },
@@ -46,12 +45,82 @@ type SearchResult =
   | { kind: 'local'; university: University }
   | { kind: 'api'; apiUni: ApiUniversity };
 
+function normalizeSearchText(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
 function findLocalMatch(apiUni: ApiUniversity): University | undefined {
-  const apiName = apiUni.name.toLowerCase().trim();
+  const apiName = normalizeSearchText(apiUni.name);
   return universities.find((u) => {
-    const localName = u.name.toLowerCase().trim();
-    return localName === apiName || localName.includes(apiName) || apiName.includes(u.shortName.toLowerCase());
+    const localName = normalizeSearchText(u.name);
+    const localShortName = normalizeSearchText(u.shortName);
+    return localName === apiName ||
+      (localName.length > 8 && (localName.includes(apiName) || apiName.includes(localName))) ||
+      (localShortName.length > 3 && localShortName === apiName);
   });
+}
+
+function isWithinOneEdit(query: string, candidate: string): boolean {
+  if (Math.abs(query.length - candidate.length) > 1) return false;
+
+  let queryIndex = 0;
+  let candidateIndex = 0;
+  let edits = 0;
+  while (queryIndex < query.length && candidateIndex < candidate.length) {
+    if (query[queryIndex] === candidate[candidateIndex]) {
+      queryIndex++;
+      candidateIndex++;
+      continue;
+    }
+    edits++;
+    if (edits > 1) return false;
+    if (query.length > candidate.length) queryIndex++;
+    else if (query.length < candidate.length) candidateIndex++;
+    else {
+      queryIndex++;
+      candidateIndex++;
+    }
+  }
+  if (queryIndex < query.length || candidateIndex < candidate.length) edits++;
+  return edits <= 1;
+}
+
+function scoreUniversityMatch(university: ApiUniversity, query: string): number | null {
+  if (!query) return 0;
+  const name = normalizeSearchText(university.name);
+  const country = normalizeSearchText(university.country);
+  const stateProvince = normalizeSearchText(university.state_province ?? '');
+  const searchableFields = [name, country, stateProvince];
+  if (searchableFields.some((field) => field.includes(query))) {
+    if (name.startsWith(query)) return 120;
+    if (name.includes(query)) return 110;
+    return 90;
+  }
+
+  const queryTokens = query.split(' ').filter(Boolean);
+  const fieldTokens = searchableFields.map((field) => field.split(' ').filter(Boolean));
+  let nameMatches = 0;
+  for (const token of queryTokens) {
+    let matched = false;
+    for (let fieldIndex = 0; fieldIndex < fieldTokens.length; fieldIndex++) {
+      if (fieldTokens[fieldIndex].some((word) =>
+        word.includes(token) ||
+        (word.length >= 3 && token.includes(word)) ||
+        (token.length >= 5 && isWithinOneEdit(token, word))
+      )) {
+        if (fieldIndex === 0) nameMatches++;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) return null;
+  }
+  return nameMatches === queryTokens.length ? 80 : 60;
 }
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -63,67 +132,8 @@ function useDebounce<T>(value: T, delay: number): T {
   return debounced;
 }
 
-function useApiSearch(query: string, enabled: boolean) {
-  const [apiResults, setApiResults] = useState<ApiUniversity[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
-
-  useEffect(() => {
-    if (!enabled) {
-      setApiResults([]);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    if (abortRef.current) abortRef.current.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    searchGlobalUniversities(query.trim(), controller.signal)
-      .then((results) => {
-        setApiResults(results);
-        setLoading(false);
-      })
-      .catch((error: unknown) => {
-        if (error instanceof Error && error.name === 'AbortError') return;
-        setError(error instanceof Error ? error.message : 'Could not load the global university directory.');
-        setLoading(false);
-        setApiResults([]);
-      });
-
-    return () => controller.abort();
-  }, [query, enabled]);
-
-  return { apiResults, loading, error };
-}
-
-interface SchoolDiscussionProps {
-  discussions: DiscussionStore;
-  currentUser: CivioUser | null;
-  onAddComment: (threadId: string, content: string, verified?: boolean) => void;
-  onLikeComment: (threadId: string, commentId: string) => void;
-  onEditComment: (threadId: string, commentId: string, content: string) => void;
-  onDeleteComment: (threadId: string, commentId: string) => void;
-  onRequestSignIn: () => void;
-}
-
-function SchoolCard({
-  school,
-  discussions,
-  currentUser,
-  onAddComment,
-  onLikeComment,
-  onEditComment,
-  onDeleteComment,
-  onRequestSignIn,
-}: SchoolDiscussionProps & { school: University }) {
+function SchoolCard({ school }: { school: University }) {
   const feeStyle = FEE_WAIVER_STYLES[school.feeWaiverDetail];
-  const threadId = `university:${school.id}`;
   return (
     <div className="group relative flex flex-col rounded-2xl border border-slate-800/80 bg-[#0c1322]/80 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:border-blue-500/50 hover:bg-[#0f1729]/90 hover:shadow-2xl hover:shadow-blue-950/30">
       <div className="p-6">
@@ -140,10 +150,6 @@ function SchoolCard({
             </div>
           </div>
         </div>
-
-        <p className="mb-3 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200/80">
-          Civio fee and testing details are not independently verified. Confirm requirements directly with the institution.
-        </p>
 
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <span className="inline-flex items-center gap-1 rounded-full bg-slate-800/80 border border-slate-700/50 px-2.5 py-1 text-xs text-slate-400">
@@ -224,33 +230,12 @@ function SchoolCard({
           View Portal & Apply <ExternalLink className="w-4 h-4" />
         </a>
       </div>
-      <DiscussionThread
-        threadId={threadId}
-        title={school.name}
-        comments={discussions[threadId] ?? []}
-        currentUser={currentUser}
-        onAddComment={onAddComment}
-        onLikeComment={onLikeComment}
-        onEditComment={onEditComment}
-        onDeleteComment={onDeleteComment}
-        onRequestSignIn={onRequestSignIn}
-      />
     </div>
   );
 }
 
-function ApiSchoolCard({
-  apiUni,
-  discussions,
-  currentUser,
-  onAddComment,
-  onLikeComment,
-  onEditComment,
-  onDeleteComment,
-  onRequestSignIn,
-}: SchoolDiscussionProps & { apiUni: ApiUniversity }) {
+function ApiSchoolCard({ apiUni }: { apiUni: ApiUniversity }) {
   const portalUrl = getUniversityWebsite(apiUni);
-  const threadId = `university:global:${apiUni.alpha_two_code}:${apiUni.name}`;
 
   return (
     <div className="group relative flex flex-col rounded-2xl border border-slate-800/80 bg-[#0c1322]/80 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:border-indigo-500/40 hover:bg-[#0f1729]/90 hover:shadow-xl hover:shadow-indigo-950/20">
@@ -266,19 +251,28 @@ function ApiSchoolCard({
               <span>{apiUni.country}</span>
               <span className="inline-flex items-center justify-center rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 border border-slate-700">{apiUni.alpha_two_code}</span>
             </div>
+            {apiUni.state_province && (
+              <p className="mt-1 text-xs text-slate-500">{apiUni.state_province}</p>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 mb-4">
+        <div className="mb-4 flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-3 py-1.5 text-xs text-indigo-300">
-            <Sparkles className="w-3 h-3" />
-            Live global result
+            <Globe className="w-3 h-3" />
+            Global directory record
+          </span>
+          <span className="rounded-lg border border-slate-700/60 bg-slate-800/40 px-3 py-1.5 text-xs text-slate-400">
+            Application fee: Check institution
+          </span>
+          <span className="rounded-lg border border-slate-700/60 bg-slate-800/40 px-3 py-1.5 text-xs text-slate-400">
+            English testing: Not indexed
           </span>
         </div>
 
         <div className="rounded-xl border border-slate-700/40 bg-slate-800/30 px-4 py-3 mb-4">
           <p className="text-xs text-slate-400 leading-relaxed">
-            Found via global university registry. Detailed fee and admissions intel not yet indexed in Civio's local database. Visit the official website for application fees, deadlines, and language requirements.
+            Listed in the Hipo global university directory. Fee, deadline, and language-testing requirements are not supplied by this directory; confirm current details with the institution.
           </p>
         </div>
 
@@ -298,46 +292,47 @@ function ApiSchoolCard({
           </a>
         )}
       </div>
-      <DiscussionThread
-        threadId={threadId}
-        title={apiUni.name}
-        comments={discussions[threadId] ?? []}
-        currentUser={currentUser}
-        onAddComment={onAddComment}
-        onLikeComment={onLikeComment}
-        onEditComment={onEditComment}
-        onDeleteComment={onDeleteComment}
-        onRequestSignIn={onRequestSignIn}
-      />
     </div>
   );
 }
 
-type SchoolHubProps = SchoolDiscussionProps;
-
-export default function SchoolHub({
-  discussions,
-  currentUser,
-  onAddComment,
-  onLikeComment,
-  onEditComment,
-  onDeleteComment,
-  onRequestSignIn,
-}: SchoolHubProps) {
+export default function SchoolHub() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [visibleGlobalCount, setVisibleGlobalCount] = useState(30);
+  const [visibleResultCount, setVisibleResultCount] = useState(30);
   const [selectedCountry, setSelectedCountry] = useState('All');
   const [selectedDegree, setSelectedDegree] = useState('All');
   const [freeOnly, setFreeOnly] = useState(false);
   const [ieltsExemptOnly, setIeltsExemptOnly] = useState(false);
+  const [globalUniversities, setGlobalUniversities] = useState<ApiUniversity[]>([]);
+  const [directoryLoading, setDirectoryLoading] = useState(true);
+  const [directoryError, setDirectoryError] = useState<string | null>(null);
 
-  const debouncedQuery = useDebounce(searchQuery, 300);
+  const debouncedQuery = useDebounce(searchQuery, 250);
   const isSearching = debouncedQuery.trim().length > 0;
-  const { apiResults, loading: apiLoading, error: apiError } = useApiSearch(debouncedQuery, isSearching);
+  const normalizedQuery = normalizeSearchText(debouncedQuery);
 
   useEffect(() => {
-    setVisibleGlobalCount(30);
-  }, [debouncedQuery]);
+    let active = true;
+    loadGlobalUniversityIndex()
+      .then((index) => {
+        if (active) setGlobalUniversities(index);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setDirectoryError(error instanceof Error ? error.message : 'Could not load the local university directory.');
+      })
+      .finally(() => {
+        if (active) setDirectoryLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    setVisibleResultCount(30);
+  }, [debouncedQuery, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly]);
 
   const localFiltered = useMemo(() => {
     let result = universities;
@@ -367,28 +362,43 @@ export default function SchoolHub({
     return result;
   }, [debouncedQuery, isSearching, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly]);
 
-  const mergedApiResults = useMemo(() => {
-    if (apiResults.length === 0 || selectedDegree !== 'All' || freeOnly || ieltsExemptOnly) {
-      return [] as SearchResult[];
-    }
-    return apiResults
-      .map((apiUni): SearchResult | null => {
-        const matched = findLocalMatch(apiUni);
-        if (matched) return null;
-        if (selectedCountry !== 'All' && apiUni.country !== selectedCountry) return null;
-        return { kind: 'api', apiUni };
-      })
-      .filter((r): r is SearchResult => r !== null);
-  }, [apiResults, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly]);
+  const globalResults = useMemo(() => {
+    if (selectedDegree !== 'All' || freeOnly || ieltsExemptOnly) return [];
 
-  const allResults: SearchResult[] = useMemo(() => {
-    const local: SearchResult[] = localFiltered.map((u) => ({ kind: 'local' as const, university: u }));
-    return [...local, ...mergedApiResults.slice(0, visibleGlobalCount)];
-  }, [localFiltered, mergedApiResults, visibleGlobalCount]);
+    return globalUniversities
+      .filter((university) =>
+        selectedCountry === 'All' || university.country === selectedCountry
+      )
+      .map((university) => ({
+        university,
+        score: scoreUniversityMatch(university, normalizedQuery),
+      }))
+      .filter((result): result is { university: ApiUniversity; score: number } => result.score !== null)
+      .sort((left, right) => right.score - left.score);
+  }, [globalUniversities, normalizedQuery, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly]);
+
+  const allResults = useMemo(() => {
+    const matchedLocalIds = new Set<string>();
+    const global: SearchResult[] = globalResults.map(({ university }) => {
+      const matched = findLocalMatch(university);
+      if (matched) {
+        matchedLocalIds.add(matched.id);
+        return { kind: 'local', university: matched };
+      }
+      return { kind: 'api', apiUni: university };
+    });
+    const localOnly: SearchResult[] = localFiltered
+      .filter((university) => !matchedLocalIds.has(university.id))
+      .map((university) => ({ kind: 'local', university }));
+
+    return [...localOnly, ...global];
+  }, [globalResults, localFiltered]);
+  const visibleResults = allResults.slice(0, visibleResultCount);
 
   const freeCount = universities.filter((u) => u.applicationFeeType === 'free' || u.applicationFeeType === 'waiver').length;
   const waiverCount = universities.filter((u) => u.englishWaiver.available).length;
-  const totalCount = localFiltered.length + mergedApiResults.length;
+  const totalCount = allResults.length;
+  const globalCountLabel = directoryLoading ? '9,000+' : globalUniversities.length.toLocaleString();
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -399,7 +409,7 @@ export default function SchoolHub({
           9,000+ Global Universities &amp; Colleges Indexed
         </div>
         <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto">
-          Browse the Hipo global university directory and Civio's separate admissions records. Fees, language policies, and accreditation are not included in every directory listing; confirm details with each institution.
+          Search an offline, locally bundled copy of the global Hipo directory alongside Civio admissions records. Fee and language policies are shown only where indexed; confirm current details with each institution.
         </p>
       </div>
 
@@ -419,7 +429,7 @@ export default function SchoolHub({
           />
         </div>
         <p className="mt-2 text-xs text-slate-500">
-          Matching results are fetched on demand from the open Hipo directory. Directory entries do not confirm accreditation or admissions requirements.
+          Search runs locally across names, countries, and states or provinces. Directory entries do not confirm accreditation or admissions requirements.
         </p>
       </div>
 
@@ -436,8 +446,8 @@ export default function SchoolHub({
         </div>
         <div className="inline-flex items-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-2">
           <Globe className="w-4 h-4 text-indigo-400" />
-          <span className="text-sm font-semibold text-indigo-300">Live</span>
-          <span className="text-xs text-slate-400">Global API Search</span>
+          <span className="text-sm font-semibold text-indigo-300">{globalCountLabel}</span>
+          <span className="text-xs text-slate-400">Offline Global Directory</span>
         </div>
       </div>
 
@@ -483,19 +493,17 @@ export default function SchoolHub({
           <div className="flex items-center gap-2 text-xs text-slate-500 pt-2 border-t border-slate-800 flex-wrap">
             <Search className="w-3.5 h-3.5" />
             <span>
-              {isSearching
-                ? <>Searching for "<span className="text-slate-300 font-semibold">{debouncedQuery}</span>" — </>
-                : <>Global directory — </>}
-              <span className="text-slate-300 font-semibold">{totalCount}</span> result{totalCount !== 1 ? 's' : ''}
-              {apiLoading && <span className="text-indigo-400 ml-2 flex items-center gap-1 inline-flex"><Loader2 className="w-3 h-3 animate-spin" /> Fetching global results...</span>}
-              {apiError && <span role="status" className="text-amber-400 ml-2">· {apiError} Showing Civio's local records only.</span>}
-              {mergedApiResults.length > 0 && <span className="text-indigo-400 ml-2">· {mergedApiResults.length} global directory results</span>}
+              Searching across <span className="text-slate-300 font-semibold">{globalCountLabel}</span> global institutions
+              {' · '}Found <span className="text-slate-300 font-semibold">{totalCount.toLocaleString()}</span> matching universities
+              {isSearching && <> for "<span className="text-slate-300 font-semibold">{debouncedQuery}</span>"</>}
+              {directoryLoading && <span className="text-indigo-400 ml-2 flex items-center gap-1 inline-flex"><Loader2 className="w-3 h-3 animate-spin" /> Loading bundled directory...</span>}
+              {directoryError && <span role="status" className="text-amber-400 ml-2">· {directoryError} Curated admissions records remain available.</span>}
             </span>
           </div>
         </div>
       </div>
 
-      {totalCount === 0 && !apiLoading ? (
+      {totalCount === 0 && !directoryLoading ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-8 py-12">
             <GraduationCap className="w-10 h-10 text-slate-600 mx-auto mb-4" />
@@ -506,47 +514,36 @@ export default function SchoolHub({
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {allResults.map((result, idx) =>
+            {visibleResults.map((result, idx) =>
               result.kind === 'local' ? (
                 <SchoolCard
                   key={`local-${result.university.id}`}
                   school={result.university}
-                  discussions={discussions}
-                  currentUser={currentUser}
-                  onAddComment={onAddComment}
-                  onLikeComment={onLikeComment}
-                  onEditComment={onEditComment}
-                  onDeleteComment={onDeleteComment}
-                  onRequestSignIn={onRequestSignIn}
                 />
               ) : (
                 <ApiSchoolCard
                   key={`api-${result.apiUni.name}-${idx}`}
                   apiUni={result.apiUni}
-                  discussions={discussions}
-                  currentUser={currentUser}
-                  onAddComment={onAddComment}
-                  onLikeComment={onLikeComment}
-                  onEditComment={onEditComment}
-                  onDeleteComment={onDeleteComment}
-                  onRequestSignIn={onRequestSignIn}
                 />
               )
             )}
           </div>
-          {visibleGlobalCount < mergedApiResults.length && (
+          {visibleResultCount < allResults.length && (
             <div className="mt-8 text-center">
               <button
                 type="button"
-                onClick={() => setVisibleGlobalCount((count) => count + 30)}
+                onClick={() => setVisibleResultCount((count) => count + 30)}
                 className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-5 py-2.5 text-sm font-semibold text-indigo-200 transition hover:bg-indigo-500/20"
               >
-                Load more global universities ({Math.min(30, mergedApiResults.length - visibleGlobalCount)} next)
+                Load more universities ({Math.min(30, allResults.length - visibleResultCount)} next)
               </button>
             </div>
           )}
         </>
       )}
+      <p className="mt-8 text-center text-xs text-slate-500">
+        Admissions fees, waivers, and English testing policies may change; confirm current requirements with each institution.
+      </p>
     </div>
   );
 }

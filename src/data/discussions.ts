@@ -3,6 +3,24 @@ import { sanitizePlainText } from '@/utils/inputSecurity';
 
 export const DISCUSSION_STORAGE_KEY = 'civio-discussions-v1';
 
+const FORUM_THREAD_IDS = new Set([
+  'forum:visa-interviews',
+  'forum:fee-waiver-codes',
+  'forum:waec-documents',
+  'forum:scholarships-opportunities',
+  'forum:housing-arrival',
+  'forum:general-chat',
+]);
+
+function getForumThreadId(threadId: string): string {
+  if (FORUM_THREAD_IDS.has(threadId)) return threadId;
+  if (threadId.startsWith('visa:')) return 'forum:visa-interviews';
+  if (threadId.startsWith('university:')) return 'forum:fee-waiver-codes';
+  if (threadId.startsWith('opportunity:')) return 'forum:scholarships-opportunities';
+  if (threadId.startsWith('initiative:')) return 'forum:general-chat';
+  return 'forum:general-chat';
+}
+
 function isDiscussionComment(value: unknown): value is DiscussionComment {
   if (!value || typeof value !== 'object') return false;
   const comment = value as Record<string, unknown>;
@@ -46,5 +64,13 @@ export function parseDiscussionStore(raw: string): DiscussionStore {
       };
     });
   }
-  return store;
+  const forumStore: DiscussionStore = {};
+  for (const [threadId, comments] of Object.entries(store)) {
+    const forumThreadId = getForumThreadId(threadId);
+    forumStore[forumThreadId] = [...(forumStore[forumThreadId] ?? []), ...comments];
+  }
+  for (const comments of Object.values(forumStore)) {
+    comments.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+  }
+  return forumStore;
 }

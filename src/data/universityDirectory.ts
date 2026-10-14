@@ -1,37 +1,35 @@
 import type { ApiUniversity } from '@/types';
-
-const DIRECTORY_URL = 'https://universities.hipolabs.com/search';
-
-function isApiUniversity(value: unknown): value is ApiUniversity {
-  if (!value || typeof value !== 'object') return false;
-  const university = value as Record<string, unknown>;
-  return (
-    typeof university.name === 'string' &&
-    typeof university.country === 'string' &&
-    typeof university.alpha_two_code === 'string' &&
-    Array.isArray(university.web_pages) &&
-    university.web_pages.every((page) => typeof page === 'string') &&
-    Array.isArray(university.domains) &&
-    university.domains.every((domain) => typeof domain === 'string')
-  );
-}
+import { loadGlobalUniversityIndex } from './globalUniversityIndex';
 
 export async function searchGlobalUniversities(
-  name: string,
+  query: string,
   signal?: AbortSignal
 ): Promise<ApiUniversity[]> {
-  const url = new URL(DIRECTORY_URL);
-  url.searchParams.set('name', name);
-  const response = await fetch(url, { signal });
-  if (!response.ok) {
-    throw new Error(`Global university directory returned HTTP ${response.status}.`);
-  }
+  const universities = await loadGlobalUniversityIndex();
+  if (signal?.aborted) throw new DOMException('The search was cancelled.', 'AbortError');
 
-  const data: unknown = await response.json();
-  if (!Array.isArray(data)) {
-    throw new Error('Global university directory returned an unexpected response.');
-  }
-  return data.filter(isApiUniversity);
+  const terms = query
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (terms.length === 0) return universities;
+
+  return universities.filter((university) => {
+    const searchableText = [
+      university.name,
+      university.country,
+      university.alpha_two_code,
+      university.state_province ?? '',
+    ]
+      .join(' ')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
+    return terms.every((term) => searchableText.includes(term));
+  });
 }
 
 export function getUniversityWebsite(university: ApiUniversity): string {

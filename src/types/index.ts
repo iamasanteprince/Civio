@@ -170,6 +170,7 @@ export interface ApiUniversity {
   country: string;
   web_pages: string[];
   domains: string[];
+  state_province?: string | null;
 }
 
 export type UniversitySearchResult = University | (ApiUniversity & { _merged?: false; _isApi: true });
