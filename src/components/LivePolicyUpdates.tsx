@@ -247,11 +247,11 @@ export default function LivePolicyUpdates() {
   }, [refresh]);
 
   return (
-    <section aria-label="Live embassy and policy updates" className="mb-8 rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-950/35 to-slate-900/80 p-5 sm:p-6">
+    <section aria-label="Live embassy and policy updates" className="mb-8 rounded-xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-start gap-3">
-          <div className="rounded-xl border border-sky-500/25 bg-sky-500/10 p-2.5">
-            <Rss className="h-5 w-5 text-sky-300" />
+          <div className="rounded-lg border border-blue-500/25 bg-blue-500/10 p-2.5">
+            <Rss className="h-5 w-5 text-blue-300" />
           </div>
           <div>
             <h2 className="text-lg font-bold text-white">Live Embassy &amp; Policy Updates</h2>
@@ -295,7 +295,7 @@ export default function LivePolicyUpdates() {
             <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{update.summary}</p>
             <div className="mt-3 flex items-center justify-between gap-2">
               {update.preIndexed && <span className="text-[10px] text-slate-500">Pre-indexed reference · verify current rules</span>}
-              <a href={update.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-sky-300 transition hover:text-sky-200">
+              <a href={update.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-blue-300 transition hover:text-blue-200">
                 Official bulletin <ExternalLink className="h-3 w-3" />
               </a>
             </div>

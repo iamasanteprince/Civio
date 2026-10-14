@@ -39,11 +39,11 @@ function Logo() {
       <img
         src="/civio-logo.png"
         alt="Civiohub Logo"
-        className="w-10 h-10 rounded-xl object-cover shadow-lg shadow-indigo-500/25 border border-indigo-500/30"
+        className="w-10 h-10 rounded-lg object-cover border border-slate-700"
       />
       <div className="hidden sm:block">
         <h1 className="text-lg font-black text-white leading-none tracking-tight">Civiohub</h1>
-        <p className="text-xs text-indigo-400 font-medium mt-0.5">Civic Engagement, Admissions &amp; Global Opportunities</p>
+        <p className="text-xs text-blue-400 font-medium mt-0.5">Civic Engagement, Admissions &amp; Global Opportunities</p>
       </div>
     </div>
   );
@@ -364,16 +364,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#060a12] text-slate-100">
-      {/* Ambient background glow */}
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-indigo-950/20 blur-[120px]" />
-        <div className="absolute top-1/3 -right-40 w-96 h-96 rounded-full bg-emerald-950/15 blur-[120px]" />
-        <div className="absolute bottom-0 left-1/3 w-96 h-96 rounded-full bg-slate-900/30 blur-[100px]" />
-      </div>
-
+    <div className="min-h-screen bg-[#0A0D14] text-slate-100">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-40 border-b border-slate-800 bg-[#060a12]/85 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-slate-800 bg-[#0A0D14]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-4 py-3">
             <Logo />
@@ -401,7 +394,7 @@ export default function App() {
               ) : (
                 <button
                   onClick={() => setSignInOpen(true)}
-                  className="border border-slate-700 bg-slate-900/80 hover:bg-slate-800 text-white rounded-xl px-4 py-2 flex items-center gap-2 text-sm font-medium transition-all"
+                  className="border border-slate-700 bg-slate-900 hover:bg-slate-800 text-white rounded-md px-4 py-2 flex items-center gap-2 text-sm font-medium transition-colors duration-150"
                 >
                   <LogIn className="w-4 h-4" />
                   <span className="hidden sm:inline">Sign In</span>
@@ -410,7 +403,7 @@ export default function App() {
 
               <button
                 onClick={() => setCreatePostOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-3 py-2 text-sm font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 active:scale-95"
+                className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Initiative</span>
@@ -435,13 +428,13 @@ export default function App() {
                   key={id}
                   onClick={() => setActiveView(id)}
                   className={`group relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all ${
-                    active ? 'text-indigo-300' : 'text-slate-400 hover:text-slate-200'
+                    active ? 'text-blue-300' : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{label}</span>
                   {active && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-500 rounded-t-full" />
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-t-full" />
                   )}
                 </button>
               );
@@ -451,7 +444,7 @@ export default function App() {
 
         {/* Mobile Nav Drawer */}
         {mobileNavOpen && (
-          <div className="lg:hidden border-t border-slate-800 bg-[#060a12]/95 backdrop-blur-xl">
+          <div className="lg:hidden border-t border-slate-800 bg-[#0A0D14]">
             <div className="px-4 py-3 space-y-1">
               {TABS.map(({ id, label, icon: Icon, description }) => {
                 const active = activeView === id;
@@ -464,7 +457,7 @@ export default function App() {
                     }}
                     className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                       active
-                        ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30'
+                        ? 'bg-blue-500/10 text-blue-300 border border-blue-500/30'
                         : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border border-transparent'
                     }`}
                   >
@@ -482,7 +475,7 @@ export default function App() {
       </header>
 
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-[#060a12]/95 backdrop-blur-xl">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-[#0A0D14]">
         <div className="flex items-center justify-around py-2 px-2">
           {TABS.map(({ id, mobileLabel, icon: Icon }) => {
             const active = activeView === id;
@@ -491,7 +484,7 @@ export default function App() {
                 key={id}
                 onClick={() => setActiveView(id)}
                 className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition-all ${
-                  active ? 'text-indigo-300' : 'text-slate-500'
+                  active ? 'text-blue-300' : 'text-slate-500'
                 }`}
               >
                 <Icon className={`w-5 h-5 ${active ? 'scale-110' : ''} transition-transform`} />
@@ -545,7 +538,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-slate-800 bg-[#060a12]/80">
+      <footer className="relative z-10 border-t border-slate-800 bg-[#0A0D14]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-slate-500">

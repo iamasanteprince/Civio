@@ -189,7 +189,7 @@ function OpportunityCard({
   const CatIcon = CATEGORY_ICON[opportunity.category];
   const FundIcon = FUNDING_ICON[opportunity.fundingType];
   return (
-    <div className="group relative flex flex-col rounded-2xl border border-slate-800/80 bg-[#0c1322]/80 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:border-indigo-500/40 hover:bg-[#0f1729]/90 hover:shadow-xl hover:shadow-indigo-950/20">
+    <div className="group relative flex flex-col rounded-xl border border-slate-800 bg-slate-900 overflow-hidden transition-colors duration-150 hover:border-slate-700">
       <div className="p-5">
         {match && (
           <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -203,7 +203,7 @@ function OpportunityCard({
           </div>
         )}
         <div className="flex items-start gap-3 mb-4">
-          <div className={`flex items-center justify-center rounded-xl bg-gradient-to-br ${catStyle.iconBg} w-11 h-11 flex-shrink-0`}>
+          <div className="flex items-center justify-center rounded-lg bg-slate-700 w-11 h-11 flex-shrink-0">
             <CatIcon className="w-5 h-5 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -256,7 +256,7 @@ function OpportunityCard({
       </div>
 
       <div className="border-t border-slate-800 p-4 mt-auto">
-        <a href={opportunity.link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 active:scale-[0.98]">
+        <a href={opportunity.link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500">
           View & Apply <ExternalLink className="w-4 h-4" />
         </a>
       </div>
@@ -359,7 +359,7 @@ export default function OpportunitiesHub() {
         </div>
       </div>
 
-      <div className="mb-6 rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-5">
+      <div className="mb-6 rounded-xl border border-slate-800 bg-slate-900 p-5">
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-slate-400">
@@ -487,7 +487,7 @@ export default function OpportunitiesHub() {
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Category</label>
               <div className="flex flex-wrap gap-1.5">
                 {CATEGORIES.map((c) => (
-                  <button key={c} onClick={() => setSelectedCategory(c)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedCategory === c ? 'border-indigo-500/50 bg-indigo-500/15 text-indigo-200' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{c}</button>
+                  <button key={c} onClick={() => setSelectedCategory(c)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedCategory === c ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{c}</button>
                 ))}
               </div>
             </div>
@@ -496,7 +496,7 @@ export default function OpportunitiesHub() {
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Funding Type</label>
               <div className="flex flex-wrap gap-1.5">
                 {FUNDING_TYPES.map((f) => (
-                  <button key={f} onClick={() => setSelectedFunding(f)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedFunding === f ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{f}</button>
+                  <button key={f} onClick={() => setSelectedFunding(f)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedFunding === f ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{f}</button>
                 ))}
               </div>
             </div>
@@ -505,7 +505,7 @@ export default function OpportunitiesHub() {
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Target Audience</label>
               <div className="flex flex-wrap gap-1.5">
                 {AUDIENCES.map((a) => (
-                  <button key={a} onClick={() => setSelectedAudience(a)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedAudience === a ? 'border-purple-500/50 bg-purple-500/15 text-purple-200' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{a}</button>
+                  <button key={a} onClick={() => setSelectedAudience(a)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedAudience === a ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{a}</button>
                 ))}
               </div>
             </div>

@@ -54,7 +54,7 @@ function CommentDrawer({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
       <div
-        className="relative w-full max-w-lg rounded-t-2xl sm:rounded-2xl border border-slate-700 bg-slate-900/95 backdrop-blur-xl shadow-2xl max-h-[85vh] flex flex-col animate-modalIn"
+        className="relative w-full max-w-lg rounded-t-xl sm:rounded-xl border border-slate-700 bg-slate-900 shadow-2xl max-h-[85vh] flex flex-col animate-modalIn"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b border-slate-800">
@@ -123,7 +123,7 @@ function InitiativeCard({
   };
 
   return (
-    <div className="rounded-2xl border border-slate-800/80 bg-[#0c1322]/80 backdrop-blur-sm overflow-hidden transition-all duration-300 hover:border-indigo-500/40 hover:shadow-xl hover:shadow-indigo-950/20">
+    <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden transition-colors duration-150 hover:border-slate-700">
       <div className="p-5">
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
@@ -252,7 +252,7 @@ export default function CivicFeed({
           </div>
           <button
             onClick={onOpenCreatePost}
-            className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 active:scale-95"
+            className="inline-flex items-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500"
           >
             <Plus className="w-4 h-4" />
             New Initiative

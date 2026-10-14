@@ -3,17 +3,26 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    color-scheme: dark;
+  }
+
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-[#060a12] text-slate-100 antialiased;
+    @apply bg-[#0A0D14] text-slate-100 antialiased;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   }
 
   ::selection {
     @apply bg-blue-500/30 text-white;
+  }
+
+  :focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
   }
 }
 
@@ -72,17 +81,6 @@
   }
 }
 
-@keyframes pulseGlow {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.05);
-  }
-}
-
 .animate-slideDown {
   animation: slideDown 0.4s ease-out;
 }
@@ -95,8 +93,48 @@
   animation: modalIn 0.25s ease-out;
 }
 
-.animate-pulseGlow {
-  animation: pulseGlow 3s ease-in-out infinite;
+button,
+a[class*="bg-"] {
+  border-radius: 7px;
+  transition-duration: 150ms;
+}
+
+button[class*="hover:shadow"]:hover,
+a[class*="hover:shadow"]:hover {
+  box-shadow: none !important;
+}
+
+button:active,
+a[class*="bg-"]:active {
+  transform: none !important;
+}
+
+[class~="bg-indigo-600"],
+[class~="bg-blue-600"] {
+  background-color: #2563eb !important;
+}
+
+[class~="hover:bg-indigo-500"]:hover,
+[class~="hover:bg-blue-500"]:hover {
+  background-color: #1d4ed8 !important;
+}
+
+[class~="text-indigo-300"],
+[class~="text-indigo-400"] {
+  color: #60a5fa !important;
+}
+
+[class~="border-indigo-500/30"] {
+  border-color: rgb(59 130 246 / 30%) !important;
+}
+
+[class~="bg-indigo-500/15"] {
+  background-color: rgb(59 130 246 / 15%) !important;
+}
+
+[class*="backdrop-blur"] {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 /* Scrollbar styling for all scrollable areas */
