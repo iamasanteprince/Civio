@@ -24,6 +24,7 @@ import type {
   TargetAudience,
 } from '@/types';
 import { opportunities } from '@/data/opportunities';
+import SkeletonCards from '@/components/SkeletonCards';
 
 const CATEGORY_ICON: Record<OpportunityCategory, typeof Award> = {
   'Youth & Civic Summit': Megaphone,
@@ -32,11 +33,11 @@ const CATEGORY_ICON: Record<OpportunityCategory, typeof Award> = {
   'Scholarship & Education': Award,
 };
 
-const CATEGORY_STYLES: Record<OpportunityCategory, { badge: string; iconBg: string }> = {
-  'Youth & Civic Summit': { badge: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/25', iconBg: 'from-cyan-600 to-blue-700' },
-  'Fellowship': { badge: 'bg-amber-500/15 text-amber-300 border-amber-500/25', iconBg: 'from-amber-600 to-orange-700' },
-  'Tech & Business Internship': { badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25', iconBg: 'from-emerald-600 to-teal-700' },
-  'Scholarship & Education': { badge: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25', iconBg: 'from-indigo-600 to-violet-700' },
+const CATEGORY_STYLES: Record<OpportunityCategory, { badge: string }> = {
+  'Youth & Civic Summit': { badge: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/25' },
+  'Fellowship': { badge: 'bg-amber-500/15 text-amber-300 border-amber-500/25' },
+  'Tech & Business Internship': { badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25' },
+  'Scholarship & Education': { badge: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25' },
 };
 
 const FUNDING_STYLES: Record<FundingType, string> = {
@@ -234,7 +235,7 @@ function OpportunityCard({
   const CatIcon = CATEGORY_ICON[opportunity.category];
   const FundIcon = FUNDING_ICON[opportunity.fundingType];
   return (
-    <div className="group relative flex flex-col rounded-xl border border-slate-800 bg-slate-900 overflow-hidden transition-colors duration-150 hover:border-slate-700">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-900 transition-[border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-700">
       <div className="p-5">
         {opportunity.isLive && (
           <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -310,7 +311,7 @@ function OpportunityCard({
       </div>
 
       <div className="border-t border-slate-800 p-4 mt-auto">
-        <a href={opportunity.link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500">
+        <a href={opportunity.link} target="_blank" rel="noopener noreferrer" className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 active:scale-[0.99]">
           View & Apply <ExternalLink className="w-4 h-4" />
         </a>
       </div>
@@ -329,7 +330,7 @@ export default function OpportunitiesHub() {
   const [liveOpportunities, setLiveOpportunities] = useState<Opportunity[]>([]);
   const [activeFeedCount, setActiveFeedCount] = useState(0);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = useState(true);
   const [feedMessage, setFeedMessage] = useState('');
   const requestRef = useRef<AbortController | null>(null);
 
@@ -516,6 +517,13 @@ export default function OpportunitiesHub() {
         )}
       </div>
 
+      {refreshing && !lastCheckedAt && liveOpportunities.length === 0 && (
+        <section className="mb-6" aria-label="Loading live opportunity listings">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Loading live listings</p>
+          <SkeletonCards count={2} />
+        </section>
+      )}
+
       <div className="mb-6 rounded-xl border border-slate-800 bg-slate-900 p-5">
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -680,12 +688,23 @@ export default function OpportunitiesHub() {
       </div>
 
       {filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-8 py-12">
-            <Megaphone className="w-10 h-10 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400 text-lg font-medium">No opportunities match your filters</p>
-            <p className="text-slate-500 text-sm mt-1">Try a different keyword or broaden your filters.</p>
-          </div>
+        <div className="rounded-xl border border-slate-800 bg-slate-900 px-6 py-12 text-center">
+          <Megaphone className="mx-auto mb-4 h-9 w-9 text-slate-600" />
+          <p className="text-base font-semibold text-slate-200">No opportunities match these filters</p>
+          <p className="mt-1 text-sm text-slate-400">Clear your search or broaden the selected criteria.</p>
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery('');
+              setSelectedCategory('All');
+              setSelectedFunding('All');
+              setSelectedAudience('All');
+              setRecommendationsOnly(false);
+            }}
+            className="mt-5 inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-700"
+          >
+            Clear search &amp; filters
+          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

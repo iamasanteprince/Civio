@@ -13,12 +13,12 @@ import {
   Building2,
   Search,
   Filter,
-  Loader2,
 } from 'lucide-react';
 import type { University, FeeWaiverDetail, ApiUniversity } from '@/types';
 import { universities, countries, degreeLevels } from '@/data/universities';
 import { loadGlobalUniversityIndex } from '@/data/globalUniversityIndex';
 import { getUniversityWebsite } from '@/data/universityDirectory';
+import SkeletonCards from '@/components/SkeletonCards';
 
 const FEE_WAIVER_STYLES: Record<FeeWaiverDetail, { badge: string; banner: string }> = {
   'always-free': { badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25', banner: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' },
@@ -496,7 +496,7 @@ export default function SchoolHub() {
               Searching across <span className="text-slate-300 font-semibold">{globalCountLabel}</span> global institutions
               {' · '}Found <span className="text-slate-300 font-semibold">{totalCount.toLocaleString()}</span> matching universities
               {isSearching && <> for "<span className="text-slate-300 font-semibold">{debouncedQuery}</span>"</>}
-              {directoryLoading && <span className="text-indigo-400 ml-2 flex items-center gap-1 inline-flex"><Loader2 className="w-3 h-3 animate-spin" /> Loading bundled directory...</span>}
+              {directoryLoading && <span className="ml-2 text-slate-400">· Loading bundled directory</span>}
               {directoryError && <span role="status" className="text-amber-400 ml-2">· {directoryError} Curated admissions records remain available.</span>}
             </span>
           </div>
@@ -504,12 +504,23 @@ export default function SchoolHub() {
       </div>
 
       {totalCount === 0 && !directoryLoading ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 px-8 py-12">
-            <GraduationCap className="w-10 h-10 text-slate-600 mx-auto mb-4" />
-            <p className="text-slate-400 text-lg font-medium">No universities match your filters</p>
-            <p className="text-slate-500 text-sm mt-1">Try broadening your search or clearing filters.</p>
-          </div>
+        <div className="rounded-xl border border-slate-800 bg-slate-900 px-6 py-12 text-center">
+          <GraduationCap className="mx-auto mb-4 h-9 w-9 text-slate-600" />
+          <p className="text-base font-semibold text-slate-200">No universities match these filters</p>
+          <p className="mt-1 text-sm text-slate-400">Clear your search or broaden the selected criteria.</p>
+          <button
+            type="button"
+            onClick={() => {
+              setSearchQuery('');
+              setSelectedCountry('All');
+              setSelectedDegree('All');
+              setFreeOnly(false);
+              setIeltsExemptOnly(false);
+            }}
+            className="mt-5 inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-200 transition-colors hover:border-slate-600 hover:bg-slate-700"
+          >
+            Clear search &amp; filters
+          </button>
         </div>
       ) : (
         <>
@@ -528,6 +539,7 @@ export default function SchoolHub() {
               )
             )}
           </div>
+          {directoryLoading && <div className="mt-5"><SkeletonCards count={3} /></div>}
           {visibleResultCount < allResults.length && (
             <div className="mt-8 text-center">
               <button

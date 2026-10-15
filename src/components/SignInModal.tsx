@@ -9,6 +9,7 @@ import {
   recordAuthFailure,
   sanitizePlainText,
 } from '@/utils/inputSecurity';
+import LegalNotices, { type LegalNotice } from '@/components/LegalNotices';
 
 const GENERIC_AUTH_ERROR = 'Unable to complete request. Please verify your email and password.';
 const AGE_CONSENT_TEXT = 'I am 18 or older, or I have permission from a parent or guardian to use this app.';
@@ -29,37 +30,6 @@ function toCivioUser(user: User): CivioUser | null {
     (Array.isArray(user.identities) && user.identities.some((identity) => identity.provider === 'google'))
   );
   return { id: user.id, email: user.email, displayName: displayName || user.email.split('@')[0], isVerified };
-}
-
-function PrivacyModal({ onClose }: { onClose: () => void }) {
-  return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
-      role="presentation"
-      onClick={onClose}
-    >
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="privacy-title"
-        className="relative w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close privacy commitment"
-          className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
-        >
-          <X className="h-5 w-5" />
-        </button>
-        <h2 id="privacy-title" className="mb-3 pr-8 text-lg font-bold text-white">Privacy Commitment</h2>
-        <p className="text-sm leading-relaxed text-slate-300">
-          Civio Privacy Commitment: We only collect your email address, login credentials, and the timestamp of your age/guardian consent. We do not sell data, track personal browsing off-site, or store payment information.
-        </p>
-      </section>
-    </div>
-  );
 }
 
 export default function SignInModal({
@@ -410,7 +380,7 @@ export default function SignInModal({
                     onClick={() => setPrivacyOpen(true)}
                     className="ml-6 mt-1 inline-flex items-center gap-1 text-xs text-indigo-300 underline decoration-indigo-500/40 underline-offset-2 hover:text-indigo-200"
                   >
-                    Privacy
+                    Privacy Policy
                   </button>
                 </div>
               )}
@@ -467,7 +437,7 @@ export default function SignInModal({
           </div>
         </div>
       </div>
-      {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
+      {privacyOpen && <LegalNotices initialNotice="privacy" onClose={() => setPrivacyOpen(false)} />}
     </>
   );
 }
@@ -482,6 +452,7 @@ export function UserMenu({
   onDeleteAccount: () => Promise<void>;
 }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [legalNotice, setLegalNotice] = useState<LegalNotice | null>(null);
   return (
     <>
       <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
@@ -514,8 +485,10 @@ export function UserMenu({
           user={user}
           onClose={() => setSettingsOpen(false)}
           onDeleteAccount={onDeleteAccount}
+          onOpenLegal={setLegalNotice}
         />
       )}
+      {legalNotice && <LegalNotices initialNotice={legalNotice} onClose={() => setLegalNotice(null)} />}
     </>
   );
 }
@@ -524,10 +497,12 @@ function AccountSettingsModal({
   user,
   onClose,
   onDeleteAccount,
+  onOpenLegal,
 }: {
   user: CivioUser;
   onClose: () => void;
   onDeleteAccount: () => Promise<void>;
+  onOpenLegal: (notice: LegalNotice) => void;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -696,6 +671,10 @@ function AccountSettingsModal({
           )}
           {error && <p role="alert" className="mt-3 text-sm text-rose-300">{error}</p>}
         </section>
+        <nav aria-label="Legal information" className="mt-5 flex gap-5 border-t border-slate-800 pt-4">
+          <button type="button" onClick={() => onOpenLegal('terms')} className="text-xs text-slate-400 transition-colors hover:text-slate-200">Terms of Service</button>
+          <button type="button" onClick={() => onOpenLegal('privacy')} className="text-xs text-slate-400 transition-colors hover:text-slate-200">Privacy Policy</button>
+        </nav>
       </section>
     </div>
   );

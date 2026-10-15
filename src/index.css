@@ -110,11 +110,6 @@ body,
   animation: modalIn 0.25s ease-out;
 }
 
-button:active,
-a[class*="bg-"]:active {
-  transform: none !important;
-}
-
 [class~="bg-indigo-600"],
 [class~="bg-blue-600"] {
   background-color: #2563eb !important;

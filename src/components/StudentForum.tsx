@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { MessageCircle, Users } from 'lucide-react';
 import type { CivioUser, DiscussionStore } from '@/types';
 import DiscussionThread from '@/components/DiscussionThread';
+import SkeletonCards from '@/components/SkeletonCards';
 
 const CHANNELS = [
   { id: 'all', label: '#All Discussions', threadIds: [] },
@@ -35,6 +36,7 @@ const THREADS = [
 interface StudentForumProps {
   currentUser: CivioUser | null;
   discussions: DiscussionStore;
+  discussionsReady: boolean;
   onAddComment: (threadId: string, content: string, verified?: boolean) => void;
   onLikeComment: (threadId: string, commentId: string) => void;
   onEditComment: (threadId: string, commentId: string, content: string) => void;
@@ -45,6 +47,7 @@ interface StudentForumProps {
 export default function StudentForum({
   currentUser,
   discussions,
+  discussionsReady,
   onAddComment,
   onLikeComment,
   onEditComment,
@@ -94,27 +97,37 @@ export default function StudentForum({
         </p>
       </div>
 
-      <div className="grid min-w-0 gap-5 lg:grid-cols-2">
-        {visibleThreads.map((thread) => (
-          <section key={thread.id} className="min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-[#0c1322]/90">
-            <div className="p-5">
-              <h2 className="text-lg font-bold text-white">{thread.title}</h2>
-              <p className="mt-1 text-sm text-slate-500">{thread.description}</p>
-            </div>
-            <DiscussionThread
-              threadId={thread.id}
-              title={thread.title}
-              comments={discussions[thread.id] ?? []}
-              currentUser={currentUser}
-              onAddComment={onAddComment}
-              onLikeComment={onLikeComment}
-              onEditComment={onEditComment}
-              onDeleteComment={onDeleteComment}
-              onRequestSignIn={onRequestSignIn}
-            />
-          </section>
-        ))}
-      </div>
+      {!discussionsReady ? (
+        <SkeletonCards count={4} columns={2} />
+      ) : visibleThreads.length ? (
+        <div className="grid min-w-0 gap-5 lg:grid-cols-2">
+          {visibleThreads.map((thread) => (
+            <section key={thread.id} className="min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 transition-colors duration-200 hover:border-slate-700">
+              <div className="p-5">
+                <h2 className="text-lg font-bold text-white">{thread.title}</h2>
+                <p className="mt-1 text-sm text-slate-500">{thread.description}</p>
+              </div>
+              <DiscussionThread
+                threadId={thread.id}
+                title={thread.title}
+                comments={discussions[thread.id] ?? []}
+                currentUser={currentUser}
+                onAddComment={onAddComment}
+                onLikeComment={onLikeComment}
+                onEditComment={onEditComment}
+                onDeleteComment={onDeleteComment}
+                onRequestSignIn={onRequestSignIn}
+              />
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-slate-800 bg-slate-900 px-6 py-10 text-center">
+          <MessageCircle className="mx-auto mb-3 h-8 w-8 text-slate-600" />
+          <p className="text-sm font-semibold text-slate-200">No discussions in this channel yet</p>
+          <p className="mt-1 text-xs text-slate-500">Choose another channel to browse more topics.</p>
+        </div>
+      )}
     </div>
   );
 }

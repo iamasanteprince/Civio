@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ExternalLink, RefreshCw, Rss } from 'lucide-react';
+import SkeletonCards from '@/components/SkeletonCards';
 
 interface PolicyFeedSource {
   id: string;
@@ -192,7 +193,7 @@ function relativeTime(value: string): string {
 
 export default function LivePolicyUpdates() {
   const [updates, setUpdates] = useState<PolicyUpdate[]>(SOURCES.map((source) => source.fallback));
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = useState(true);
   const [activeFeedCount, setActiveFeedCount] = useState(0);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
   const [message, setMessage] = useState('');
@@ -250,7 +251,7 @@ export default function LivePolicyUpdates() {
   }, [refresh]);
 
   return (
-    <section aria-label="Live embassy and policy updates" className="mb-8 w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-6">
+    <section aria-label="Live embassy and policy updates" aria-busy={refreshing && !lastCheckedAt} className="mb-8 w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <div className="rounded-lg border border-blue-500/25 bg-blue-500/10 p-2.5">
@@ -267,7 +268,7 @@ export default function LivePolicyUpdates() {
               ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200'
               : 'border-amber-500/25 bg-amber-500/10 text-amber-200'
           }`}>
-            <span className={`h-2 w-2 rounded-full ${activeFeedCount > 0 ? 'animate-pulse bg-emerald-400 shadow-[0_0_10px_#34d399]' : 'bg-amber-400'}`} />
+            <span className={`h-2 w-2 rounded-full ${activeFeedCount > 0 ? 'bg-emerald-400' : 'bg-amber-400'}`} />
             {activeFeedCount > 0 ? `Live Feed Active · ${activeFeedCount}/${SOURCES.length}` : 'Showing Indexed Guidance'}
           </span>
           <button
@@ -285,26 +286,34 @@ export default function LivePolicyUpdates() {
       {message && <p role="status" className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">{message}</p>}
       {lastCheckedAt && <p className="mb-3 text-[11px] text-slate-500">Last checked {new Date(lastCheckedAt).toLocaleTimeString()}</p>}
 
-      <div className="grid min-w-0 gap-3 md:grid-cols-2">
-        {updates.slice(0, 8).map((update) => (
-          <article key={update.id} className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-1 text-[10px] font-semibold text-sky-200">{update.sourceLabel}</span>
-              <time className="text-[10px] text-slate-500" dateTime={update.publishedAt ?? undefined}>
-                {update.publishedAt ? relativeTime(update.publishedAt) : 'Official publication date unavailable'}
-              </time>
-            </div>
-            <h3 className="break-words text-sm font-semibold leading-snug text-slate-100">{update.title}</h3>
-            <p className="mt-1.5 break-words text-xs leading-relaxed text-slate-400">{update.summary}</p>
-            <div className="mt-3 flex items-center justify-between gap-2">
-              {update.preIndexed && <span className="text-[10px] text-slate-500">Pre-indexed reference · verify current rules</span>}
-              <a href={update.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-blue-300 transition hover:text-blue-200">
-                Official bulletin <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          </article>
-        ))}
-      </div>
+      {refreshing && !lastCheckedAt ? (
+        <SkeletonCards count={4} columns={2} />
+      ) : updates.length ? (
+        <div className="grid min-w-0 gap-3 md:grid-cols-2">
+          {updates.slice(0, 8).map((update) => (
+            <article key={update.id} className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4 transition-colors duration-200 hover:border-slate-700">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <span className="rounded-full border border-slate-700 bg-slate-800/60 px-2 py-1 text-[10px] font-semibold text-slate-300">{update.sourceLabel}</span>
+                <time className="text-[10px] text-slate-500" dateTime={update.publishedAt ?? undefined}>
+                  {update.publishedAt ? relativeTime(update.publishedAt) : 'Official publication date unavailable'}
+                </time>
+              </div>
+              <h3 className="break-words text-sm font-semibold leading-snug text-slate-100">{update.title}</h3>
+              <p className="mt-1.5 break-words text-xs leading-relaxed text-slate-400">{update.summary}</p>
+              <div className="mt-3 flex items-center justify-between gap-2">
+                {update.preIndexed && <span className="text-[10px] text-slate-500">Pre-indexed reference · verify current rules</span>}
+                <a href={update.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-blue-300 transition-colors hover:text-blue-200">
+                  Official bulletin <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-xl border border-slate-800 bg-slate-950/40 px-4 py-8 text-center text-sm text-slate-400">
+          No policy updates are available right now. Please check an official source directly.
+        </p>
+      )}
     </section>
   );
 }

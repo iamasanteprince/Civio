@@ -8,6 +8,7 @@ import {
   LogIn,
   Briefcase,
   MessageSquare,
+  Users,
 } from 'lucide-react';
 import type { View, Initiative, CivioUser, DiscussionComment, DiscussionStore } from '@/types';
 import SchoolHub from '@/components/SchoolHub';
@@ -22,6 +23,7 @@ import { DISCUSSION_STORAGE_KEY, parseDiscussionStore } from '@/data/discussions
 import { supabase } from '@/lib/supabase';
 import { parseAdminAnalytics, type AdminAnalytics } from '@/lib/adminAnalytics';
 import { getGuestSessionId, resetGuestSessionId, sanitizePlainText } from '@/utils/inputSecurity';
+import LegalNotices, { type LegalNotice } from '@/components/LegalNotices';
 
 const ADMIN_EMAIL = 'iamasanteprince@gmail.com';
 
@@ -66,6 +68,7 @@ export default function App() {
   const [adminAnalytics, setAdminAnalytics] = useState<AdminAnalytics | null>(null);
   const [adminAnalyticsLoading, setAdminAnalyticsLoading] = useState(false);
   const [adminAnalyticsError, setAdminAnalyticsError] = useState<string | null>(null);
+  const [legalNotice, setLegalNotice] = useState<LegalNotice | null>(null);
   const isAdmin = currentUser?.email.trim().toLowerCase() === ADMIN_EMAIL;
 
   useEffect(() => {
@@ -382,8 +385,11 @@ export default function App() {
                   className="inline-flex max-w-full items-center gap-1.5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2 py-2 text-[10px] font-semibold text-amber-200 transition hover:border-amber-400/50 hover:bg-amber-500/15 sm:px-3 sm:text-xs"
                   aria-label={`Open admin analytics. Members: ${adminAnalytics?.totalMembers ?? 'unavailable'}`}
                 >
-                  <span className="sm:hidden">🛡️ Admin</span>
-                  <span className="hidden sm:inline">🛡️ Admin · 👥 Members: {adminAnalyticsLoading ? '…' : adminAnalytics?.totalMembers.toLocaleString() ?? '—'}</span>
+                  <ShieldCheck className="h-4 w-4 shrink-0" />
+                  <span className="sm:hidden">Admin</span>
+                  <span className="hidden sm:inline">Admin ·</span>
+                  <Users className="hidden h-3.5 w-3.5 shrink-0 sm:block" />
+                  <span className="hidden sm:inline">Members: {adminAnalyticsLoading ? '…' : adminAnalytics?.totalMembers.toLocaleString() ?? '—'}</span>
                 </button>
               )}
               {currentUser ? (
@@ -529,6 +535,7 @@ export default function App() {
           <StudentForum
             currentUser={currentUser}
             discussions={discussions}
+            discussionsReady={discussionsReady}
             onAddComment={addDiscussionComment}
             onLikeComment={likeDiscussionComment}
             onEditComment={editDiscussionComment}
@@ -550,9 +557,18 @@ export default function App() {
               Community-driven. Transparent. Empowering the next generation.
             </p>
           </div>
+          <nav aria-label="Legal information" className="mt-4 flex justify-center gap-5 border-t border-slate-800 pt-4">
+            <button type="button" onClick={() => setLegalNotice('terms')} className="text-xs text-slate-400 transition-colors hover:text-slate-200">
+              Terms of Service
+            </button>
+            <button type="button" onClick={() => setLegalNotice('privacy')} className="text-xs text-slate-400 transition-colors hover:text-slate-200">
+              Privacy Policy
+            </button>
+          </nav>
         </div>
       </footer>
 
+      {legalNotice && <LegalNotices initialNotice={legalNotice} onClose={() => setLegalNotice(null)} />}
       <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} onSignIn={handleSignIn} />
       {resetPasswordOpen && (
         <SetNewPasswordModal onClose={() => setResetPasswordOpen(false)} />

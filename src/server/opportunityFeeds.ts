@@ -27,10 +27,10 @@ const FEED_SOURCES: FeedSource[] = [
     allowedHosts: ['opportunitiesforafricans.com'],
   },
   {
-    id: 'scholarship-roar',
-    label: 'Scholarship Roar',
-    url: 'https://scholarshiproar.com/feed/',
-    allowedHosts: ['scholarshiproar.com'],
+    id: 'ukri-opportunities',
+    label: 'UK Research and Innovation',
+    url: 'https://www.ukri.org/opportunity/feed/',
+    allowedHosts: ['ukri.org'],
   },
 ];
 
@@ -219,7 +219,7 @@ export async function loadOpportunityFeeds(): Promise<OpportunityFeedPayload> {
     if (result.status === 'fulfilled') items.push(...result.value);
   });
 
-  if (sources.every((source) => source.status === 'error')) {
+  if (results.every((result) => result.status === 'rejected')) {
     throw new Error('All opportunity feeds are unavailable.');
   }
 
