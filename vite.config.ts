@@ -3,7 +3,7 @@ import { loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 import { generateAsanteResponse } from './src/server/gemini';
-import { loadPolicyFeed } from './src/server/policyFeeds';
+import { loadPolicyFeeds } from './src/server/policyFeeds';
 
 function devApiPlugin(): Plugin {
   return {
@@ -56,8 +56,7 @@ function devApiPlugin(): Plugin {
         }
 
         try {
-          const requestUrl = new URL(request.url ?? '/', 'http://localhost');
-          const payload = await loadPolicyFeed(requestUrl.searchParams.get('source'));
+          const payload = await loadPolicyFeeds();
           response.statusCode = 200;
           response.end(JSON.stringify(payload));
         } catch {

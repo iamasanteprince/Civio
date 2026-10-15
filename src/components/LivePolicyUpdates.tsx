@@ -5,7 +5,6 @@ import SkeletonCards from '@/components/SkeletonCards';
 interface PolicyFeedSource {
   id: string;
   label: string;
-  feedUrl: string | null;
   allowedHosts: string[];
   fallback: PolicyUpdate;
 }
@@ -30,12 +29,10 @@ interface Rss2JsonItem {
 }
 
 const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
-const REQUEST_TIMEOUT_MS = 15_000;
 const SOURCES: PolicyFeedSource[] = [
   {
     id: 'canada',
     label: 'Official IRCC Bulletin',
-    feedUrl: null,
     allowedHosts: ['canada.ca'],
     fallback: {
       id: 'fallback-canada',
@@ -51,7 +48,6 @@ const SOURCES: PolicyFeedSource[] = [
   {
     id: 'uk',
     label: 'UKVI Update',
-    feedUrl: 'https://www.gov.uk/government/organisations/uk-visas-and-immigration.atom',
     allowedHosts: ['gov.uk'],
     fallback: {
       id: 'fallback-uk',
@@ -67,7 +63,6 @@ const SOURCES: PolicyFeedSource[] = [
   {
     id: 'us',
     label: 'USCIS Alert',
-    feedUrl: 'https://www.uscis.gov/news/rss-feed/22984',
     allowedHosts: ['uscis.gov'],
     fallback: {
       id: 'fallback-us',
@@ -83,7 +78,6 @@ const SOURCES: PolicyFeedSource[] = [
   {
     id: 'germany',
     label: 'German Foreign Office Update',
-    feedUrl: null,
     allowedHosts: ['auswaertiges-amt.de'],
     fallback: {
       id: 'fallback-germany',
@@ -152,35 +146,6 @@ function parseItem(source: PolicyFeedSource, item: Rss2JsonItem): PolicyUpdate |
   }
 }
 
-async function loadSource(source: PolicyFeedSource, signal: AbortSignal): Promise<PolicyUpdate[]> {
-  if (!source.feedUrl) return [];
-  const sourceController = new AbortController();
-  const abortRequest = () => sourceController.abort();
-  signal.addEventListener('abort', abortRequest, { once: true });
-  const timeout = window.setTimeout(() => sourceController.abort(), REQUEST_TIMEOUT_MS);
-  const endpoint = new URL('/api/policy-updates', window.location.origin);
-  endpoint.searchParams.set('source', source.id);
-  try {
-    const response = await fetch(endpoint, { signal: sourceController.signal });
-    if (!response.ok) {
-      throw new Error(`${source.id} feed returned HTTP ${response.status}.`);
-    }
-    const payload: unknown = await response.json();
-    if (!payload || typeof payload !== 'object') throw new Error(`${source.id} feed response was invalid.`);
-    const data = payload as { status?: unknown; items?: unknown };
-    if (data.status !== 'ok' || !Array.isArray(data.items)) {
-      throw new Error(`${source.id} feed did not return valid items.`);
-    }
-    return data.items
-      .slice(0, 8)
-      .map((item) => parseItem(source, item as Rss2JsonItem))
-      .filter((item): item is PolicyUpdate => item !== null);
-  } finally {
-    window.clearTimeout(timeout);
-    signal.removeEventListener('abort', abortRequest);
-  }
-}
-
 function relativeTime(value: string): string {
   const date = new Date(value);
   const elapsedMinutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60_000));
@@ -206,39 +171,55 @@ export default function LivePolicyUpdates() {
     setRefreshing(true);
     setMessage('');
 
-    const results = await Promise.allSettled(
-      SOURCES.map((source) => source.feedUrl
-        ? loadSource(source, controller.signal)
-        : Promise.resolve([]))
-    );
-    if (controller.signal.aborted) return;
+    try {
+      const response = await fetch('/api/policy-updates', { signal: controller.signal });
+      if (!response.ok) throw new Error(`Policy feeds returned HTTP ${response.status}.`);
+      const payload: unknown = await response.json();
+      if (!payload || typeof payload !== 'object') throw new Error('Policy feed response was invalid.');
+      const data = payload as { status?: unknown; items?: unknown; sources?: unknown };
+      if (data.status !== 'ok' || !Array.isArray(data.items) || !Array.isArray(data.sources)) {
+        throw new Error('Policy feed response did not contain valid items.');
+      }
+      if (controller.signal.aborted) return;
 
-    const updatesBySource = new Map<string, PolicyUpdate[]>();
-    const successfulSources = new Set<string>();
-    results.forEach((result, index) => {
-      if (result.status !== 'fulfilled' || result.value.length === 0) return;
-      successfulSources.add(SOURCES[index].id);
-      updatesBySource.set(SOURCES[index].id, result.value.slice(0, 2));
-    });
+      const updatesBySource = new Map<string, PolicyUpdate[]>();
+      for (const value of data.items) {
+        if (!value || typeof value !== 'object') continue;
+        const item = value as Rss2JsonItem & { sourceId?: unknown };
+        if (typeof item.sourceId !== 'string') continue;
+        const source = SOURCES.find((candidate) => candidate.id === item.sourceId);
+        if (!source || !source.allowedHosts.length) continue;
+        const update = parseItem(source, item);
+        if (update) updatesBySource.set(source.id, [...(updatesBySource.get(source.id) ?? []), update]);
+      }
 
-    const combined = SOURCES
-      .flatMap((source) => updatesBySource.get(source.id) ?? [source.fallback])
-      .sort((a, b) => {
-        if (!a.publishedAt && !b.publishedAt) return 0;
-        if (!a.publishedAt) return 1;
-        if (!b.publishedAt) return -1;
-        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
-      });
+      const activeSources = SOURCES.filter((source) => (updatesBySource.get(source.id)?.length ?? 0) > 0);
+      const combined = SOURCES
+        .flatMap((source) => updatesBySource.get(source.id)?.slice(0, 2) ?? [source.fallback])
+        .sort((a, b) => {
+          if (!a.publishedAt && !b.publishedAt) return 0;
+          if (!a.publishedAt) return 1;
+          if (!b.publishedAt) return -1;
+          return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+        });
 
-    setUpdates(combined);
-    setActiveFeedCount(successfulSources.size);
-    setLastCheckedAt(new Date().toISOString());
-    setMessage(successfulSources.size === 0
-      ? 'Live feeds could not be reached. Showing pre-indexed official guidance links instead.'
-      : successfulSources.size < SOURCES.length
-        ? `${successfulSources.size} of ${SOURCES.length} live feeds connected; other destinations show pre-indexed official guidance.`
-        : '');
-    setRefreshing(false);
+      setUpdates(combined);
+      setActiveFeedCount(activeSources.length);
+      setLastCheckedAt(new Date().toISOString());
+      setMessage(activeSources.length === 0
+        ? 'Live feeds could not be reached. Showing pre-indexed official guidance links instead.'
+        : activeSources.length < 2
+          ? `${activeSources.length} of 2 live feeds connected; other destinations show pre-indexed official guidance.`
+          : '');
+    } catch {
+      if (controller.signal.aborted) return;
+      setUpdates(SOURCES.map((source) => source.fallback));
+      setActiveFeedCount(0);
+      setLastCheckedAt(new Date().toISOString());
+      setMessage('Live feeds could not be reached. Showing pre-indexed official guidance links instead.');
+    } finally {
+      if (!controller.signal.aborted && requestRef.current === controller) setRefreshing(false);
+    }
   }, []);
 
   useEffect(() => {

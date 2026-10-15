@@ -1,4 +1,4 @@
-import { loadPolicyFeed } from '../src/server/policyFeeds';
+import { loadPolicyFeeds } from '../src/server/policyFeeds';
 
 interface ApiRequest {
   method?: string;
@@ -16,9 +16,8 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     return;
   }
 
-  const sourceId = new URL(request.url ?? '/', 'https://civiohub.local').searchParams.get('source');
   try {
-    const payload = await loadPolicyFeed(sourceId);
+    const payload = await loadPolicyFeeds();
     response.status(200).json(payload);
   } catch {
     response.status(502).json({ error: 'Policy feed is temporarily unavailable.' });

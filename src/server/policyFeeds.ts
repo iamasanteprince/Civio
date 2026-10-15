@@ -1,10 +1,28 @@
-const FEED_URLS: Record<string, string> = {
-  uk: 'https://www.gov.uk/government/organisations/uk-visas-and-immigration.atom',
-  us: 'https://www.uscis.gov/news/rss-feed/22984',
-};
+interface FeedSource {
+  id: string;
+  url: string;
+}
 
-const REQUEST_TIMEOUT_MS = 12_000;
+const FEED_SOURCES: FeedSource[] = [
+  { id: 'uk', url: 'https://www.gov.uk/government/organisations/uk-visas-and-immigration.atom' },
+  { id: 'us', url: 'https://www.uscis.gov/news/rss-feed/22984' },
+];
+
+const REQUEST_TIMEOUT_MS = 8_000;
 const USER_AGENT = 'Mozilla/5.0 (compatible; Civiohub/1.0; +https://civiohub.com)';
+
+interface ParsedFeedItem {
+  title: string;
+  link: string;
+  pubDate: string;
+  description: string;
+}
+
+interface PolicyFeedResult {
+  status: 'ok';
+  items: Array<ParsedFeedItem & { sourceId: string }>;
+  sources: Array<{ id: string; status: 'ok' | 'error' }>;
+}
 
 function decodeXml(value: string): string {
   return value
@@ -36,7 +54,7 @@ function getLink(entry: string): string {
   return getTagValue(entry, 'link');
 }
 
-function parseFeed(xml: string): { status: 'ok'; items: Array<Record<string, string>> } {
+function parseFeed(xml: string): { status: 'ok'; items: ParsedFeedItem[] } {
   const entries = Array.from(xml.matchAll(/<(?:entry|item)\b[^>]*>([\s\S]*?)<\/(?:entry|item)\s*>/gi));
   const items = entries.slice(0, 8).map(([, entry]) => ({
     title: getTagValue(entry, 'title'),
@@ -47,24 +65,37 @@ function parseFeed(xml: string): { status: 'ok'; items: Array<Record<string, str
   return { status: 'ok', items };
 }
 
-export async function loadPolicyFeed(sourceId: string | null): Promise<unknown> {
-  const feedUrl = sourceId ? FEED_URLS[sourceId] : undefined;
-  if (!feedUrl) {
-    throw new Error('Unknown policy feed source.');
-  }
-
+async function loadSource(source: FeedSource): Promise<ParsedFeedItem[]> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const response = await fetch(feedUrl, {
-      headers: { 'User-Agent': USER_AGENT },
+    const response = await fetch(source.url, {
+      headers: {
+        'User-Agent': USER_AGENT,
+        Accept: 'application/atom+xml, application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8',
+      },
       signal: controller.signal,
     });
     if (!response.ok) {
-      throw new Error(`Policy feed returned HTTP ${response.status}.`);
+      throw new Error(`Policy feed ${source.id} returned HTTP ${response.status}.`);
     }
-    return parseFeed(await response.text());
+    return parseFeed(await response.text()).items;
   } finally {
     clearTimeout(timeout);
   }
+}
+
+export async function loadPolicyFeeds(): Promise<PolicyFeedResult> {
+  const results = await Promise.allSettled(FEED_SOURCES.map(loadSource));
+  const items: PolicyFeedResult['items'] = [];
+  const sources = results.map((result, index) => {
+    const source = FEED_SOURCES[index];
+    if (result.status === 'fulfilled') {
+      items.push(...result.value.map((item) => ({ ...item, sourceId: source.id })));
+      return { id: source.id, status: 'ok' as const };
+    }
+    return { id: source.id, status: 'error' as const };
+  });
+
+  return { status: 'ok', items, sources };
 }
