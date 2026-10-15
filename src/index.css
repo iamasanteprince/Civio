@@ -110,17 +110,6 @@ body,
   animation: modalIn 0.25s ease-out;
 }
 
-button,
-a[class*="bg-"] {
-  border-radius: 7px;
-  transition-duration: 150ms;
-}
-
-button[class*="hover:shadow"]:hover,
-a[class*="hover:shadow"]:hover {
-  box-shadow: none !important;
-}
-
 button:active,
 a[class*="bg-"]:active {
   transform: none !important;
@@ -147,11 +136,6 @@ a[class*="bg-"]:active {
 
 [class~="bg-indigo-500/15"] {
   background-color: rgb(59 130 246 / 15%) !important;
-}
-
-[class*="backdrop-blur"] {
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
 }
 
 /* Scrollbar styling for all scrollable areas */

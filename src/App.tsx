@@ -26,8 +26,8 @@ import { getGuestSessionId, resetGuestSessionId, sanitizePlainText } from '@/uti
 const ADMIN_EMAIL = 'iamasanteprince@gmail.com';
 
 const TABS: { id: View; label: string; icon: typeof ShieldCheck; description: string; mobileLabel: string }[] = [
-  { id: 'visa', label: 'Visa & Immigration', icon: ShieldCheck, description: 'Student Visa & Immigration Intel', mobileLabel: 'Visa Intel' },
   { id: 'hub', label: 'Admissions Hub', icon: GraduationCap, description: 'Universities, $0 App Fees, Waivers', mobileLabel: 'Hub' },
+  { id: 'visa', label: 'Visa & Immigration', icon: ShieldCheck, description: 'Student Visa & Immigration Intel', mobileLabel: 'Visa Intel' },
   { id: 'opportunities', label: 'Opportunities', icon: Briefcase, description: 'Conferences, Fellowships, Internships', mobileLabel: 'Opps' },
   { id: 'asante', label: 'Asante', icon: Compass, description: 'Admissions, opportunities & intelligence', mobileLabel: 'Asante' },
   { id: 'forum', label: 'Forum', icon: MessageSquare, description: 'Applicant discussions and questions', mobileLabel: 'Forum' },
@@ -50,7 +50,7 @@ function Logo() {
 }
 
 export default function App() {
-  const [activeView, setActiveView] = useState<View>('visa');
+  const [activeView, setActiveView] = useState<View>('hub');
   const [signInOpen, setSignInOpen] = useState(false);
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [createPostOpen, setCreatePostOpen] = useState(false);
@@ -245,7 +245,7 @@ export default function App() {
     setCurrentUser(null);
     setInitiatives([]);
     setDiscussions({});
-    setActiveView('visa');
+    setActiveView('hub');
     setAdminDrawerOpen(false);
     setAdminAnalytics(null);
     setAuthError(null);
@@ -395,7 +395,7 @@ export default function App() {
               ) : (
                 <button
                   onClick={() => setSignInOpen(true)}
-                  className="border border-slate-700 bg-slate-900 hover:bg-slate-800 text-white rounded-md px-4 py-2 flex items-center gap-2 text-sm font-medium transition-colors duration-150"
+                  className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-slate-800"
                 >
                   <LogIn className="w-4 h-4" />
                   <span className="hidden sm:inline">Sign In</span>
@@ -404,7 +404,7 @@ export default function App() {
 
               <button
                 onClick={() => setCreatePostOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-2 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 sm:px-3"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-2 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 sm:px-3"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Initiative</span>
@@ -428,7 +428,7 @@ export default function App() {
                 <button
                   key={id}
                   onClick={() => setActiveView(id)}
-                  className={`group relative inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-all ${
+                  className={`group relative inline-flex items-center gap-2 rounded-t-xl px-4 py-2.5 text-sm font-medium transition-all ${
                     active ? 'text-blue-300' : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
@@ -476,20 +476,20 @@ export default function App() {
       </header>
 
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-[#0A0D14]">
-        <div className="flex items-center justify-around py-2 px-2">
+      <nav className="fixed bottom-2 left-2 right-2 z-30 rounded-2xl border border-white/10 bg-[#0A0D14]/95 pb-[env(safe-area-inset-bottom)] shadow-xl backdrop-blur lg:hidden">
+        <div className="grid grid-cols-5 items-center gap-1 px-1.5 py-2">
           {TABS.map(({ id, mobileLabel, icon: Icon }) => {
             const active = activeView === id;
             return (
               <button
                 key={id}
                 onClick={() => setActiveView(id)}
-                className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-lg transition-all ${
+                className={`flex min-w-0 w-full flex-col items-center gap-1 rounded-xl px-1 py-1.5 transition-all ${
                   active ? 'text-blue-300' : 'text-slate-500'
                 }`}
               >
                 <Icon className={`w-5 h-5 ${active ? 'scale-110' : ''} transition-transform`} />
-                <span className="text-[10px] font-medium">{mobileLabel}</span>
+                <span className="max-w-full truncate text-[10px] font-medium">{mobileLabel}</span>
               </button>
             );
           })}
