@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useLayoutEffect } from 'react';
 import {
   Sparkles,
   Send,
@@ -461,10 +461,14 @@ export default function Asante({
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+  useLayoutEffect(() => {
+    const scrollContainer = scrollRef.current;
+    if (!scrollContainer) return;
+
+    scrollContainer.scrollTo({
+      top: scrollContainer.scrollHeight,
+      behavior: 'smooth',
+    });
   }, [messages, isTyping]);
 
   const sendMessage = (text: string) => {
@@ -550,7 +554,7 @@ export default function Asante({
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 pb-28 sm:px-6 lg:px-8 lg:pb-8">
       <div className="mb-6 text-center">
         <div className="inline-flex items-center justify-center rounded-xl bg-slate-900 border border-slate-800 w-14 h-14 mb-3">
           <Sparkles className="w-7 h-7 text-blue-300" />
@@ -563,10 +567,29 @@ export default function Asante({
         </p>
       </div>
 
+      <section className="mb-4 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
+        <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <Sparkles className="h-3 w-3" />
+          Try asking Asante
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {QUICK_PROMPTS.map((prompt) => (
+            <button
+              key={prompt}
+              onClick={() => sendMessage(prompt)}
+              disabled={isTyping}
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-300 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/10 hover:text-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {prompt}
+            </button>
+          ))}
+        </div>
+      </section>
+
       <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900 overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}>
         <div
           ref={scrollRef}
-          className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5"
+          className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4 sm:p-6"
         >
           {messages.map((msg) => (
             <MessageBubble
@@ -592,25 +615,6 @@ export default function Asante({
           )}
         </div>
 
-        <div className="px-4 sm:px-6 pb-3 border-t border-slate-800/50 pt-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2 flex items-center gap-1.5">
-            <Sparkles className="w-3 h-3" />
-            Try asking Asante
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {QUICK_PROMPTS.map((prompt) => (
-              <button
-                key={prompt}
-                onClick={() => sendMessage(prompt)}
-                disabled={isTyping}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-300 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/10 hover:text-indigo-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <form onSubmit={handleSubmit} className="border-t border-slate-800 p-3 sm:p-4">
           <div className="flex items-center gap-2">
             <input
@@ -625,7 +629,7 @@ export default function Asante({
             <button
               type="submit"
               disabled={!input.trim() || isTyping}
-              className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Send className="w-4 h-4" />
             </button>
