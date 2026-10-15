@@ -364,14 +364,14 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0D14] text-slate-100">
+    <div className="w-full max-w-full min-h-screen bg-[#0A0D14] text-slate-100">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-40 border-b border-slate-800 bg-[#0A0D14]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between gap-4 py-3">
+      <header className="sticky top-0 z-40 w-full max-w-full border-b border-slate-800 bg-[#0A0D14]">
+        <div className="w-full max-w-full px-3 sm:px-6">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 py-3">
             <Logo />
 
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
               {isAdmin && (
                 <button
                   type="button"
@@ -379,10 +379,11 @@ export default function App() {
                     setAdminDrawerOpen(true);
                     setAdminRefreshKey((key) => key + 1);
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 text-[10px] font-semibold text-amber-200 transition hover:border-amber-400/50 hover:bg-amber-500/15 sm:px-3 sm:text-xs"
+                  className="inline-flex max-w-full items-center gap-1.5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2 py-2 text-[10px] font-semibold text-amber-200 transition hover:border-amber-400/50 hover:bg-amber-500/15 sm:px-3 sm:text-xs"
                   aria-label={`Open admin analytics. Members: ${adminAnalytics?.totalMembers ?? 'unavailable'}`}
                 >
-                  🛡️ Admin · 👥 Members: {adminAnalyticsLoading ? '…' : adminAnalytics?.totalMembers.toLocaleString() ?? '—'}
+                  <span className="sm:hidden">🛡️ Admin</span>
+                  <span className="hidden sm:inline">🛡️ Admin · 👥 Members: {adminAnalyticsLoading ? '…' : adminAnalytics?.totalMembers.toLocaleString() ?? '—'}</span>
                 </button>
               )}
               {currentUser ? (
@@ -403,7 +404,7 @@ export default function App() {
 
               <button
                 onClick={() => setCreatePostOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500"
+                className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-2 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 sm:px-3"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Initiative</span>
@@ -420,7 +421,7 @@ export default function App() {
           </div>
 
           {/* Desktop Nav Tabs */}
-          <nav className="hidden lg:flex items-center gap-1 pb-0.5">
+          <nav className="mx-auto hidden max-w-7xl items-center gap-1 pb-0.5 lg:flex">
             {TABS.map(({ id, label, icon: Icon }) => {
               const active = activeView === id;
               return (
@@ -445,7 +446,7 @@ export default function App() {
         {/* Mobile Nav Drawer */}
         {mobileNavOpen && (
           <div className="lg:hidden border-t border-slate-800 bg-[#0A0D14]">
-            <div className="px-4 py-3 space-y-1">
+            <div className="w-full max-w-full px-3 py-3 space-y-1 sm:px-4">
               {TABS.map(({ id, label, icon: Icon, description }) => {
                 const active = activeView === id;
                 return (
@@ -496,14 +497,14 @@ export default function App() {
       </nav>
 
       {/* Main Content */}
-      <main className="relative z-10 pb-20 lg:pb-0">
+      <main className="relative z-10 w-full max-w-full pb-20 lg:pb-0">
         {discussionError && (
-          <div role="alert" className="mx-auto mt-4 max-w-7xl rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <div role="alert" className="mx-auto mt-4 w-full max-w-7xl rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             {discussionError}
           </div>
         )}
         {authError && (
-          <div role="alert" className="mx-auto mt-4 max-w-7xl rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <div role="alert" className="mx-auto mt-4 w-full max-w-7xl rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             {authError}
           </div>
         )}

@@ -44,18 +44,18 @@ function ProofOfFundsCalculator() {
   const currency = CURRENCY[destination];
 
   return (
-    <section className="mb-8 rounded-xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
-      <div className="mb-5 flex items-start gap-3">
+    <section className="mb-8 w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-6">
+      <div className="mb-5 flex min-w-0 items-start gap-3">
         <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-2.5">
           <Calculator className="h-5 w-5 text-blue-300" />
         </div>
-        <div>
+        <div className="min-w-0">
           <h2 className="text-lg font-bold text-white">Proof-of-Funds Quick Calculator</h2>
           <p className="mt-1 text-sm text-slate-400">Estimate the first-year amount to document before scheduling an appointment.</p>
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid min-w-0 gap-4 md:grid-cols-2">
         <label className="block text-xs font-semibold text-slate-300">
           Destination
           <select
@@ -156,7 +156,7 @@ export default function VisaIntelHub() {
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <header className="mb-7 text-center">
         <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-sky-500/25 bg-sky-500/10 px-3 py-1.5 text-xs font-semibold text-sky-200">
           <BadgeCheck className="h-4 w-4" />

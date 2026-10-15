@@ -247,19 +247,19 @@ export default function LivePolicyUpdates() {
   }, [refresh]);
 
   return (
-    <section aria-label="Live embassy and policy updates" className="mb-8 rounded-xl border border-slate-800 bg-slate-900 p-5 sm:p-6">
+    <section aria-label="Live embassy and policy updates" className="mb-8 w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-start gap-3">
+        <div className="flex min-w-0 items-start gap-3">
           <div className="rounded-lg border border-blue-500/25 bg-blue-500/10 p-2.5">
             <Rss className="h-5 w-5 text-blue-300" />
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-white">Live Embassy &amp; Policy Updates</h2>
+          <div className="min-w-0">
+            <h2 className="break-words text-lg font-bold text-white">Live Embassy &amp; Policy Updates</h2>
             <p className="mt-1 text-xs text-slate-400">Official public feeds · auto-refreshes every 15 minutes</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <span className={`inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
             activeFeedCount > 0
               ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200'
               : 'border-amber-500/25 bg-amber-500/10 text-amber-200'
@@ -282,17 +282,17 @@ export default function LivePolicyUpdates() {
       {message && <p role="status" className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs text-amber-200">{message}</p>}
       {lastCheckedAt && <p className="mb-3 text-[11px] text-slate-500">Last checked {new Date(lastCheckedAt).toLocaleTimeString()}</p>}
 
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid min-w-0 gap-3 md:grid-cols-2">
         {updates.slice(0, 8).map((update) => (
-          <article key={update.id} className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+          <article key={update.id} className="min-w-0 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <span className="rounded-full border border-sky-500/20 bg-sky-500/10 px-2 py-1 text-[10px] font-semibold text-sky-200">{update.sourceLabel}</span>
               <time className="text-[10px] text-slate-500" dateTime={update.publishedAt ?? undefined}>
                 {update.publishedAt ? relativeTime(update.publishedAt) : 'Official publication date unavailable'}
               </time>
             </div>
-            <h3 className="text-sm font-semibold leading-snug text-slate-100">{update.title}</h3>
-            <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{update.summary}</p>
+            <h3 className="break-words text-sm font-semibold leading-snug text-slate-100">{update.title}</h3>
+            <p className="mt-1.5 break-words text-xs leading-relaxed text-slate-400">{update.summary}</p>
             <div className="mt-3 flex items-center justify-between gap-2">
               {update.preIndexed && <span className="text-[10px] text-slate-500">Pre-indexed reference · verify current rules</span>}
               <a href={update.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-blue-300 transition hover:text-blue-200">

@@ -484,12 +484,12 @@ export function UserMenu({
   const [settingsOpen, setSettingsOpen] = useState(false);
   return (
     <>
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-1.5">
+      <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
+        <div className="flex min-w-0 items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/80 px-2 py-1.5 sm:px-3">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
             {user.displayName.charAt(0).toUpperCase()}
           </div>
-          <span className="hidden text-sm font-medium text-slate-200 sm:inline">{user.email}</span>
+          <span className="max-w-[120px] truncate text-xs font-medium text-slate-200 sm:max-w-none sm:text-sm">{user.email}</span>
         </div>
         <button
           type="button"

@@ -58,7 +58,7 @@ export default function StudentForum({
     : THREADS.filter((thread) => selectedChannel.threadIds.includes(thread.id as never));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <header className="mb-8 text-center">
         <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-indigo-500/30 bg-indigo-500/10">
           <MessageCircle className="h-7 w-7 text-indigo-300" />
@@ -94,9 +94,9 @@ export default function StudentForum({
         </p>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-5 lg:grid-cols-2">
         {visibleThreads.map((thread) => (
-          <section key={thread.id} className="overflow-hidden rounded-2xl border border-slate-800 bg-[#0c1322]/90">
+          <section key={thread.id} className="min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-[#0c1322]/90">
             <div className="p-5">
               <h2 className="text-lg font-bold text-white">{thread.title}</h2>
               <p className="mt-1 text-sm text-slate-500">{thread.description}</p>

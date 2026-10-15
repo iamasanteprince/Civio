@@ -550,7 +550,7 @@ export default function Asante({
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <div className="mb-6 text-center">
         <div className="inline-flex items-center justify-center rounded-xl bg-slate-900 border border-slate-800 w-14 h-14 mb-3">
           <Sparkles className="w-7 h-7 text-blue-300" />
@@ -563,7 +563,7 @@ export default function Asante({
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}>
+      <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900 overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}>
         <div
           ref={scrollRef}
           className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5"
