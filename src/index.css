@@ -172,13 +172,3 @@ a[class*="bg-"]:active {
 *::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
-
-iframe[id*="netlify"],
-[class*="netlify-drawer"],
-[data-netlify-drawer],
-#netlify-drawer,
-div[data-netlify-deploy-preview] {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
