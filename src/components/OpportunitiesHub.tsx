@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import {
   ExternalLink,
   Search,
@@ -14,6 +14,8 @@ import {
   Sparkles,
   Target,
   TrendingUp,
+  RefreshCw,
+  Rss,
 } from 'lucide-react';
 import type {
   Opportunity,
@@ -27,35 +29,40 @@ const CATEGORY_ICON: Record<OpportunityCategory, typeof Award> = {
   'Youth & Civic Summit': Megaphone,
   'Fellowship': Award,
   'Tech & Business Internship': Code2,
+  'Scholarship & Education': Award,
 };
 
 const CATEGORY_STYLES: Record<OpportunityCategory, { badge: string; iconBg: string }> = {
   'Youth & Civic Summit': { badge: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/25', iconBg: 'from-cyan-600 to-blue-700' },
   'Fellowship': { badge: 'bg-amber-500/15 text-amber-300 border-amber-500/25', iconBg: 'from-amber-600 to-orange-700' },
   'Tech & Business Internship': { badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25', iconBg: 'from-emerald-600 to-teal-700' },
+  'Scholarship & Education': { badge: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25', iconBg: 'from-indigo-600 to-violet-700' },
 };
 
 const FUNDING_STYLES: Record<FundingType, string> = {
   'Fully Funded': 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
   'Partial Funding': 'bg-amber-500/15 text-amber-300 border-amber-500/25',
   'Virtual / Online': 'bg-blue-500/15 text-blue-300 border-blue-500/25',
+  'Funding details vary': 'bg-slate-600/30 text-slate-300 border-slate-600/30',
 };
 
 const FUNDING_ICON: Record<FundingType, typeof Plane> = {
   'Fully Funded': Plane,
   'Partial Funding': TrendingUp,
   'Virtual / Online': Globe,
+  'Funding details vary': Sparkles,
 };
 
 const AUDIENCE_STYLES: Record<TargetAudience, string> = {
   'African Youth': 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25',
   'Global / All Countries': 'bg-slate-600/30 text-slate-300 border-slate-600/30',
   'Developing Economies': 'bg-purple-500/15 text-purple-300 border-purple-500/25',
+  'Eligibility varies': 'bg-slate-600/30 text-slate-300 border-slate-600/30',
 };
 
-const CATEGORIES: (OpportunityCategory | 'All')[] = ['All', 'Youth & Civic Summit', 'Fellowship', 'Tech & Business Internship'];
-const FUNDING_TYPES: (FundingType | 'All')[] = ['All', 'Fully Funded', 'Partial Funding', 'Virtual / Online'];
-const AUDIENCES: (TargetAudience | 'All')[] = ['All', 'African Youth', 'Global / All Countries', 'Developing Economies'];
+const CATEGORIES: (OpportunityCategory | 'All')[] = ['All', 'Youth & Civic Summit', 'Fellowship', 'Tech & Business Internship', 'Scholarship & Education'];
+const FUNDING_TYPES: (FundingType | 'All')[] = ['All', 'Fully Funded', 'Partial Funding', 'Virtual / Online', 'Funding details vary'];
+const AUDIENCES: (TargetAudience | 'All')[] = ['All', 'African Youth', 'Global / All Countries', 'Developing Economies', 'Eligibility varies'];
 const CATEGORY_OPTIONS = CATEGORIES.filter((option): option is OpportunityCategory => option !== 'All');
 const FUNDING_OPTIONS = FUNDING_TYPES.filter((option): option is FundingType => option !== 'All');
 const AUDIENCE_OPTIONS = AUDIENCES.filter((option): option is TargetAudience => option !== 'All');
@@ -74,6 +81,44 @@ const EMPTY_PREFERENCES: OpportunityPreferences = {
   fundingTypes: [],
   audiences: [],
 };
+const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
+const FEED_SOURCE_COUNT = 3;
+
+function normalizeOpportunityLink(link: string): string {
+  try {
+    const url = new URL(link);
+    url.hash = '';
+    url.search = '';
+    return url.href.replace(/\/$/, '').toLowerCase();
+  } catch {
+    return link.trim().toLowerCase();
+  }
+}
+
+function isOpportunity(value: unknown): value is Opportunity {
+  if (!value || typeof value !== 'object') return false;
+  const item = value as Record<string, unknown>;
+  return typeof item.id === 'string' &&
+    typeof item.title === 'string' &&
+    typeof item.organization === 'string' &&
+    (CATEGORIES as readonly unknown[]).includes(item.category) &&
+    item.category !== 'All' &&
+    (FUNDING_TYPES as readonly unknown[]).includes(item.fundingType) &&
+    item.fundingType !== 'All' &&
+    (AUDIENCES as readonly unknown[]).includes(item.targetAudience) &&
+    item.targetAudience !== 'All' &&
+    typeof item.region === 'string' &&
+    typeof item.description === 'string' &&
+    Array.isArray(item.keywords) &&
+    item.keywords.every((keyword) => typeof keyword === 'string') &&
+    typeof item.deadline === 'string' &&
+    typeof item.link === 'string' &&
+    typeof item.eligibility === 'string' &&
+    typeof item.benefits === 'string' &&
+    item.isLive === true &&
+    typeof item.source === 'string' &&
+    (item.publishedAt === null || typeof item.publishedAt === 'string');
+}
 
 function filterSavedOptions<T extends string>(value: unknown, options: readonly T[]): T[] {
   if (!Array.isArray(value)) return [];
@@ -191,6 +236,15 @@ function OpportunityCard({
   return (
     <div className="group relative flex flex-col rounded-xl border border-slate-800 bg-slate-900 overflow-hidden transition-colors duration-150 hover:border-slate-700">
       <div className="p-5">
+        {opportunity.isLive && (
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-200">
+              <Rss className="h-3 w-3" />
+              LIVE
+            </span>
+            <span className="text-[10px] text-slate-500">{opportunity.source}</span>
+          </div>
+        )}
         {match && (
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-xs font-semibold text-indigo-300">
@@ -272,6 +326,61 @@ export default function OpportunitiesHub() {
   const [preferences, setPreferences] = useState<OpportunityPreferences>(loadPreferences);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [recommendationsOnly, setRecommendationsOnly] = useState(false);
+  const [liveOpportunities, setLiveOpportunities] = useState<Opportunity[]>([]);
+  const [activeFeedCount, setActiveFeedCount] = useState(0);
+  const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [feedMessage, setFeedMessage] = useState('');
+  const requestRef = useRef<AbortController | null>(null);
+
+  const refreshOpportunities = useCallback(async () => {
+    requestRef.current?.abort();
+    const controller = new AbortController();
+    requestRef.current = controller;
+    setRefreshing(true);
+    setFeedMessage('');
+
+    try {
+      const response = await fetch('/api/opportunities-feed', {
+        signal: controller.signal,
+        cache: 'no-store',
+      });
+      if (!response.ok) throw new Error('Live opportunity feeds are temporarily unavailable.');
+      const payload: unknown = await response.json();
+      if (
+        !payload ||
+        typeof payload !== 'object' ||
+        !Array.isArray((payload as { items?: unknown }).items) ||
+        !Array.isArray((payload as { sources?: unknown }).sources)
+      ) {
+        throw new Error('The live opportunity feed returned an invalid response.');
+      }
+
+      const data = payload as {
+        items: unknown[];
+        sources: Array<{ status?: unknown }>;
+        checkedAt?: unknown;
+      };
+      setLiveOpportunities(data.items.filter(isOpportunity));
+      setActiveFeedCount(data.sources.filter((source) => source?.status === 'ok').length);
+      setLastCheckedAt(typeof data.checkedAt === 'string' ? data.checkedAt : new Date().toISOString());
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        setFeedMessage(error instanceof Error ? error.message : 'Live opportunity feeds are temporarily unavailable.');
+      }
+    } finally {
+      if (!controller.signal.aborted && requestRef.current === controller) setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshOpportunities();
+    const interval = window.setInterval(() => void refreshOpportunities(), REFRESH_INTERVAL_MS);
+    return () => {
+      window.clearInterval(interval);
+      requestRef.current?.abort();
+    };
+  }, [refreshOpportunities]);
 
   useEffect(() => {
     try {
@@ -288,17 +397,27 @@ export default function OpportunitiesHub() {
     preferences.audiences.length
   );
 
+  const allOpportunities = useMemo(() => {
+    const indexedLinks = new Set(opportunities.map((opportunity) => normalizeOpportunityLink(opportunity.link)));
+    const indexedTitles = new Set(opportunities.map((opportunity) => opportunity.title.trim().toLowerCase()));
+    const freshItems = liveOpportunities.filter((opportunity) =>
+      !indexedLinks.has(normalizeOpportunityLink(opportunity.link)) &&
+      !indexedTitles.has(opportunity.title.trim().toLowerCase())
+    );
+    return [...freshItems, ...opportunities];
+  }, [liveOpportunities]);
+
   const recommendations = useMemo(
     () =>
-      opportunities
+      allOpportunities
         .map((opportunity) => ({ opportunity, match: getOpportunityMatch(opportunity, preferences) }))
         .filter(({ match }) => match.score > 0)
         .sort((a, b) => b.match.score - a.match.score),
-    [preferences]
+    [allOpportunities, preferences]
   );
 
   const filtered = useMemo(() => {
-    let result = opportunities;
+    let result = allOpportunities;
 
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
@@ -324,11 +443,11 @@ export default function OpportunitiesHub() {
     }
 
     return result;
-  }, [searchQuery, selectedCategory, selectedFunding, selectedAudience, recommendationsOnly, recommendations, preferences]);
+  }, [searchQuery, selectedCategory, selectedFunding, selectedAudience, recommendationsOnly, recommendations, preferences, allOpportunities]);
 
-  const fullyFundedCount = opportunities.filter((o) => o.fundingType === 'Fully Funded').length;
-  const virtualCount = opportunities.filter((o) => o.fundingType === 'Virtual / Online').length;
-  const africanYouthCount = opportunities.filter((o) => o.targetAudience === 'African Youth').length;
+  const fullyFundedCount = allOpportunities.filter((o) => o.fundingType === 'Fully Funded').length;
+  const virtualCount = allOpportunities.filter((o) => o.fundingType === 'Virtual / Online').length;
+  const africanYouthCount = allOpportunities.filter((o) => o.targetAudience === 'African Youth').length;
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -337,7 +456,7 @@ export default function OpportunitiesHub() {
           Opportunities & Conferences
         </h1>
         <p className="text-slate-400 text-base sm:text-lg max-w-2xl mx-auto">
-          Explore {opportunities.length}+ global summits, fully funded fellowships, and paid internships for young leaders, students, and changemakers.
+          Explore {allOpportunities.length}+ global summits, fully funded fellowships, and paid internships for young leaders, students, and changemakers.
         </p>
       </div>
 
@@ -357,6 +476,44 @@ export default function OpportunitiesHub() {
           <span className="text-sm font-semibold text-indigo-300">{africanYouthCount}</span>
           <span className="text-xs text-slate-400">For African Youth</span>
         </div>
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-900 px-4 py-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Rss className="h-4 w-4 shrink-0 text-blue-300" />
+          <div>
+            <p className="text-xs font-semibold text-slate-200">Live scholarship &amp; education feeds</p>
+            <p className="mt-0.5 text-[11px] text-slate-500">
+              Auto-refreshes every 15 minutes
+              {lastCheckedAt && ` · Last checked ${new Date(lastCheckedAt).toLocaleTimeString()}`}
+            </p>
+          </div>
+          <span
+            role="status"
+            className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${
+              activeFeedCount > 0
+                ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200'
+                : 'border-amber-500/25 bg-amber-500/10 text-amber-200'
+            }`}
+          >
+            <span className={`h-2 w-2 rounded-full ${activeFeedCount > 0 ? 'animate-pulse bg-emerald-400' : 'bg-amber-400'}`} />
+            {refreshing ? 'Checking feeds' : activeFeedCount > 0 ? `Live · ${activeFeedCount}/${FEED_SOURCE_COUNT}` : 'Verified listings'}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => void refreshOpportunities()}
+          disabled={refreshing}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-sky-500/40 hover:text-white disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+          Refresh Opportunities
+        </button>
+        {feedMessage && (
+          <p role="alert" className="w-full text-xs text-amber-200">
+            {feedMessage} Pre-indexed verified listings remain available.
+          </p>
+        )}
       </div>
 
       <div className="mb-6 rounded-xl border border-slate-800 bg-slate-900 p-5">
@@ -514,7 +671,7 @@ export default function OpportunitiesHub() {
           <div className="flex items-center gap-2 text-xs text-slate-500 pt-2 border-t border-slate-800">
             <Search className="w-3.5 h-3.5" />
             <span>
-              Showing <span className="text-slate-300 font-semibold">{filtered.length}</span> of {opportunities.length} opportunities
+              Showing <span className="text-slate-300 font-semibold">{filtered.length}</span> of {allOpportunities.length} opportunities
               {recommendationsOnly && <> · <span className="text-indigo-300">ranked for you</span></>}
               {searchQuery.trim() && <> for "<span className="text-slate-300 font-semibold">{searchQuery}</span>"</>}
             </span>

@@ -136,17 +136,20 @@ export interface CivioUser {
 export type OpportunityCategory =
   | 'Youth & Civic Summit'
   | 'Fellowship'
-  | 'Tech & Business Internship';
+  | 'Tech & Business Internship'
+  | 'Scholarship & Education';
 
 export type FundingType =
   | 'Fully Funded'
   | 'Partial Funding'
-  | 'Virtual / Online';
+  | 'Virtual / Online'
+  | 'Funding details vary';
 
 export type TargetAudience =
   | 'African Youth'
   | 'Global / All Countries'
-  | 'Developing Economies';
+  | 'Developing Economies'
+  | 'Eligibility varies';
 
 export interface Opportunity {
   id: string;
@@ -162,6 +165,9 @@ export interface Opportunity {
   link: string;
   eligibility: string;
   benefits: string;
+  isLive?: boolean;
+  source?: string;
+  publishedAt?: string | null;
 }
 
 export interface ApiUniversity {
