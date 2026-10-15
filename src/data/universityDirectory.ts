@@ -32,14 +32,31 @@ export async function searchGlobalUniversities(
   });
 }
 
+export function getBaseWebsiteUrl(candidate: string): string {
+  try {
+    const url = new URL(/^https?:\/\//i.test(candidate) ? candidate : `https://${candidate}`);
+    if ((url.protocol !== 'https:' && url.protocol !== 'http:') || url.username || url.password) return '';
+    url.protocol = 'https:';
+    url.pathname = '/';
+    url.search = '';
+    url.hash = '';
+    return url.href;
+  } catch {
+    return '';
+  }
+}
+
 export function getUniversityWebsite(university: ApiUniversity): string {
-  const candidates = [...university.web_pages, ...university.domains.map((domain) => `https://${domain}`)];
-  return candidates.find((candidate) => {
-    try {
-      const url = new URL(candidate);
-      return url.protocol === 'https:' || url.protocol === 'http:';
-    } catch {
-      return false;
-    }
-  }) ?? '';
+  const candidates = [...university.domains, ...university.web_pages];
+  for (const candidate of candidates) {
+    const website = getBaseWebsiteUrl(candidate);
+    if (website) return website;
+  }
+  return '';
+}
+
+export function getAdmissionsSearchUrl(universityName: string): string {
+  const url = new URL('https://www.google.com/search');
+  url.searchParams.set('q', `${universityName} admissions international`);
+  return url.href;
 }

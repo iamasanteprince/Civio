@@ -26,7 +26,7 @@ import type {
   University,
 } from '@/types';
 import { getAsanteAnswer, getAsanteLocalAnswer } from '@/data/asanteEngine';
-import { getUniversityWebsite } from '@/data/universityDirectory';
+import { getAdmissionsSearchUrl, getUniversityWebsite } from '@/data/universityDirectory';
 import { getGuestSessionId, sanitizePlainText } from '@/utils/inputSecurity';
 
 const QUICK_PROMPTS = [
@@ -341,16 +341,26 @@ function GlobalUniversityResultCard({ university }: { university: ApiUniversity 
           Global directory entries do not include admissions requirements. Confirm current fees and testing policies with the institution.
         </p>
       </div>
-      {portal && (
+      <div className="flex border-t border-slate-700/60">
+        {portal && (
+          <a
+            href={portal}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-1 items-center justify-center gap-1.5 bg-slate-800/80 px-3 py-2.5 text-xs font-semibold text-blue-300 hover:bg-slate-700/50"
+          >
+            Visit Website <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
+          </a>
+        )}
         <a
-          href={portal}
+          href={getAdmissionsSearchUrl(university.name)}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex w-full items-center justify-center gap-1.5 border-t border-slate-700/60 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-blue-300 hover:bg-slate-700/50"
+          className="flex flex-1 items-center justify-center gap-1.5 border-l border-slate-700/60 bg-slate-800/80 px-3 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-700/50"
         >
-          Official institution website <ExternalLink className="h-3.5 w-3.5" />
+          Search Admissions <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
         </a>
-      )}
+      </div>
     </div>
   );
 }

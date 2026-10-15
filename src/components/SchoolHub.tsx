@@ -17,7 +17,7 @@ import {
 import type { University, FeeWaiverDetail, ApiUniversity } from '@/types';
 import { universities, countries, degreeLevels } from '@/data/universities';
 import { loadGlobalUniversityIndex } from '@/data/globalUniversityIndex';
-import { getUniversityWebsite } from '@/data/universityDirectory';
+import { getAdmissionsSearchUrl, getBaseWebsiteUrl, getUniversityWebsite } from '@/data/universityDirectory';
 import SkeletonCards from '@/components/SkeletonCards';
 
 const FEE_WAIVER_STYLES: Record<FeeWaiverDetail, { banner: string }> = {
@@ -134,6 +134,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 function SchoolCard({ school }: { school: University }) {
   const feeStyle = FEE_WAIVER_STYLES[school.feeWaiverDetail];
+  const websiteUrl = getBaseWebsiteUrl(school.portalUrl);
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-950 transition-colors duration-200 hover:border-slate-700">
       <div className="p-5 sm:p-6">
@@ -224,9 +225,14 @@ function SchoolCard({ school }: { school: University }) {
         </div>
       </div>
 
-      <div className="mt-auto border-t border-slate-800 p-4">
-        <a href={school.portalUrl} target="_blank" rel="noopener noreferrer" className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500">
-          View application portal <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
+      <div className="mt-auto flex gap-2 border-t border-slate-800 p-4">
+        {websiteUrl && (
+          <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500">
+            Visit Website <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+          </a>
+        )}
+        <a href={getAdmissionsSearchUrl(school.name)} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm font-semibold text-slate-200 transition-colors duration-150 hover:bg-slate-800">
+          Search Admissions <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
         </a>
       </div>
     </div>
@@ -284,12 +290,15 @@ function ApiSchoolCard({ apiUni }: { apiUni: ApiUniversity }) {
         )}
       </div>
 
-      <div className="border-t border-slate-800 p-4 mt-auto">
+      <div className="mt-auto flex gap-2 border-t border-slate-800 p-4">
         {portalUrl && (
-          <a href={portalUrl} target="_blank" rel="noopener noreferrer" className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500">
-            Visit institution website <ExternalLink className="h-4 w-4" strokeWidth={1.75} />
+          <a href={portalUrl} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500">
+            Visit Website <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
           </a>
         )}
+        <a href={getAdmissionsSearchUrl(apiUni.name)} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm font-semibold text-slate-200 transition-colors duration-150 hover:bg-slate-800">
+          Search Admissions <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+        </a>
       </div>
     </div>
   );
