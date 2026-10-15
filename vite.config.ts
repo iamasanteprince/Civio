@@ -3,10 +3,11 @@ import { loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 import { generateAsanteResponse } from './src/server/gemini';
+import { loadPolicyFeed } from './src/server/policyFeeds';
 
-function asanteDevApiPlugin(): Plugin {
+function devApiPlugin(): Plugin {
   return {
-    name: 'asante-dev-api',
+    name: 'civiohub-dev-api',
     configureServer(server) {
       server.middlewares.use('/api/asante', async (request, response) => {
         response.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -46,6 +47,24 @@ function asanteDevApiPlugin(): Plugin {
           response.end(JSON.stringify({ error: 'Gemini is temporarily unavailable.' }));
         }
       });
+      server.middlewares.use('/api/policy-updates', async (request, response) => {
+        response.setHeader('Content-Type', 'application/json; charset=utf-8');
+        if (request.method !== 'GET') {
+          response.statusCode = 405;
+          response.end(JSON.stringify({ error: 'Method not allowed.' }));
+          return;
+        }
+
+        try {
+          const requestUrl = new URL(request.url ?? '/', 'http://localhost');
+          const payload = await loadPolicyFeed(requestUrl.searchParams.get('source'));
+          response.statusCode = 200;
+          response.end(JSON.stringify(payload));
+        } catch {
+          response.statusCode = 502;
+          response.end(JSON.stringify({ error: 'Policy feed is temporarily unavailable.' }));
+        }
+      });
     },
   };
 }
@@ -58,7 +77,7 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    plugins: [react(), asanteDevApiPlugin()],
+    plugins: [react(), devApiPlugin()],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),

@@ -29,6 +29,7 @@ interface Rss2JsonItem {
 }
 
 const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
+const REQUEST_TIMEOUT_MS = 15_000;
 const SOURCES: PolicyFeedSource[] = [
   {
     id: 'canada',
@@ -155,12 +156,14 @@ async function loadSource(source: PolicyFeedSource, signal: AbortSignal): Promis
   const sourceController = new AbortController();
   const abortRequest = () => sourceController.abort();
   signal.addEventListener('abort', abortRequest, { once: true });
-  const timeout = window.setTimeout(() => sourceController.abort(), 12_000);
-  const endpoint = new URL('https://api.rss2json.com/v1/api.json');
-  endpoint.searchParams.set('rss_url', source.feedUrl);
+  const timeout = window.setTimeout(() => sourceController.abort(), REQUEST_TIMEOUT_MS);
+  const endpoint = new URL('/api/policy-updates', window.location.origin);
+  endpoint.searchParams.set('source', source.id);
   try {
     const response = await fetch(endpoint, { signal: sourceController.signal });
-    if (!response.ok) throw new Error(`${source.id} feed returned HTTP ${response.status}.`);
+    if (!response.ok) {
+      throw new Error(`${source.id} feed returned HTTP ${response.status}.`);
+    }
     const payload: unknown = await response.json();
     if (!payload || typeof payload !== 'object') throw new Error(`${source.id} feed response was invalid.`);
     const data = payload as { status?: unknown; items?: unknown };
