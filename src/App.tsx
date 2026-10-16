@@ -54,6 +54,11 @@ function Logo() {
 export default function App() {
   const [activeView, setActiveView] = useState<View>('hub');
   const [signInOpen, setSignInOpen] = useState(false);
+  const [signInPrompt, setSignInPrompt] = useState('');
+
+  useEffect(() => {
+    if (!signInOpen) setSignInPrompt('');
+  }, [signInOpen]);
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [createPostOpen, setCreatePostOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -518,7 +523,13 @@ export default function App() {
           <VisaIntelHub />
         )}
         {activeView === 'hub' && (
-          <SchoolHub />
+          <SchoolHub
+            currentUser={currentUser}
+            onRequestSignIn={(message) => {
+              setSignInPrompt(message ?? '');
+              setSignInOpen(true);
+            }}
+          />
         )}
         {activeView === 'opportunities' && (
           <OpportunitiesHub />
@@ -569,7 +580,7 @@ export default function App() {
       </footer>
 
       {legalNotice && <LegalNotices initialNotice={legalNotice} onClose={() => setLegalNotice(null)} />}
-      <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} onSignIn={handleSignIn} />
+      <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} onSignIn={handleSignIn} promptMessage={signInPrompt} />
       {resetPasswordOpen && (
         <SetNewPasswordModal onClose={() => setResetPasswordOpen(false)} />
       )}

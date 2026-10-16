@@ -16,7 +16,7 @@ import {
   FileText,
   ArrowUpRight,
 } from 'lucide-react';
-import type { University, FeeWaiverDetail, ApiUniversity } from '@/types';
+import type { University, FeeWaiverDetail, ApiUniversity, CivioUser } from '@/types';
 import { universities, countries, degreeLevels } from '@/data/universities';
 import { loadGlobalUniversityIndex } from '@/data/globalUniversityIndex';
 import { getAdmissionsSearchUrl, getBaseWebsiteUrl, getUniversityWebsite } from '@/data/universityDirectory';
@@ -307,7 +307,13 @@ function ApiSchoolCard({ apiUni }: { apiUni: ApiUniversity }) {
   );
 }
 
-export default function SchoolHub() {
+export default function SchoolHub({
+  currentUser = null,
+  onRequestSignIn,
+}: {
+  currentUser?: CivioUser | null;
+  onRequestSignIn?: (message?: string) => void;
+}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [visibleResultCount, setVisibleResultCount] = useState(30);
   const [selectedCountry, setSelectedCountry] = useState('All');
@@ -413,7 +419,7 @@ export default function SchoolHub() {
   const globalCountLabel = directoryLoading ? '9,000+' : globalUniversities.length.toLocaleString();
 
   if (showResumeBuilder) {
-    return <ResumeBuilder onClose={() => setShowResumeBuilder(false)} />;
+    return <ResumeBuilder currentUser={currentUser} onRequestSignIn={onRequestSignIn} onClose={() => setShowResumeBuilder(false)} />;
   }
 
   return (

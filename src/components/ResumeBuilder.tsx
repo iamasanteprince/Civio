@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ArrowLeft, ChevronDown, FileDown, Plus, Trash2, Wand2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, CloudUpload, FileDown, Plus, Trash2, Wand2 } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import type { CivioUser } from '@/types';
 
 const STORAGE_KEY = 'civiohub-resume-draft-v1';
+const CLOUD_TITLE = 'My Academic CV';
+const SIGN_IN_PROMPT = 'Create an account or sign in to save your CV to the cloud and access it from any device.';
 const ENGLISH_SNIPPET =
   'Degree and secondary education conducted entirely in English; satisfies institutional language requirements without IELTS/TOEFL.';
 
@@ -62,54 +66,58 @@ const emptyDraft = (): Draft => ({
 
 const str = (value: unknown, max = 2000) => (typeof value === 'string' ? value.slice(0, max) : '');
 
-function loadDraft(): Draft {
+function parseDraft(input: unknown): Draft {
   const base = emptyDraft();
+  if (!input || typeof input !== 'object') return base;
+  const data = input as Partial<Record<keyof Draft, unknown>>;
+  const personal = (data.personal ?? {}) as Record<string, unknown>;
+  const skills = (data.skills ?? {}) as Record<string, unknown>;
+  const education = Array.isArray(data.education)
+    ? data.education.slice(0, 10).map((item: Record<string, unknown>) => ({
+        id: str(item?.id, 40) || newId(),
+        institution: str(item?.institution, 200),
+        degree: str(item?.degree, 200),
+        year: str(item?.year, 20),
+        gpa: str(item?.gpa, 60),
+        highlights: str(item?.highlights),
+      }))
+    : base.education;
+  const experience = Array.isArray(data.experience)
+    ? data.experience.slice(0, 15).map((item: Record<string, unknown>) => ({
+        id: str(item?.id, 40) || newId(),
+        role: str(item?.role, 200),
+        organization: str(item?.organization, 200),
+        start: str(item?.start, 30),
+        end: str(item?.end, 30),
+        bullets: str(item?.bullets, 3000),
+      }))
+    : base.experience;
+  return {
+    personal: {
+      fullName: str(personal.fullName, 120),
+      target: str(personal.target, 200),
+      email: str(personal.email, 200),
+      phone: str(personal.phone, 50),
+      location: str(personal.location, 120),
+      link: str(personal.link, 300),
+    },
+    education: education.length ? education : base.education,
+    englishNote: str(data.englishNote, 600),
+    experience: experience.length ? experience : base.experience,
+    skills: {
+      languages: str(skills.languages, 500),
+      methods: str(skills.methods, 500),
+      technical: str(skills.technical, 500),
+    },
+  };
+}
+
+function loadDraft(): Draft {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return base;
-    const data = JSON.parse(raw) as Partial<Record<keyof Draft, unknown>>;
-    const personal = (data.personal ?? {}) as Record<string, unknown>;
-    const skills = (data.skills ?? {}) as Record<string, unknown>;
-    const education = Array.isArray(data.education)
-      ? data.education.slice(0, 10).map((item: Record<string, unknown>) => ({
-          id: str(item?.id, 40) || newId(),
-          institution: str(item?.institution, 200),
-          degree: str(item?.degree, 200),
-          year: str(item?.year, 20),
-          gpa: str(item?.gpa, 60),
-          highlights: str(item?.highlights),
-        }))
-      : base.education;
-    const experience = Array.isArray(data.experience)
-      ? data.experience.slice(0, 15).map((item: Record<string, unknown>) => ({
-          id: str(item?.id, 40) || newId(),
-          role: str(item?.role, 200),
-          organization: str(item?.organization, 200),
-          start: str(item?.start, 30),
-          end: str(item?.end, 30),
-          bullets: str(item?.bullets, 3000),
-        }))
-      : base.experience;
-    return {
-      personal: {
-        fullName: str(personal.fullName, 120),
-        target: str(personal.target, 200),
-        email: str(personal.email, 200),
-        phone: str(personal.phone, 50),
-        location: str(personal.location, 120),
-        link: str(personal.link, 300),
-      },
-      education: education.length ? education : base.education,
-      englishNote: str(data.englishNote, 600),
-      experience: experience.length ? experience : base.experience,
-      skills: {
-        languages: str(skills.languages, 500),
-        methods: str(skills.methods, 500),
-        technical: str(skills.technical, 500),
-      },
-    };
+    return raw ? parseDraft(JSON.parse(raw)) : emptyDraft();
   } catch {
-    return base;
+    return emptyDraft();
   }
 }
 
@@ -185,9 +193,22 @@ function PreviewSection({ index, title, children }: { index: string; title: stri
   );
 }
 
-export default function ResumeBuilder({ onClose }: { onClose?: () => void }) {
+export default function ResumeBuilder({
+  onClose,
+  currentUser = null,
+  onRequestSignIn,
+}: {
+  onClose?: () => void;
+  currentUser?: CivioUser | null;
+  onRequestSignIn?: (message?: string) => void;
+}) {
   const [draft, setDraft] = useState<Draft>(loadDraft);
   const [openSection, setOpenSection] = useState<string | null>('01');
+  const [cloudStatus, setCloudStatus] = useState<{ kind: 'saving' | 'saved' | 'error'; message: string } | null>(null);
+  const initialDraftRef = useRef(draft);
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
+  const userId = currentUser?.id ?? null;
 
   useEffect(() => {
     try {
@@ -196,6 +217,51 @@ export default function ResumeBuilder({ onClose }: { onClose?: () => void }) {
       // Storage may be unavailable (private mode or quota); the draft stays in memory.
     }
   }, [draft]);
+
+  useEffect(() => {
+    if (!supabase || !userId) return;
+    let cancelled = false;
+    void supabase
+      .from('resumes')
+      .select('data')
+      .eq('user_id', userId)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return;
+        // Skip if the user already started typing while the request was in flight.
+        if (draftRef.current !== initialDraftRef.current) return;
+        setDraft(parseDraft(data.data));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (cloudStatus?.kind !== 'saved') return;
+    const timer = window.setTimeout(() => setCloudStatus(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [cloudStatus]);
+
+  const saveToCloud = async () => {
+    if (!userId || !supabase) {
+      onRequestSignIn?.(SIGN_IN_PROMPT);
+      return;
+    }
+    setCloudStatus({ kind: 'saving', message: 'Saving…' });
+    const { error } = await supabase.from('resumes').upsert(
+      {
+        user_id: userId,
+        title: CLOUD_TITLE,
+        data: draftRef.current,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,title' }
+    );
+    setCloudStatus(error ? { kind: 'error', message: 'Could not save. Your draft is still stored on this device.' } : { kind: 'saved', message: 'Saved to cloud' });
+  };
 
   const toggle = (id: string) => setOpenSection((current) => (current === id ? null : id));
 
@@ -412,13 +478,31 @@ export default function ResumeBuilder({ onClose }: { onClose?: () => void }) {
             </Field>
           </Drawer>
 
-          <button
-            type="button"
-            onClick={clearDraft}
-            className="text-xs font-medium text-stone-500 underline-offset-2 transition-colors hover:text-stone-900 hover:underline"
-          >
-            Clear draft
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => void saveToCloud()}
+              disabled={cloudStatus?.kind === 'saving'}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-stone-300 bg-white px-3.5 py-2 text-xs font-semibold text-stone-800 transition-colors hover:border-stone-900 disabled:opacity-60"
+            >
+              <CloudUpload className="h-4 w-4" />
+              {currentUser ? 'Save Draft' : 'Save to Account'}
+            </button>
+            <button
+              type="button"
+              onClick={clearDraft}
+              className="text-xs font-medium text-stone-500 underline-offset-2 transition-colors hover:text-stone-900 hover:underline"
+            >
+              Clear draft
+            </button>
+          </div>
+          <div role="status" aria-live="polite" className="min-h-[1rem]">
+            {cloudStatus && (
+              <p className={`text-xs font-medium ${cloudStatus.kind === 'error' ? 'text-rose-400' : 'text-stone-600'}`}>
+                {cloudStatus.message}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="min-w-0">

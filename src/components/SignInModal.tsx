@@ -37,11 +37,13 @@ export default function SignInModal({
   onClose,
   onSignIn,
   captchaToken,
+  promptMessage,
 }: {
   open: boolean;
   onClose: () => void;
   onSignIn: (user: CivioUser) => void;
   captchaToken?: string;
+  promptMessage?: string;
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -246,6 +248,11 @@ export default function SignInModal({
                     ? 'Create a free account to join the Civiohub community.'
                     : 'Enter your account email and we will send a password reset link.'}
               </p>
+              {promptMessage && mode !== 'reset-request' && (
+                <p className="mt-3 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2 text-xs leading-relaxed text-stone-700">
+                  {promptMessage}
+                </p>
+              )}
             </div>
 
             {mode !== 'reset-request' && (
