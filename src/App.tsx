@@ -248,7 +248,7 @@ export default function App() {
       sessionStorage.clear();
       resetGuestSessionId();
     } catch {
-      setDiscussionError('Account deleted, but browser storage could not be fully cleared. Clear this site’s storage in browser settings.');
+      setDiscussionError('Account deleted, but browser storage could not be fully cleared. Clear this siteâ€™s storage in browser settings.');
     }
     setCurrentUser(null);
     setInitiatives([]);
@@ -372,7 +372,7 @@ export default function App() {
   };
 
   return (
-    <div className="w-full max-w-full min-h-screen bg-[#faf9f6] text-stone-900">
+    <div className="box-border w-full max-w-full overflow-x-hidden min-h-screen bg-[#faf9f6] text-stone-900">
       {/* Sticky Header */}
       <header className="sticky top-0 z-40 w-full max-w-full border-b border-stone-200 bg-[#faf9f6]/90 text-stone-900 backdrop-blur-md">
         <div className="w-full max-w-full px-3 sm:px-6">
@@ -392,9 +392,9 @@ export default function App() {
                 >
                   <ShieldCheck className="h-4 w-4 shrink-0" />
                   <span className="sm:hidden">Admin</span>
-                  <span className="hidden sm:inline">Admin ·</span>
+                  <span className="hidden sm:inline">Admin Â·</span>
                   <Users className="hidden h-3.5 w-3.5 shrink-0 sm:block" />
-                  <span className="hidden sm:inline">Members: {adminAnalyticsLoading ? '…' : adminAnalytics?.totalMembers.toLocaleString() ?? '—'}</span>
+                  <span className="hidden sm:inline">Members: {adminAnalyticsLoading ? 'â€¦' : adminAnalytics?.totalMembers.toLocaleString() ?? 'â€”'}</span>
                 </button>
               )}
               {currentUser ? (
@@ -487,7 +487,7 @@ export default function App() {
       </header>
 
       {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-2 left-2 right-2 z-30 rounded-2xl border border-stone-200 bg-[#faf9f6]/95 pb-[env(safe-area-inset-bottom)] shadow-xl backdrop-blur-md lg:hidden">
+      <nav className="fixed bottom-2 left-2 right-2 z-30 box-border max-w-full rounded-2xl border border-stone-200 bg-[#faf9f6]/95 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-xl backdrop-blur-md lg:hidden">
         <div className="grid grid-cols-5 items-center gap-1 px-1.5 py-2">
           {TABS.map(({ id, mobileLabel, icon: Icon }) => {
             const active = activeView === id;
@@ -508,7 +508,7 @@ export default function App() {
       </nav>
 
       {/* Main Content */}
-      <main className="relative z-10 w-full max-w-full pb-20 lg:pb-0">
+      <main className="relative z-10 w-full max-w-full overflow-x-hidden pb-24 lg:pb-0">
         {discussionError && (
           <div role="alert" className="mx-auto mt-4 w-full max-w-7xl rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             {discussionError}
@@ -562,7 +562,7 @@ export default function App() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <img src="/civio-logo.png" alt="Civiohub Logo" className="h-5 w-5 rounded object-cover" />
-              <span>Civiohub · Civic Engagement, Admissions &amp; Global Opportunities</span>
+              <span>Civiohub Â· Civic Engagement, Admissions &amp; Global Opportunities</span>
             </div>
             <p className="text-xs text-slate-600">
               Community-driven. Transparent. Empowering the next generation.
