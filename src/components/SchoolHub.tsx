@@ -13,12 +13,15 @@ import {
   Building2,
   Search,
   Filter,
+  FileText,
+  ArrowUpRight,
 } from 'lucide-react';
 import type { University, FeeWaiverDetail, ApiUniversity } from '@/types';
 import { universities, countries, degreeLevels } from '@/data/universities';
 import { loadGlobalUniversityIndex } from '@/data/globalUniversityIndex';
 import { getAdmissionsSearchUrl, getBaseWebsiteUrl, getUniversityWebsite } from '@/data/universityDirectory';
 import SkeletonCards from '@/components/SkeletonCards';
+import ResumeBuilder from '@/components/ResumeBuilder';
 
 const FEE_WAIVER_STYLES: Record<FeeWaiverDetail, { banner: string }> = {
   'always-free': { banner: 'border-emerald-800 text-emerald-300' },
@@ -314,6 +317,7 @@ export default function SchoolHub() {
   const [globalUniversities, setGlobalUniversities] = useState<ApiUniversity[]>([]);
   const [directoryLoading, setDirectoryLoading] = useState(true);
   const [directoryError, setDirectoryError] = useState<string | null>(null);
+  const [showResumeBuilder, setShowResumeBuilder] = useState(false);
 
   const debouncedQuery = useDebounce(searchQuery, 250);
   const isSearching = debouncedQuery.trim().length > 0;
@@ -408,6 +412,10 @@ export default function SchoolHub() {
   const totalCount = allResults.length;
   const globalCountLabel = directoryLoading ? '9,000+' : globalUniversities.length.toLocaleString();
 
+  if (showResumeBuilder) {
+    return <ResumeBuilder onClose={() => setShowResumeBuilder(false)} />;
+  }
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       <header className="mb-10 max-w-3xl">
@@ -417,6 +425,22 @@ export default function SchoolHub() {
           Search directory records and compare application fees, waivers, deadlines, and language requirements where available. Confirm requirements with each institution.
         </p>
       </header>
+
+      <button
+        type="button"
+        onClick={() => setShowResumeBuilder(true)}
+        className="group mb-8 flex w-full max-w-xl items-center gap-3 rounded-xl border border-stone-200 bg-white p-4 text-left shadow-xs transition-all hover:border-stone-300"
+      >
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-700">
+          <FileText className="h-5 w-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">Tool</span>
+          <span className="block font-serif text-base font-semibold text-stone-900">Academic CV &amp; Resume Builder</span>
+          <span className="block text-xs text-stone-600">Draft an application-ready CV with a live paper preview and PDF export.</span>
+        </span>
+        <ArrowUpRight className="h-4 w-4 shrink-0 text-stone-400 transition-colors group-hover:text-stone-700" />
+      </button>
 
       <div className="mb-8 rounded-xl border border-slate-800 bg-slate-950 p-5 sm:p-6">
         <label htmlFor="global-university-search" className="mb-2 block text-sm font-semibold text-slate-200">
