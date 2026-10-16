@@ -15,6 +15,12 @@ import {
   Trash2,
   Check,
   X,
+  Compass,
+  GraduationCap,
+  FileText,
+  Coins,
+  ShieldCheck,
+  ArrowUpRight,
 } from 'lucide-react';
 import type {
   ApiUniversity,
@@ -35,6 +41,23 @@ const QUICK_PROMPTS = [
   'How much is the German blocked account (Sperrkonto)?',
   "Explain Canada's PAL & proof-of-funds requirements",
   'Show fully funded scholarships for African students',
+];
+
+const RESEARCH_SECTIONS = [
+  {
+    heading: 'Admissions & Entry Waivers',
+    items: [
+      { title: 'Universities offering $0 application fee pathways', tag: 'Direct Entry', icon: GraduationCap, prompt: QUICK_PROMPTS[0] },
+      { title: 'Institutions accepting WAEC / WASSCE in lieu of IELTS', tag: 'Language Waiver', icon: FileText, prompt: QUICK_PROMPTS[1] },
+    ],
+  },
+  {
+    heading: 'Consular & Financial Compliance',
+    items: [
+      { title: 'German Sperrkonto blocked account threshold updates', tag: 'Proof of Funds', icon: Coins, prompt: QUICK_PROMPTS[2] },
+      { title: 'Canada Provincial Attestation Letter (PAL) protocols', tag: 'Visa Verification', icon: ShieldCheck, prompt: QUICK_PROMPTS[3] },
+    ],
+  },
 ];
 
 const WELCOME_MESSAGE: AsanteMessage = {
@@ -565,35 +588,51 @@ export default function Asante({
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 pb-28 sm:px-6 lg:px-8 lg:pb-8">
-      <div className="mb-6 text-center">
-        <div className="inline-flex items-center justify-center rounded-xl bg-slate-900 border border-slate-800 w-14 h-14 mb-3">
-          <Sparkles className="w-7 h-7 text-blue-300" />
+      <div className="mb-6 flex items-start gap-3 border-b border-slate-800 pb-5">
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900">
+          <Compass className="h-5 w-5 text-blue-300" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-1">
-          Asante
-        </h1>
-        <p className="text-slate-400 text-sm">
-          Your Admissions, Visa &amp; Opportunity Intelligence Mentor
-        </p>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Asante</h1>
+            <span className="rounded border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+              Intelligence Desk
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-slate-400">
+            Curated entry criteria, fee waiver lists, and verified consular protocols.
+          </p>
+        </div>
       </div>
 
-      <section className="mb-4 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-5">
-        <p className="mb-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">
-          <Sparkles className="h-3 w-3" />
-          Try asking Asante
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {QUICK_PROMPTS.map((prompt) => (
-            <button
-              key={prompt}
-              onClick={() => sendMessage(prompt)}
-              disabled={isTyping}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-300 transition-all hover:border-indigo-500/40 hover:bg-indigo-500/10 hover:text-indigo-300 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
+      <section className="mb-4 grid gap-5 sm:grid-cols-2">
+        {RESEARCH_SECTIONS.map((section) => (
+          <div key={section.heading}>
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              {section.heading}
+            </h2>
+            <div className="space-y-2">
+              {section.items.map(({ title, tag, icon: Icon, prompt }) => (
+                <button
+                  key={title}
+                  type="button"
+                  onClick={() => sendMessage(prompt)}
+                  disabled={isTyping}
+                  className="group flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs cursor-pointer transition-all duration-300 ease-in-out hover:border-slate-300 disabled:cursor-pointer disabled:opacity-60"
+                >
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-medium leading-snug text-slate-900">{title}</span>
+                    <span className="mt-0.5 block text-[11px] font-medium text-slate-500">{tag}</span>
+                  </span>
+                  <ArrowUpRight className="h-4 w-4 flex-shrink-0 text-slate-400 transition-colors group-hover:text-slate-700" />
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
       </section>
 
       <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900 overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}>
