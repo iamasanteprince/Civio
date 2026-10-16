@@ -42,7 +42,7 @@ export default function LegalNotices({
               aria-pressed={notice === item}
               className={`border-b-2 px-1 pb-3 text-sm font-semibold capitalize transition ${
                 notice === item
-                  ? 'border-blue-500 text-blue-200'
+                  ? 'border-blue-500 text-[#0498cc]'
                   : 'border-transparent text-slate-400 hover:text-slate-200'
               }`}
             >

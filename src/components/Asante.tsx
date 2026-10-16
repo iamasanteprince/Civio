@@ -136,11 +136,11 @@ function renderInline(text: string): React.ReactNode {
 
 const CATEGORY_PILL_STYLES: Record<string, string> = {
   Education: 'bg-purple-500/15 text-purple-300 border-purple-500/25',
-  Business: 'bg-blue-500/15 text-blue-300 border-blue-500/25',
-  'Public Policy': 'bg-cyan-500/15 text-cyan-300 border-cyan-500/25',
+  Business: 'bg-[#0498cc]/15 text-[#0498cc] border-[#0498cc]/25',
+  'Public Policy': 'bg-[#0498cc]/15 text-[#0498cc] border-[#0498cc]/25',
   Environment: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
   Community: 'bg-amber-500/15 text-amber-300 border-amber-500/25',
-  'Tech & Coding': 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25',
+  'Tech & Coding': 'bg-[#0498cc]/15 text-[#0498cc] border-[#0498cc]/25',
 };
 
 interface InitiativeManagementProps {
@@ -160,13 +160,13 @@ function UniversityResultCard({ university }: { university: University }) {
       ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25'
       : university.applicationFeeType === 'waiver'
         ? 'bg-amber-500/15 text-amber-300 border-amber-500/25'
-        : 'bg-blue-500/15 text-blue-300 border-blue-500/25';
+        : 'bg-[#0498cc]/15 text-[#0498cc] border-[#0498cc]/25';
 
   return (
     <div className="rounded-xl border border-slate-700/60 bg-slate-800/50 overflow-hidden">
       <div className="p-4">
         <div className="flex items-start gap-3 mb-3">
-          <div className="flex items-center justify-center rounded-lg bg-blue-600 w-9 h-9 flex-shrink-0">
+          <div className="flex items-center justify-center rounded-lg bg-[#003574] w-9 h-9 flex-shrink-0">
             <Building2 className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -217,7 +217,7 @@ function UniversityResultCard({ university }: { university: University }) {
         href={university.portalUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center justify-center gap-1.5 w-full border-t border-slate-700/60 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-blue-300 transition-all hover:bg-slate-700/50 hover:text-blue-200"
+        className="flex items-center justify-center gap-1.5 w-full border-t border-slate-700/60 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-[#0498cc] transition-all hover:bg-slate-700/50 hover:text-[#003574]"
       >
         Official Application Portal
         <ExternalLink className="w-3.5 h-3.5" />
@@ -265,7 +265,7 @@ function InitiativeResultCard({
     <div className="rounded-xl border border-slate-700/60 bg-slate-800/50 overflow-hidden">
       <div className="p-4">
         <div className="flex items-start gap-3 mb-2">
-          <div className="flex items-center justify-center rounded-lg bg-blue-600 w-9 h-9 flex-shrink-0">
+          <div className="flex items-center justify-center rounded-lg bg-[#003574] w-9 h-9 flex-shrink-0">
             <Compass className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -292,7 +292,7 @@ function InitiativeResultCard({
             <textarea value={description} onChange={(event) => setDescription(event.target.value)} maxLength={5000} aria-label="Edit initiative description" rows={3} className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-200" />
             <textarea value={goal} onChange={(event) => setGoal(event.target.value)} maxLength={1000} aria-label="Edit initiative goal" rows={2} className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-xs text-slate-200" />
             <div className="flex gap-2">
-              <button type="button" onClick={saveEdits} className="inline-flex items-center gap-1 rounded bg-indigo-600 px-2 py-1 text-xs font-semibold text-white"><Check className="h-3 w-3" /> Save</button>
+              <button type="button" onClick={saveEdits} className="inline-flex items-center gap-1 rounded bg-[#003574] px-2 py-1 text-xs font-semibold text-white"><Check className="h-3 w-3" /> Save</button>
               <button type="button" onClick={() => setEditing(false)} className="inline-flex items-center gap-1 rounded border border-slate-700 px-2 py-1 text-xs text-slate-300"><X className="h-3 w-3" /> Cancel</button>
             </div>
           </div>
@@ -316,7 +316,7 @@ function InitiativeResultCard({
           href={initiative.link}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 w-full border-t border-slate-700/60 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-indigo-300 transition-all hover:bg-slate-700/50 hover:text-indigo-200"
+          className="flex items-center justify-center gap-1.5 w-full border-t border-slate-700/60 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-[#0498cc] transition-all hover:bg-slate-700/50 hover:text-[#003574]"
         >
           Join Initiative
           <ExternalLink className="w-3.5 h-3.5" />
@@ -368,7 +368,7 @@ function GlobalUniversityResultCard({ university }: { university: ApiUniversity 
             href={portal}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center gap-1.5 bg-slate-800/80 px-3 py-2.5 text-xs font-semibold text-blue-300 hover:bg-slate-700/50"
+            className="flex flex-1 items-center justify-center gap-1.5 bg-slate-800/80 px-3 py-2.5 text-xs font-semibold text-[#0498cc] hover:bg-slate-700/50"
           >
             Visit Website <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
           </a>
@@ -446,7 +446,7 @@ function MessageBubble({
         className={`flex items-center justify-center rounded-xl w-9 h-9 flex-shrink-0 ${
           isUser
             ? 'bg-stone-700 text-white'
-            : 'bg-stone-900 text-white'
+            : 'bg-[#003574] text-white'
         }`}
       >
         {isUser ? <User className="w-4 h-4" /> : <Compass className="w-4 h-4" />}
@@ -594,7 +594,7 @@ export default function Asante({
           <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">04 / Asante Intelligence Desk</p>
           <div className="flex items-center gap-2">
             <h1 className="font-serif text-2xl font-semibold leading-tight tracking-tight text-stone-900 sm:text-3xl">Asante</h1>
-            <span className="rounded border border-blue-500/30 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+            <span className="rounded border border-[#003574]/20 bg-[#003574]/10 px-2 py-0.5 text-[10px] font-semibold text-[#003574]">
               Intelligence Desk
             </span>
           </div>
@@ -617,7 +617,7 @@ export default function Asante({
                   type="button"
                   onClick={() => sendMessage(prompt)}
                   disabled={isTyping}
-                  className="group flex w-full items-center gap-3                   rounded-xl border border-stone-200 bg-white p-3.5 text-left shadow-xs cursor-pointer transition-all duration-300 ease-in-out hover:border-stone-300 disabled:cursor-pointer disabled:opacity-60"
+                  className="group flex w-full items-center gap-3                   rounded-xl border border-stone-200 bg-white p-3.5 text-left shadow-xs cursor-pointer transition-all duration-300 ease-in-out hover:border-[#0498cc] disabled:cursor-pointer disabled:opacity-60"
                 >
                                     <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-700">
                     <Icon className="h-4 w-4" />
@@ -626,7 +626,7 @@ export default function Asante({
                                       <span className="block text-sm font-medium leading-snug text-stone-900">{title}</span>
                                       <span className="mt-0.5 block text-[11px] font-medium text-stone-500">{tag}</span>
                   </span>
-                                    <ArrowUpRight className="h-4 w-4 flex-shrink-0 text-stone-400 transition-colors group-hover:text-stone-700" />
+                                    <ArrowUpRight className="h-4 w-4 flex-shrink-0 text-[#0498cc] transition-colors" />
                 </button>
               ))}
             </div>
@@ -649,7 +649,7 @@ export default function Asante({
 
           {isTyping && (
             <div className="flex gap-3">
-              <div className="flex items-center justify-center rounded-lg bg-stone-900 w-9 h-9 flex-shrink-0">
+              <div className="flex items-center justify-center rounded-lg bg-[#003574] w-9 h-9 flex-shrink-0">
                 <Compass className="w-4 h-4 text-white" />
               </div>
               <div className="rounded-2xl bg-white border border-slate-700/50 px-4 py-3">
@@ -672,12 +672,12 @@ export default function Asante({
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about visas, proof of funds, universities, fee waivers, or opportunities..."
               disabled={isTyping}
-              className="flex-1 rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all focus:border-stone-900 focus:ring-0 disabled:opacity-50"
+              className="flex-1 rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all focus:border-[#0498cc] focus:ring-0 disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={!input.trim() || isTyping}
-              className="inline-flex items-center justify-center rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-xl bg-[#003574] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#002756] disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Send className="w-4 h-4" />
             </button>

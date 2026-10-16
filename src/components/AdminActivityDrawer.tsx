@@ -73,9 +73,9 @@ export default function AdminActivityDrawer({
         </div>
 
         <div className="space-y-6 p-5">
-          <section className="rounded-2xl border border-indigo-500/20 bg-indigo-500/5 p-5">
+          <section className="rounded-2xl border border-[#0498cc]/20 bg-[#0498cc]/5 p-5">
             <div className="flex items-center gap-3">
-              <Users className="h-5 w-5 text-indigo-300" />
+              <Users className="h-5 w-5 text-[#0498cc]" />
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Total registered students</p>
                 <p className="mt-1 text-3xl font-bold text-stone-900">
@@ -137,7 +137,7 @@ export default function AdminActivityDrawer({
                 <article key={`${threadId}:${comment.id}`} className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <p className="text-xs font-semibold text-indigo-200">{comment.author}{comment.verified ? ' · Verified account' : ' · Guest'}</p>
+                      <p className="text-xs font-semibold text-[#0498cc]">{comment.author}{comment.verified ? ' · Verified account' : ' · Guest'}</p>
                       <p className="mt-0.5 text-[10px] text-slate-500">{threadLabel(threadId)} · {new Date(comment.timestamp).toLocaleString()}</p>
                     </div>
                     <button

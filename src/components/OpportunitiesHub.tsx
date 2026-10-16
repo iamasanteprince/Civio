@@ -34,16 +34,16 @@ const CATEGORY_ICON: Record<OpportunityCategory, typeof Award> = {
 };
 
 const CATEGORY_STYLES: Record<OpportunityCategory, { badge: string }> = {
-  'Youth & Civic Summit': { badge: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/25' },
+  'Youth & Civic Summit': { badge: 'bg-[#0498cc]/15 text-[#0498cc] border-[#0498cc]/25' },
   'Fellowship': { badge: 'bg-amber-500/15 text-amber-300 border-amber-500/25' },
   'Tech & Business Internship': { badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25' },
-  'Scholarship & Education': { badge: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25' },
+  'Scholarship & Education': { badge: 'bg-[#0498cc]/15 text-[#0498cc] border-[#0498cc]/25' },
 };
 
 const FUNDING_STYLES: Record<FundingType, string> = {
   'Fully Funded': 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
   'Partial Funding': 'bg-amber-500/15 text-amber-300 border-amber-500/25',
-  'Virtual / Online': 'bg-blue-500/15 text-blue-300 border-blue-500/25',
+  'Virtual / Online': 'bg-[#0498cc]/15 text-[#0498cc] border-[#0498cc]/25',
   'Funding details vary': 'bg-slate-600/30 text-slate-300 border-slate-600/30',
 };
 
@@ -55,7 +55,7 @@ const FUNDING_ICON: Record<FundingType, typeof Plane> = {
 };
 
 const AUDIENCE_STYLES: Record<TargetAudience, string> = {
-  'African Youth': 'bg-indigo-500/15 text-indigo-300 border-indigo-500/25',
+  'African Youth': 'bg-[#0498cc]/15 text-[#0498cc] border-[#0498cc]/25',
   'Global / All Countries': 'bg-slate-600/30 text-slate-300 border-slate-600/30',
   'Developing Economies': 'bg-purple-500/15 text-purple-300 border-purple-500/25',
   'Eligibility varies': 'bg-slate-600/30 text-slate-300 border-slate-600/30',
@@ -211,7 +211,7 @@ function PreferenceChoices<T extends string>({
               onClick={() => onToggle(option)}
               className={`rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
                 selected
-                  ? 'border-indigo-500/50 bg-indigo-500/15 text-indigo-200'
+                  ? 'border-[#003574] bg-[#003574] text-white'
                   : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'
               }`}
             >
@@ -248,7 +248,7 @@ function OpportunityCard({
         )}
         {match && (
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-xs font-semibold text-indigo-300">
+            <span className="inline-flex items-center gap-1 rounded-full border border-[#0498cc]/30 bg-[#0498cc]/10 px-2.5 py-1 text-xs font-semibold text-[#0498cc]">
               <Sparkles className="h-3.5 w-3.5" />
               {match.percentage}% match
             </span>
@@ -311,7 +311,7 @@ function OpportunityCard({
       </div>
 
       <div className="border-t border-slate-800 p-4 mt-auto">
-        <a href={opportunity.link} target="_blank" rel="noopener noreferrer" className="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 active:scale-[0.99]">
+        <a href={opportunity.link} target="_blank" rel="noopener noreferrer" className="flex w-full items-center justify-center gap-2 rounded-md bg-[#003574] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#003574] active:scale-[0.99]">
           View & Apply <ExternalLink className="w-4 h-4" />
         </a>
       </div>
@@ -468,21 +468,21 @@ export default function OpportunitiesHub() {
           <span className="text-sm font-semibold text-emerald-300">{fullyFundedCount}</span>
           <span className="text-xs text-slate-400">Fully Funded</span>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-xl border border-blue-500/20 bg-blue-500/5 px-4 py-2">
-          <Globe className="w-4 h-4 text-blue-400" />
-          <span className="text-sm font-semibold text-blue-300">{virtualCount}</span>
+        <div className="inline-flex items-center gap-2 rounded-xl border border-[#0498cc]/20 bg-[#0498cc]/5 px-4 py-2">
+          <Globe className="w-4 h-4 text-[#0498cc]" />
+          <span className="text-sm font-semibold text-[#0498cc]">{virtualCount}</span>
           <span className="text-xs text-slate-400">Virtual / Online</span>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/5 px-4 py-2">
-          <Users className="w-4 h-4 text-indigo-400" />
-          <span className="text-sm font-semibold text-indigo-300">{africanYouthCount}</span>
+        <div className="inline-flex items-center gap-2 rounded-xl border border-[#0498cc]/20 bg-[#0498cc]/5 px-4 py-2">
+          <Users className="w-4 h-4 text-[#0498cc]" />
+          <span className="text-sm font-semibold text-[#0498cc]">{africanYouthCount}</span>
           <span className="text-xs text-slate-400">For African Youth</span>
         </div>
       </div>
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-900 px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
-          <Rss className="h-4 w-4 shrink-0 text-blue-300" />
+          <Rss className="h-4 w-4 shrink-0 text-[#0498cc]" />
           <div>
             <p className="text-xs font-semibold text-slate-200">Live scholarship &amp; education feeds</p>
             <p className="mt-0.5 text-[11px] text-slate-500">
@@ -506,7 +506,7 @@ export default function OpportunitiesHub() {
           type="button"
           onClick={() => void refreshOpportunities()}
           disabled={refreshing}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-sky-500/40 hover:text-stone-900 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-[#0498cc]/40 hover:text-stone-900 disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
           Refresh Opportunities
@@ -537,7 +537,7 @@ export default function OpportunitiesHub() {
                 type="button"
                 onClick={() => setPreferencesOpen((open) => !open)}
                 aria-expanded={preferencesOpen}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 py-1.5 text-xs font-semibold text-indigo-300 transition hover:bg-indigo-500/20"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#0498cc]/30 bg-[#0498cc]/10 px-3 py-1.5 text-xs font-semibold text-[#0498cc] transition hover:bg-[#0498cc]/20"
               >
                 <Sparkles className="h-3.5 w-3.5" />
                 {preferencesOpen ? 'Close personalization' : 'Personalize'}
@@ -549,8 +549,8 @@ export default function OpportunitiesHub() {
                 aria-pressed={recommendationsOnly}
                 className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-40 ${
                   recommendationsOnly
-                    ? 'border-indigo-500/50 bg-indigo-500/20 text-indigo-200'
-                    : 'border-slate-700 bg-slate-900/50 text-slate-300 hover:border-indigo-500/40'
+                    ? 'border-[#003574] bg-[#003574] text-white'
+                    : 'border-slate-700 bg-slate-900/50 text-slate-300 hover:border-[#0498cc]/40'
                 }`}
               >
                 For you{hasPreferences ? ` · ${recommendations.length}` : ''}
@@ -566,12 +566,12 @@ export default function OpportunitiesHub() {
               onChange={(event) => setSearchQuery(event.target.value)}
               aria-label="Search opportunities"
               placeholder="Search opportunities by title, organization, category, or benefits..."
-              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-indigo-500/50 focus:bg-slate-800"
+              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-[#0498cc]/50 focus:bg-slate-800"
             />
           </label>
 
           {preferencesOpen && (
-            <div className="rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-4">
+            <div className="rounded-xl border border-[#0498cc]/20 bg-[#0498cc]/5 p-4">
               <div className="mb-4">
                 <h2 className="text-sm font-semibold text-slate-200">What opportunities are you looking for?</h2>
                 <p className="mt-1 text-xs text-slate-500">Your preferences stay in this browser and are only used to rank opportunities.</p>
@@ -583,7 +583,7 @@ export default function OpportunitiesHub() {
                   value={preferences.interests}
                   onChange={(event) => setPreferences((current) => ({ ...current, interests: event.target.value }))}
                   placeholder="e.g. climate, coding, leadership"
-                  className="w-full rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-indigo-500/50"
+                  className="w-full rounded-lg border border-slate-700 bg-slate-900/70 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none transition focus:border-[#0498cc]/50"
                 />
                 <span className="mt-1 block text-[11px] text-slate-500">Separate topics with commas.</span>
               </label>
@@ -653,7 +653,7 @@ export default function OpportunitiesHub() {
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Category</label>
               <div className="flex flex-wrap gap-1.5">
                 {CATEGORIES.map((c) => (
-                  <button key={c} onClick={() => setSelectedCategory(c)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedCategory === c ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{c}</button>
+                  <button key={c} onClick={() => setSelectedCategory(c)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedCategory === c ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{c}</button>
                 ))}
               </div>
             </div>
@@ -662,7 +662,7 @@ export default function OpportunitiesHub() {
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Funding Type</label>
               <div className="flex flex-wrap gap-1.5">
                 {FUNDING_TYPES.map((f) => (
-                  <button key={f} onClick={() => setSelectedFunding(f)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedFunding === f ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{f}</button>
+                  <button key={f} onClick={() => setSelectedFunding(f)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedFunding === f ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{f}</button>
                 ))}
               </div>
             </div>
@@ -671,7 +671,7 @@ export default function OpportunitiesHub() {
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Target Audience</label>
               <div className="flex flex-wrap gap-1.5">
                 {AUDIENCES.map((a) => (
-                  <button key={a} onClick={() => setSelectedAudience(a)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedAudience === a ? 'border-blue-500/50 bg-blue-500/15 text-blue-300' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{a}</button>
+                  <button key={a} onClick={() => setSelectedAudience(a)} className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${selectedAudience === a ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{a}</button>
                 ))}
               </div>
             </div>
@@ -681,7 +681,7 @@ export default function OpportunitiesHub() {
             <Search className="w-3.5 h-3.5" />
             <span>
               Showing <span className="text-slate-300 font-semibold">{filtered.length}</span> of {allOpportunities.length} opportunities
-              {recommendationsOnly && <> · <span className="text-indigo-300">ranked for you</span></>}
+              {recommendationsOnly && <> · <span className="text-[#0498cc]">ranked for you</span></>}
               {searchQuery.trim() && <> for "<span className="text-slate-300 font-semibold">{searchQuery}</span>"</>}
             </span>
           </div>

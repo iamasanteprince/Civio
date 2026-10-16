@@ -230,7 +230,7 @@ function SchoolCard({ school }: { school: University }) {
 
       <div className="mt-auto flex gap-2 border-t border-slate-800 p-4">
         {websiteUrl && (
-          <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500">
+          <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#003574] px-3 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#003574]">
             Visit Website <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
           </a>
         )}
@@ -295,7 +295,7 @@ function ApiSchoolCard({ apiUni }: { apiUni: ApiUniversity }) {
 
       <div className="mt-auto flex gap-2 border-t border-slate-800 p-4">
         {portalUrl && (
-          <a href={portalUrl} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md bg-blue-600 px-3 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500">
+          <a href={portalUrl} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#003574] px-3 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#003574]">
             Visit Website <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
           </a>
         )}
@@ -435,9 +435,9 @@ export default function SchoolHub({
       <button
         type="button"
         onClick={() => setShowResumeBuilder(true)}
-        className="group mb-8 flex w-full max-w-xl items-center gap-3 rounded-xl border border-stone-200 bg-white p-4 text-left shadow-xs transition-all hover:border-stone-300"
+        className="group mb-8 flex w-full max-w-xl items-center gap-3 rounded-xl border border-l-4 border-stone-200 border-l-[#0498cc] bg-white p-4 text-left shadow-xs transition-all hover:border-stone-300 hover:border-l-[#0498cc]"
       >
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-700">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#003574]/10 text-[#003574]">
           <FileText className="h-5 w-5" />
         </span>
         <span className="min-w-0 flex-1">
@@ -445,7 +445,7 @@ export default function SchoolHub({
           <span className="block font-serif text-base font-semibold text-stone-900">Academic CV &amp; Resume Builder</span>
           <span className="block text-xs text-stone-600">Draft an application-ready CV with a live paper preview and PDF export.</span>
         </span>
-        <ArrowUpRight className="h-4 w-4 shrink-0 text-stone-400 transition-colors group-hover:text-stone-700" />
+        <ArrowUpRight className="h-4 w-4 shrink-0 text-[#0498cc] transition-colors group-hover:text-[#003574]" />
       </button>
 
       <div className="mb-8 rounded-xl border border-slate-800 bg-slate-950 p-5 sm:p-6">
@@ -460,7 +460,7 @@ export default function SchoolHub({
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="Search by university name..."
-            className="w-full rounded-lg border border-slate-800 bg-slate-900 py-3 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors focus:border-blue-500 focus:ring-1 focus:ring-blue-500/30"
+            className="w-full rounded-lg border border-slate-800 bg-slate-900 py-3 pl-10 pr-4 text-sm text-slate-100 placeholder-slate-500 outline-none transition-colors focus:border-[#0498cc] focus:ring-1 focus:ring-[#0498cc]/30"
           />
         </div>
         <p className="mt-2 text-xs text-slate-500">
@@ -498,7 +498,7 @@ export default function SchoolHub({
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Country</label>
               <div className="flex flex-wrap gap-1.5">
                 {countries.map((c) => (
-                  <button key={c} onClick={() => setSelectedCountry(c)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selectedCountry === c ? 'border-stone-900 bg-stone-900 text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{c}</button>
+                  <button key={c} onClick={() => setSelectedCountry(c)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selectedCountry === c ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{c}</button>
                 ))}
               </div>
             </div>
@@ -507,7 +507,7 @@ export default function SchoolHub({
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Degree Level</label>
               <div className="flex flex-wrap gap-1.5">
                 {degreeLevels.map((d) => (
-                  <button key={d} onClick={() => setSelectedDegree(d)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selectedDegree === d ? 'border-stone-900 bg-stone-900 text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{d}</button>
+                  <button key={d} onClick={() => setSelectedDegree(d)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selectedDegree === d ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{d}</button>
                 ))}
               </div>
             </div>
@@ -515,10 +515,10 @@ export default function SchoolHub({
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Fee & Waiver Filters</label>
               <div className="flex flex-wrap gap-1.5">
-                <button onClick={() => setFreeOnly(!freeOnly)} className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${freeOnly ? 'border-emerald-800 bg-emerald-950/40 text-emerald-200' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>
+                <button onClick={() => setFreeOnly(!freeOnly)} className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${freeOnly ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>
                   <DollarSign className="h-3.5 w-3.5" strokeWidth={1.75} />$0 / Waivers
                 </button>
-                <button onClick={() => setIeltsExemptOnly(!ieltsExemptOnly)} className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${ieltsExemptOnly ? 'border-emerald-800 bg-emerald-950/40 text-emerald-200' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>
+                <button onClick={() => setIeltsExemptOnly(!ieltsExemptOnly)} className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${ieltsExemptOnly ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>
                   <Languages className="h-3.5 w-3.5" strokeWidth={1.75} />IELTS Exempt
                 </button>
               </div>
@@ -551,7 +551,7 @@ export default function SchoolHub({
               setFreeOnly(false);
               setIeltsExemptOnly(false);
             }}
-            className="mt-5 inline-flex items-center rounded-md bg-blue-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-500"
+            className="mt-5 inline-flex items-center rounded-md bg-[#003574] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#003574]"
           >
             Clear search &amp; filters
           </button>
@@ -579,7 +579,7 @@ export default function SchoolHub({
               <button
                 type="button"
                 onClick={() => setVisibleResultCount((count) => count + 30)}
-                className="rounded-md bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                className="rounded-md bg-[#003574] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#003574]"
               >
                 Load more universities ({Math.min(30, allResults.length - visibleResultCount)} next)
               </button>

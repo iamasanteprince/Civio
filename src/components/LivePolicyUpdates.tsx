@@ -235,8 +235,8 @@ export default function LivePolicyUpdates() {
     <section aria-label="Live embassy and policy updates" aria-busy={refreshing && !lastCheckedAt} className="mb-8 w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="rounded-lg border border-blue-500/25 bg-blue-500/10 p-2.5">
-            <Rss className="h-5 w-5 text-blue-300" />
+          <div className="rounded-lg border border-[#0498cc]/25 bg-[#0498cc]/10 p-2.5">
+            <Rss className="h-5 w-5 text-[#0498cc]" />
           </div>
           <div className="min-w-0">
             <h2 className="break-words font-serif text-lg font-semibold text-stone-900">Live Embassy &amp; Policy Updates</h2>
@@ -246,17 +246,17 @@ export default function LivePolicyUpdates() {
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <span className={`inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${
             activeFeedCount > 0
-              ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-200'
+              ? 'border-[#0498cc]/30 bg-[#0498cc]/10 text-[#0498cc]'
               : 'border-amber-500/25 bg-amber-500/10 text-amber-200'
           }`}>
-            <span className={`h-2 w-2 rounded-full ${activeFeedCount > 0 ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+            <span className={`h-2 w-2 rounded-full ${activeFeedCount > 0 ? 'bg-[#0498cc]' : 'bg-amber-400'}`} />
             {activeFeedCount > 0 ? `Live Feed Active · ${activeFeedCount}/${SOURCES.length}` : 'Showing Indexed Guidance'}
           </span>
           <button
             type="button"
             onClick={() => void refresh()}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-sky-500/40 hover:text-stone-900 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-[#0498cc]/40 hover:text-stone-900 disabled:opacity-50"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh Feed
@@ -283,7 +283,7 @@ export default function LivePolicyUpdates() {
               <p className="mt-1.5 break-words text-xs leading-relaxed text-slate-400">{update.summary}</p>
               <div className="mt-3 flex items-center justify-between gap-2">
                 {update.preIndexed && <span className="text-[10px] text-slate-500">Pre-indexed reference · verify current rules</span>}
-                <a href={update.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-blue-300 transition-colors hover:text-blue-200">
+                <a href={update.url} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-[#0498cc] transition-colors hover:text-[#003574]">
                   Official bulletin <ExternalLink className="h-3 w-3" />
                 </a>
               </div>

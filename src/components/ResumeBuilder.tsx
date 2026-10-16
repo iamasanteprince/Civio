@@ -407,7 +407,7 @@ export default function ResumeBuilder({
                 aria-pressed={snippetActive}
                 className={`mt-2 inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
                   snippetActive
-                    ? 'border-stone-900 bg-stone-900 text-white'
+                    ? 'border-[#003574] bg-[#003574] text-white'
                     : 'border-stone-300 bg-white text-stone-700 hover:border-stone-900'
                 }`}
               >
@@ -511,7 +511,7 @@ export default function ResumeBuilder({
             <button
               type="button"
               onClick={() => window.print()}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-stone-900 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-stone-700"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#003574] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#002756]"
             >
               <FileDown className="h-4 w-4" /> Export PDF
             </button>

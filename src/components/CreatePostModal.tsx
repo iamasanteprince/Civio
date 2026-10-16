@@ -120,7 +120,7 @@ export default function CreatePostModal({
       >
         <div className="flex items-center justify-between p-5 border-b border-slate-800">
           <h2 className="font-serif text-lg font-semibold text-stone-900 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-indigo-400" />
+            <Plus className="w-5 h-5 text-[#0498cc]" />
             New Initiative
           </h2>
           <button
@@ -141,7 +141,7 @@ export default function CreatePostModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Community Coding Bootcamp"
-              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800"
+              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-[#0498cc]/50 focus:bg-slate-800"
             />
           </div>
 
@@ -155,7 +155,7 @@ export default function CreatePostModal({
               onChange={(e) => setOrganizer(e.target.value)}
               placeholder="Name of the person or organization leading the project"
               required
-              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800"
+              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-[#0498cc]/50 focus:bg-slate-800"
             />
           </div>
 
@@ -171,7 +171,7 @@ export default function CreatePostModal({
                   onClick={() => setCategory(cat)}
                   className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
                     category === cat
-                      ? 'border-indigo-500/50 bg-indigo-500/15 text-indigo-200'
+                      ? 'border-[#0498cc]/50 bg-[#0498cc]/15 text-[#0498cc]'
                       : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200'
                   }`}
                 >
@@ -190,7 +190,7 @@ export default function CreatePostModal({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe the mission, what the initiative does, and who it serves..."
               rows={4}
-              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800 resize-none"
+              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-[#0498cc]/50 focus:bg-slate-800 resize-none"
             />
           </div>
 
@@ -204,7 +204,7 @@ export default function CreatePostModal({
               placeholder="Describe the measurable community or educational outcome this project aims to achieve..."
               rows={2}
               required
-              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800 resize-none"
+              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-[#0498cc]/50 focus:bg-slate-800 resize-none"
             />
           </div>
 
@@ -219,7 +219,7 @@ export default function CreatePostModal({
                 max={100}
                 value={volunteersNeeded}
                 onChange={(e) => setVolunteersNeeded(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800"
+                className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 outline-none transition-all focus:border-[#0498cc]/50 focus:bg-slate-800"
               />
             </div>
             <div>
@@ -231,7 +231,7 @@ export default function CreatePostModal({
                 value={projectLink}
                 onChange={(e) => setProjectLink(e.target.value)}
                 placeholder="https://..."
-                className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800"
+                className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-[#0498cc]/50 focus:bg-slate-800"
               />
             </div>
           </div>
@@ -246,7 +246,7 @@ export default function CreatePostModal({
               onChange={(e) => setVerificationUrl(e.target.value)}
               placeholder="https://organization-site.org/about"
               required
-              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800"
+              className="w-full rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-[#0498cc]/50 focus:bg-slate-800"
             />
             <p className="mt-1.5 text-xs text-slate-500">
               This workspace has no connected verification service. Submissions remain pending and visible only in this app session until an organizer review process is configured.
@@ -266,7 +266,7 @@ export default function CreatePostModal({
           <button
             type="submit"
             disabled={!title.trim() || !organizer.trim() || !goal.trim() || !description.trim() || !verificationUrl.trim() || cooldownMs > 0}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-[#003574] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#003574] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="w-4 h-4" />
             {cooldownMs > 0 ? `Please wait ${Math.ceil(cooldownMs / 1000)}s` : 'Publish Initiative'}

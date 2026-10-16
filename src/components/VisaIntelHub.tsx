@@ -46,8 +46,8 @@ function ProofOfFundsCalculator() {
   return (
     <section className="mb-8 w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900 p-4 sm:p-6">
       <div className="mb-5 flex min-w-0 items-start gap-3">
-        <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-2.5">
-          <Calculator className="h-5 w-5 text-blue-300" />
+        <div className="rounded-lg border border-[#0498cc]/20 bg-[#0498cc]/10 p-2.5">
+          <Calculator className="h-5 w-5 text-[#0498cc]" />
         </div>
         <div className="min-w-0">
           <h2 className="font-serif text-lg font-semibold text-stone-900">Proof-of-Funds Quick Calculator</h2>
@@ -61,7 +61,7 @@ function ProofOfFundsCalculator() {
           <select
             value={destination}
             onChange={(event) => setDestination(event.target.value as VisaDestination)}
-            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-blue-500/50"
+            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-[#0498cc]/50"
           >
             <option value="us">United States (USD)</option>
             <option value="canada">Canada (CAD)</option>
@@ -78,7 +78,7 @@ function ProofOfFundsCalculator() {
             value={tuition}
             onChange={(event) => setTuition(event.target.value)}
             placeholder="Enter the amount on your offer or CAS"
-            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-blue-500/50"
+            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-[#0498cc]/50"
           />
         </label>
 
@@ -92,7 +92,7 @@ function ProofOfFundsCalculator() {
               value={usLivingCosts}
               onChange={(event) => setUsLivingCosts(event.target.value)}
               placeholder="Use your school's first-year estimate"
-              className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-blue-500/50"
+              className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-[#0498cc]/50"
             />
           </label>
         )}
@@ -103,7 +103,7 @@ function ProofOfFundsCalculator() {
             <select
               value={ukLocation}
               onChange={(event) => setUkLocation(event.target.value as 'london' | 'outside')}
-              className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-blue-500/50"
+              className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-[#0498cc]/50"
             >
               <option value="london">London — £1,529 × 9 months</option>
               <option value="outside">Outside London — £1,171 × 9 months</option>
@@ -120,7 +120,7 @@ function ProofOfFundsCalculator() {
             value={additionalCosts}
             onChange={(event) => setAdditionalCosts(event.target.value)}
             placeholder="Add any additional required amount"
-            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-blue-500/50"
+            className="mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-100 outline-none focus:border-[#0498cc]/50"
           />
         </label>
       </div>
@@ -137,7 +137,7 @@ function ProofOfFundsCalculator() {
           </div>
           <div>
             <p className="text-xs text-slate-500">Estimated total to document</p>
-            <p className="mt-1 text-xl font-bold text-blue-300">{formatMoney(total, currency)}</p>
+            <p className="mt-1 text-xl font-bold text-[#0498cc]">{formatMoney(total, currency)}</p>
           </div>
         </div>
       )}
@@ -158,7 +158,7 @@ export default function VisaIntelHub() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       <header className="mb-7 text-center">
-        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-sky-500/25 bg-sky-500/10 px-3 py-1.5 text-xs font-semibold text-sky-200">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#0498cc]/25 bg-[#0498cc]/10 px-3 py-1.5 text-xs font-semibold text-[#0498cc]">
           <BadgeCheck className="h-4 w-4" />
           Official-source summaries and live policy feed
         </div>
@@ -181,7 +181,7 @@ export default function VisaIntelHub() {
             aria-pressed={activeCountry === country.id}
             className={`rounded-full border px-3.5 py-2 text-xs font-semibold transition sm:text-sm ${
               activeCountry === country.id
-                ? 'border-sky-500/50 bg-sky-500/15 text-sky-200'
+                ? 'border-[#003574] bg-[#003574] text-white'
                 : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700 hover:text-slate-200'
             }`}
           >
@@ -196,11 +196,11 @@ export default function VisaIntelHub() {
             <article key={visa.id} className="flex flex-col overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
               <div className="p-5 sm:p-6">
                 <div className="mb-5 flex items-start gap-3">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-sky-500/20 bg-sky-500/10 text-2xl">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[#0498cc]/20 bg-[#0498cc]/10 text-2xl">
                     {visa.flag}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-sky-300">{visa.country}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-[#0498cc]">{visa.country}</p>
                     <h2 className="mt-0.5 font-serif text-xl font-semibold text-stone-900">{visa.title}</h2>
                   </div>
                   <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-400" aria-label="Official-source references included" />
@@ -226,7 +226,7 @@ export default function VisaIntelHub() {
                       href={source.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/60 px-2.5 py-1.5 text-xs font-medium text-slate-300 transition hover:border-sky-500/40 hover:text-sky-200"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-800/60 px-2.5 py-1.5 text-xs font-medium text-slate-300 transition hover:border-[#0498cc]/40 hover:text-[#003574]"
                     >
                       {source.label}<ExternalLink className="h-3 w-3" />
                     </a>
@@ -240,7 +240,7 @@ export default function VisaIntelHub() {
       </div>
 
       <div className="mt-6 flex items-start gap-2 rounded-xl border border-slate-800 bg-slate-900/50 p-4 text-xs leading-relaxed text-slate-500">
-        <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-sky-400" />
+        <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-[#0498cc]" />
         <p>Immigration rules can change without notice. The linked government pages are authoritative; Civio’s summary is informational and is not legal advice.</p>
       </div>
     </div>

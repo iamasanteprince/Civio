@@ -110,29 +110,6 @@ body,
   animation: modalIn 0.25s ease-out;
 }
 
-[class~="bg-indigo-600"],
-[class~="bg-blue-600"] {
-  background-color: #2563eb !important;
-}
-
-[class~="hover:bg-indigo-500"]:hover,
-[class~="hover:bg-blue-500"]:hover {
-  background-color: #1d4ed8 !important;
-}
-
-[class~="text-indigo-300"],
-[class~="text-indigo-400"] {
-  color: #60a5fa !important;
-}
-
-[class~="border-indigo-500/30"] {
-  border-color: rgb(59 130 246 / 30%) !important;
-}
-
-[class~="bg-indigo-500/15"] {
-  background-color: rgb(59 130 246 / 15%) !important;
-}
-
 /* Scrollbar styling for all scrollable areas */
 *::-webkit-scrollbar {
   width: 8px;

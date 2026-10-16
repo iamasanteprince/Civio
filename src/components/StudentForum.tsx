@@ -84,7 +84,7 @@ export default function StudentForum({
             onClick={() => setActiveChannel(channel.id)}
             className={`shrink-0 whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-semibold transition sm:text-sm ${
               activeChannel === channel.id
-                ? 'border-stone-900 bg-stone-900 text-white'
+                ? 'border-[#003574] bg-[#003574] text-white'
                 : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:text-stone-900'
             }`}
           >

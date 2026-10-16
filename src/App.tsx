@@ -4,6 +4,7 @@ import {
   GraduationCap,
   Compass,
   Menu,
+  MessageSquare,
   Plus,
   LogIn,
   Briefcase,
@@ -392,6 +393,15 @@ export default function App() {
                   <span className="hidden sm:inline">Members: {adminAnalyticsLoading ? 'Ã¢â‚¬Â¦' : adminAnalytics?.totalMembers.toLocaleString() ?? 'Ã¢â‚¬â€'}</span>
                 </button>
               )}
+              <a
+                href="mailto:Civiohub.app@gmail.com?subject=CivioHub%20Feedback%20%26%20Inquiry&body=Hi%20CivioHub%20team,%0A%0AI%20wanted%20to%20share%20some%20feedback%20on%20the%20app:%0A%0A"
+                aria-label="Send feedback or contact the founder"
+                title="Feedback / Contact Founder"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-2 py-2 text-xs font-semibold text-[#003574] transition hover:border-[#0498cc] sm:px-3"
+              >
+                <MessageSquare className="h-4 w-4 shrink-0 text-[#0498cc]" />
+                <span className="hidden sm:inline">Feedback</span>
+              </a>
               {currentUser ? (
                 <UserMenu
                   user={currentUser}
@@ -410,7 +420,7 @@ export default function App() {
 
               <button
                 onClick={() => setCreatePostOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 px-2 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-stone-700 sm:px-3"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-[#003574] px-2 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#002756] sm:px-3"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Initiative</span>
@@ -435,13 +445,13 @@ export default function App() {
                   key={id}
                   onClick={() => setActiveView(id)}
                   className={`group relative inline-flex items-center gap-2 rounded-t-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                    active ? 'font-semibold text-stone-900' : 'text-stone-400 hover:text-stone-700'
+                    active ? 'font-semibold text-[#003574]' : 'text-stone-400 hover:text-stone-600'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{label}</span>
                   {active && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-stone-900 rounded-t-full" />
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#003574] rounded-t-full" />
                   )}
                 </button>
               );
@@ -491,7 +501,7 @@ export default function App() {
                 key={id}
                 onClick={() => setActiveView(id)}
                 className={`flex min-w-0 w-full flex-col items-center gap-1 rounded-xl px-1 py-1.5 transition-all ${
-                  active ? 'font-semibold text-stone-900' : 'text-stone-400'
+                  active ? 'font-semibold text-[#003574]' : 'text-stone-400 hover:text-stone-600'
                 }`}
               >
                 <Icon className={`w-5 h-5 ${active ? 'scale-110' : ''} transition-transform`} />
@@ -561,6 +571,15 @@ export default function App() {
             </div>
             <p className="text-xs text-slate-600">
               Community-driven. Transparent. Empowering the next generation.
+            </p>
+            <p className="mt-2 text-xs text-slate-600">
+              Have feedback or ideas? Send an email to{' '}
+              <a
+                href="mailto:Civiohub.app@gmail.com?subject=CivioHub%20Feedback%20%26%20Inquiry&body=Hi%20CivioHub%20team,%0A%0AI%20wanted%20to%20share%20some%20feedback%20on%20the%20app:%0A%0A"
+                className="font-medium text-[#003574] underline underline-offset-2 hover:text-[#0498cc]"
+              >
+                Civiohub.app@gmail.com
+              </a>
             </p>
           </div>
           <nav aria-label="Legal information" className="mt-4 flex justify-center gap-5 border-t border-slate-800 pt-4">

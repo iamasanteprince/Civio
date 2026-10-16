@@ -268,7 +268,7 @@ export default function SignInModal({
                     }}
                     aria-pressed={mode === option}
                     className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                      mode === option ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'
+                      mode === option ? 'bg-[#003574] text-white' : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
                     {option === 'sign-in' ? 'Sign In' : 'Create Account'}
@@ -291,7 +291,7 @@ export default function SignInModal({
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="you@example.com"
-                      className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500 focus:border-indigo-500/50 focus:bg-slate-800"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500 focus:border-[#0498cc]/50 focus:bg-slate-800"
                     />
                   </div>
                 </div>
@@ -300,7 +300,7 @@ export default function SignInModal({
                 <button
                   type="submit"
                   disabled={loading || !email.trim()}
-                  className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-500 disabled:opacity-50"
+                  className="w-full rounded-xl bg-[#003574] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#003574] disabled:opacity-50"
                 >
                   {loading ? 'Sending…' : 'Send Reset Link'}
                 </button>
@@ -330,7 +330,7 @@ export default function SignInModal({
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="you@example.com"
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500 focus:border-indigo-500/50 focus:bg-slate-800"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500 focus:border-[#0498cc]/50 focus:bg-slate-800"
                   />
                 </div>
               </div>
@@ -348,7 +348,7 @@ export default function SignInModal({
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="At least 8 characters"
-                    className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500 focus:border-indigo-500/50 focus:bg-slate-800"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none transition-all placeholder:text-slate-500 focus:border-[#0498cc]/50 focus:bg-slate-800"
                   />
                 </div>
               </div>
@@ -361,7 +361,7 @@ export default function SignInModal({
                       setError('');
                       setNotice('');
                     }}
-                    className="text-xs font-medium text-indigo-300 underline decoration-indigo-500/40 underline-offset-2 hover:text-indigo-200"
+                    className="text-xs font-medium text-[#0498cc] underline decoration-indigo-500/40 underline-offset-2 hover:text-[#003574]"
                   >
                     Forgot password?
                   </button>
@@ -376,7 +376,7 @@ export default function SignInModal({
                       type="checkbox"
                       checked={ageConsent}
                       onChange={(event) => setAgeConsent(event.target.checked)}
-                      className="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500"
+                      className="mt-0.5 h-4 w-4 rounded border-slate-600 bg-slate-800 text-[#0498cc] focus:ring-indigo-500"
                     />
                     <label htmlFor="age-consent" className="text-xs leading-relaxed text-slate-300">
                       {AGE_CONSENT_TEXT}
@@ -385,7 +385,7 @@ export default function SignInModal({
                   <button
                     type="button"
                     onClick={() => setPrivacyOpen(true)}
-                    className="ml-6 mt-1 inline-flex items-center gap-1 text-xs text-indigo-300 underline decoration-indigo-500/40 underline-offset-2 hover:text-indigo-200"
+                    className="ml-6 mt-1 inline-flex items-center gap-1 text-xs text-[#0498cc] underline decoration-indigo-500/40 underline-offset-2 hover:text-[#003574]"
                   >
                     Privacy Policy
                   </button>
@@ -410,7 +410,7 @@ export default function SignInModal({
                   password.length < 8 ||
                   (mode === 'sign-up' && !ageConsent)
                 }
-                className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 disabled:opacity-50"
+                className="w-full rounded-md bg-[#003574] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#003574] disabled:opacity-50"
               >
                 {loading ? 'Connecting...' : waitSeconds > 0 ? `Please wait ${waitSeconds}s` : mode === 'sign-in' ? 'Sign In' : 'Create Account'}
               </button>
@@ -464,7 +464,7 @@ export function UserMenu({
     <>
       <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
         <div className="flex min-w-0 items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/80 px-2 py-1.5 sm:px-3">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#003574] text-xs font-bold text-white">
             {user.displayName.charAt(0).toUpperCase()}
           </div>
           <span className="max-w-[120px] truncate text-xs font-medium text-slate-200 sm:max-w-none sm:text-sm">{user.email}</span>
@@ -590,7 +590,7 @@ function AccountSettingsModal({
 
         <section className="mb-5 rounded-xl border border-slate-700 bg-slate-800/30 p-4">
           <h3 className="flex items-center gap-2 font-bold text-slate-200">
-            <KeyRound className="h-4 w-4 text-indigo-300" /> Security
+            <KeyRound className="h-4 w-4 text-[#0498cc]" /> Security
           </h3>
           <p className="mt-1 text-sm text-slate-400">
             Update the password for {user.email}.
@@ -607,7 +607,7 @@ function AccountSettingsModal({
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
                 placeholder="At least 8 characters"
-                className="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-indigo-500/50"
+                className="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-[#0498cc]/50"
               />
             </div>
             <div>
@@ -621,7 +621,7 @@ function AccountSettingsModal({
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
                 placeholder="Re-enter new password"
-                className="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-indigo-500/50"
+                className="w-full rounded-xl border border-slate-700 bg-slate-900/70 px-3 py-2.5 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-[#0498cc]/50"
               />
             </div>
             {passwordError && <p role="alert" className="text-sm text-rose-300">{passwordError}</p>}
@@ -629,7 +629,7 @@ function AccountSettingsModal({
             <button
               type="submit"
               disabled={passwordLoading || newPassword.length < 8 || confirmPassword.length < 8}
-              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-lg bg-[#003574] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#003574] disabled:opacity-50"
             >
               {passwordLoading ? 'Updating…' : 'Change Password'}
             </button>
@@ -773,7 +773,7 @@ export function SetNewPasswordModal({
             <button
               type="button"
               onClick={onClose}
-              className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500"
+              className="w-full rounded-xl bg-[#003574] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#003574]"
             >
               Continue to Civiohub
             </button>
@@ -792,7 +792,7 @@ export function SetNewPasswordModal({
                   required
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-indigo-500/50"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-[#0498cc]/50"
                 />
               </div>
             </div>
@@ -808,7 +808,7 @@ export function SetNewPasswordModal({
                   required
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
-                  className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-indigo-500/50"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-800/60 py-2.5 pl-10 pr-4 text-sm text-slate-100 outline-none placeholder:text-slate-500 focus:border-[#0498cc]/50"
                 />
               </div>
             </div>
@@ -816,7 +816,7 @@ export function SetNewPasswordModal({
             <button
               type="submit"
               disabled={loading || password.length < 8 || confirmPassword.length < 8}
-              className="w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-500 disabled:opacity-50"
+              className="w-full rounded-xl bg-[#003574] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#003574] disabled:opacity-50"
             >
               {loading ? 'Updating…' : 'Update Password'}
             </button>

@@ -75,7 +75,7 @@ export default function DiscussionThread({
   return (
     <section className="border-t border-slate-800 p-4" aria-label={`${title} discussion`}>
       <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-200">
-        <MessageSquare className="h-4 w-4 text-indigo-400" />
+        <MessageSquare className="h-4 w-4 text-[#0498cc]" />
         Discussion <span className="text-xs font-normal text-slate-500">({comments.length})</span>
       </h3>
 
@@ -88,9 +88,9 @@ export default function DiscussionThread({
           <article key={comment.id} className="rounded-lg border border-slate-800 bg-slate-900/60 p-3">
             <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
               <div className="min-w-0">
-                <span className="text-xs font-semibold text-indigo-200">{comment.author}</span>
+                <span className="text-xs font-semibold text-[#0498cc]">{comment.author}</span>
                 {comment.verified && (
-                  <span className="ml-1.5 inline-flex items-center gap-0.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-300">
+                  <span className="ml-1.5 inline-flex items-center gap-0.5 rounded-full border border-[#0498cc]/30 bg-[#0498cc]/10 px-1.5 py-0.5 text-[10px] font-medium text-[#0498cc]">
                     <ShieldCheck className="h-3 w-3" /> Verified
                   </span>
                 )}
@@ -107,7 +107,7 @@ export default function DiscussionThread({
                   onChange={(event) => setEditContent(event.target.value)}
                   maxLength={2000}
                   rows={3}
-                  className="w-full resize-y rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-indigo-500/50"
+                  className="w-full resize-y rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 outline-none focus:border-[#0498cc]/50"
                 />
                 <div className="mt-2 flex gap-2">
                   <button
@@ -119,7 +119,7 @@ export default function DiscussionThread({
                       onEditComment(threadId, comment.id, sanitized);
                       setEditingId(null);
                     }}
-                    className="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 disabled:opacity-40"
+                    className="inline-flex items-center gap-1 rounded-lg bg-[#003574] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#003574] disabled:opacity-40"
                   >
                     <Check className="h-3.5 w-3.5" /> Save
                   </button>
@@ -182,7 +182,7 @@ export default function DiscussionThread({
           onClick={() => setPostingAs('guest')}
           className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
             postingAs === 'guest'
-              ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-200'
+              ? 'border-[#0498cc]/40 bg-[#0498cc]/10 text-[#0498cc]'
               : 'border-slate-800 text-slate-400 hover:text-slate-200'
           }`}
         >
@@ -198,7 +198,7 @@ export default function DiscussionThread({
           }}
           className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
             postingAs === 'account'
-              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-200'
+              ? 'border-[#0498cc]/40 bg-[#0498cc]/10 text-[#003574]'
               : 'border-slate-800 text-slate-400 hover:text-slate-200'
           }`}
         >
@@ -216,13 +216,13 @@ export default function DiscussionThread({
           rows={2}
           maxLength={2000}
           placeholder={`Post as ${postingAs === 'guest' ? 'Guest' : currentUser?.displayName ?? 'Signed-in account'}: ask or share an experience...`}
-          className="min-h-10 flex-1 resize-y rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-indigo-500/50"
+          className="min-h-10 flex-1 resize-y rounded-lg border border-slate-700 bg-slate-800/60 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 outline-none focus:border-[#0498cc]/50"
         />
         <button
           type="submit"
           disabled={!content.trim() || cooldownMs > 0 || (postingAs === 'account' && !currentUser)}
           aria-label="Post discussion message"
-          className="inline-flex h-10 items-center justify-center rounded-lg bg-indigo-600 px-3 text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
+          className="inline-flex h-10 items-center justify-center rounded-lg bg-[#003574] px-3 text-white transition hover:bg-[#003574] disabled:cursor-not-allowed disabled:opacity-40"
         >
           <Send className="h-4 w-4" />
         </button>
