@@ -35,22 +35,17 @@ const TABS: { id: View; label: string; icon: typeof ShieldCheck; description: st
   { id: 'forum', label: 'Forum', icon: MessageSquare, description: 'Applicant discussions and questions', mobileLabel: 'Forum' },
 ];
 
-function Logo() {
+function Logo({ onClick }: { onClick: () => void }) {
   return (
-    <div className="flex items-center gap-3">
+    <button type="button" onClick={onClick} aria-label="Go to Hub" className="flex items-center">
       <img
         src="/civio-logo.png"
-        alt="Civiohub Logo"
-        className="w-10 h-10 rounded-lg object-cover border border-stone-200"
+        alt="CivioHub"
+        className="h-8 w-auto object-contain cursor-pointer"
       />
-      <div className="hidden sm:block">
-        <h1 className="text-lg         font-serif font-bold text-stone-900 leading-none tracking-tight">Civiohub</h1>
-                <p className="text-xs text-stone-600 font-medium mt-0.5">Civic Engagement, Admissions &amp; Global Opportunities</p>
-      </div>
-    </div>
+    </button>
   );
 }
-
 export default function App() {
   const [activeView, setActiveView] = useState<View>('hub');
   const [signInOpen, setSignInOpen] = useState(false);
@@ -248,7 +243,7 @@ export default function App() {
       sessionStorage.clear();
       resetGuestSessionId();
     } catch {
-      setDiscussionError('Account deleted, but browser storage could not be fully cleared. Clear this siteâ€™s storage in browser settings.');
+      setDiscussionError('Account deleted, but browser storage could not be fully cleared. Clear this siteÃ¢â‚¬â„¢s storage in browser settings.');
     }
     setCurrentUser(null);
     setInitiatives([]);
@@ -377,7 +372,7 @@ export default function App() {
       <header className="sticky top-0 z-40 w-full max-w-full border-b border-stone-200 bg-[#faf9f6]/90 text-stone-900 backdrop-blur-md">
         <div className="w-full max-w-full px-3 sm:px-6">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 py-3">
-            <Logo />
+            <Logo onClick={() => setActiveView('hub')} />
 
             <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
               {isAdmin && (
@@ -392,9 +387,9 @@ export default function App() {
                 >
                   <ShieldCheck className="h-4 w-4 shrink-0" />
                   <span className="sm:hidden">Admin</span>
-                  <span className="hidden sm:inline">Admin Â·</span>
+                  <span className="hidden sm:inline">Admin Ã‚Â·</span>
                   <Users className="hidden h-3.5 w-3.5 shrink-0 sm:block" />
-                  <span className="hidden sm:inline">Members: {adminAnalyticsLoading ? 'â€¦' : adminAnalytics?.totalMembers.toLocaleString() ?? 'â€”'}</span>
+                  <span className="hidden sm:inline">Members: {adminAnalyticsLoading ? 'Ã¢â‚¬Â¦' : adminAnalytics?.totalMembers.toLocaleString() ?? 'Ã¢â‚¬â€'}</span>
                 </button>
               )}
               {currentUser ? (
@@ -562,7 +557,7 @@ export default function App() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <img src="/civio-logo.png" alt="Civiohub Logo" className="h-5 w-5 rounded object-cover" />
-              <span>Civiohub Â· Civic Engagement, Admissions &amp; Global Opportunities</span>
+              <span>Civiohub Ã‚Â· Civic Engagement, Admissions &amp; Global Opportunities</span>
             </div>
             <p className="text-xs text-slate-600">
               Community-driven. Transparent. Empowering the next generation.
