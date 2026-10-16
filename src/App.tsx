@@ -18,6 +18,7 @@ import VisaIntelHub from '@/components/VisaIntelHub';
 import StudentForum from '@/components/StudentForum';
 import CreatePostModal from '@/components/CreatePostModal';
 import SignInModal, { SetNewPasswordModal, UserMenu } from '@/components/SignInModal';
+import NotificationCenter from '@/components/NotificationCenter';
 import AdminActivityDrawer from '@/components/AdminActivityDrawer';
 import { DISCUSSION_STORAGE_KEY, parseDiscussionStore } from '@/data/discussions';
 import { supabase } from '@/lib/supabase';
@@ -392,6 +393,7 @@ export default function App() {
                   <span className="hidden sm:inline">Members: {adminAnalyticsLoading ? 'Ã¢â‚¬Â¦' : adminAnalytics?.totalMembers.toLocaleString() ?? 'Ã¢â‚¬â€'}</span>
                 </button>
               )}
+              <NotificationCenter onNavigate={setActiveView} />
               <a
                 href="mailto:Civiohub.app@gmail.com?subject=CivioHub%20Feedback%20%26%20Inquiry&body=Hi%20CivioHub%20team,%0A%0AI%20wanted%20to%20share%20some%20feedback%20on%20the%20app:%0A%0A"
                 aria-label="Send feedback or contact the founder"
