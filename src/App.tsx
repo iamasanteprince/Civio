@@ -4,7 +4,6 @@ import {
   GraduationCap,
   Compass,
   Menu,
-  MessageSquare,
   Plus,
   LogIn,
   Briefcase,
