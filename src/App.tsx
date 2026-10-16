@@ -244,7 +244,7 @@ export default function App() {
       sessionStorage.clear();
       resetGuestSessionId();
     } catch {
-      setDiscussionError('Account deleted, but browser storage could not be fully cleared. Clear this siteÃ¢â‚¬â„¢s storage in browser settings.');
+      setDiscussionError("Account deleted, but browser storage could not be fully cleared. Clear this site's storage in browser settings.");
     }
     setCurrentUser(null);
     setInitiatives([]);
@@ -388,9 +388,9 @@ export default function App() {
                 >
                   <ShieldCheck className="h-4 w-4 shrink-0" />
                   <span className="sm:hidden">Admin</span>
-                  <span className="hidden sm:inline">Admin Ã‚Â·</span>
+                  <span className="hidden sm:inline">Admin ·</span>
                   <Users className="hidden h-3.5 w-3.5 shrink-0 sm:block" />
-                  <span className="hidden sm:inline">Members: {adminAnalyticsLoading ? 'Ã¢â‚¬Â¦' : adminAnalytics?.totalMembers.toLocaleString() ?? 'Ã¢â‚¬â€'}</span>
+                  <span className="hidden sm:inline">Members: {adminAnalyticsLoading ? '...' : adminAnalytics?.totalMembers.toLocaleString() ?? '-'}</span>
                 </button>
               )}
               <NotificationCenter onNavigate={setActiveView} />
@@ -568,7 +568,7 @@ export default function App() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <img src="/civio-logo.png" alt="Civiohub Logo" className="h-5 w-5 rounded object-cover" />
-              <span>Civiohub Ã‚Â· Civic Engagement, Admissions &amp; Global Opportunities</span>
+              <span>Civiohub · Civic Engagement, Admissions &amp; Global Opportunities</span>
             </div>
             <p className="text-xs text-slate-600">
               Community-driven. Transparent. Empowering the next generation.
