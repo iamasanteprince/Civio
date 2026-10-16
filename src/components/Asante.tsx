@@ -31,7 +31,7 @@ import type {
   University,
 } from '@/types';
 import { getAsanteAnswer, getAsanteLocalAnswer } from '@/data/asanteEngine';
-import { getAdmissionsSearchUrl, getUniversityWebsite } from '@/data/universityDirectory';
+import { getAdmissionsSearchUrl, getSafeExternalUrl, getUniversityWebsite } from '@/data/universityDirectory';
 import { getGuestSessionId, sanitizePlainText } from '@/utils/inputSecurity';
 
 const QUICK_PROMPTS = [
@@ -214,7 +214,7 @@ function UniversityResultCard({ university }: { university: University }) {
       </div>
 
       <a
-        href={university.portalUrl}
+        href={getSafeExternalUrl(university.portalUrl, university.name)}
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-1.5 w-full border-t border-slate-700/60 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-[#0498cc] transition-all hover:bg-slate-700/50 hover:text-[#003574]"
@@ -403,7 +403,7 @@ function OpportunityResultCard({ opportunity }: { opportunity: Opportunity }) {
         <p className="mt-2 text-xs leading-relaxed text-slate-400">{opportunity.benefits}</p>
       </div>
       <a
-        href={opportunity.link}
+        href={getSafeExternalUrl(opportunity.link, opportunity.organization || opportunity.title)}
         target="_blank"
         rel="noopener noreferrer"
         className="flex w-full items-center justify-center gap-1.5 border-t border-slate-700/60 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-amber-300 hover:bg-slate-700/50"

@@ -24,6 +24,7 @@ import type {
   TargetAudience,
 } from '@/types';
 import { opportunities } from '@/data/opportunities';
+import { getSafeExternalUrl } from '@/data/universityDirectory';
 import SkeletonCards from '@/components/SkeletonCards';
 
 const CATEGORY_ICON: Record<OpportunityCategory, typeof Award> = {
@@ -311,7 +312,7 @@ function OpportunityCard({
       </div>
 
       <div className="border-t border-slate-800 p-4 mt-auto">
-        <a href={opportunity.link} target="_blank" rel="noopener noreferrer" className="flex w-full items-center justify-center gap-2 rounded-md bg-[#003574] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#003574] active:scale-[0.99]">
+        <a href={getSafeExternalUrl(opportunity.link, opportunity.organization || opportunity.title)} target="_blank" rel="noopener noreferrer" className="flex w-full items-center justify-center gap-2 rounded-md bg-[#003574] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#003574] active:scale-[0.99]">
           View & Apply <ExternalLink className="w-4 h-4" />
         </a>
       </div>

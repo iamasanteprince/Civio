@@ -55,8 +55,20 @@ export function getUniversityWebsite(university: ApiUniversity): string {
   return '';
 }
 
-export function getAdmissionsSearchUrl(universityName: string): string {
-  const url = new URL('https://www.google.com/search');
-  url.searchParams.set('q', `${universityName} admissions international`);
-  return url.href;
+export function getAdmissionsSearchUrl(institutionName: string): string {
+  return `https://www.google.com/search?q=${encodeURIComponent(`${institutionName} international admissions official portal`)}`;
+}
+
+// Returns the link only when it is a well-formed https URL; otherwise routes to a search fallback.
+export function getSafeExternalUrl(candidate: string | undefined | null, institutionName: string): string {
+  const value = candidate?.trim();
+  if (value) {
+    try {
+      const url = new URL(value);
+      if (url.protocol === 'https:' && !url.username && !url.password && url.hostname.includes('.')) return url.href;
+    } catch {
+      // Malformed link: use the search fallback below.
+    }
+  }
+  return getAdmissionsSearchUrl(institutionName);
 }

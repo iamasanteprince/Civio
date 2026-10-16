@@ -34,7 +34,7 @@ export const opportunities: Opportunity[] = [
       'A virtual platform bringing young people into the heart of the United Nations to share ideas and solutions for advancing the Sustainable Development Goals. Youth delegates engage directly with member states and ECOSOC leadership on policy recommendations.',
     keywords: ['policy', 'governance', 'diplomacy', 'economics', 'environment', 'human rights'],
     deadline: 'February 2026',
-    link: 'https://www.un.org/ecosoc/en/youth',
+    link: 'https://www.un.org/',
     eligibility:
       'Youth representatives aged 18–32 affiliated with youth-led organizations, civil society, or UN member state delegations. Open to participants worldwide.',
     benefits:
@@ -52,7 +52,7 @@ export const opportunities: Opportunity[] = [
       'One of the largest international youth gatherings, uniting thousands of young leaders, entrepreneurs, and creatives from over 180 countries for cross-cultural dialogue and collaboration. The festival features themed forums on technology, culture, volunteering, and global cooperation.',
     keywords: ['diplomacy', 'culture', 'leadership', 'entrepreneurship', 'technology', 'community'],
     deadline: 'January 2026',
-    link: 'https://fest2024.ru/en',
+    link: 'https://fest2024.ru/',
     eligibility:
       'Young people aged 18–35 from developing economies and emerging markets, including students, professionals, entrepreneurs, and civil society leaders.',
     benefits:
@@ -142,7 +142,7 @@ export const opportunities: Opportunity[] = [
       'A virtual convening that amplifies youth voices in the global climate emergency, connecting young activists, researchers, and policymakers to drive climate action and accountability. Sessions feed directly into COP negotiations and the UN Secretary-General\'s Climate Action agenda.',
     keywords: ['climate', 'environment', 'policy', 'research', 'activism', 'sustainability'],
     deadline: 'August 2026',
-    link: 'https://www.un.org/en/climatechange/youth',
+    link: 'https://www.un.org/',
     eligibility:
       'Young people aged 16–30 worldwide engaged in climate action, environmental research, or sustainability advocacy. No prior UN affiliation required.',
     benefits:
@@ -290,7 +290,7 @@ export const opportunities: Opportunity[] = [
       'DAAD\'s Development-Related Postgraduate Courses (EPOS) program funds master\'s and doctoral degrees in Germany for professionals from developing countries whose studies contribute to sustainable development. The program targets fields critical to a country\'s development such as engineering, economics, and environmental sciences.',
     keywords: ['research', 'environment', 'economics', 'technology', 'policy', 'sustainability'],
     deadline: 'Varies by Program (August–October 2026)',
-    link: 'https://www.daad.de/en/',
+    link: 'https://www.daad.de/',
     eligibility:
       'Graduates from developing countries with at least two years of professional experience and a bachelor\'s degree in a field related to the chosen postgraduate course. Applicants must demonstrate a development-related motivation.',
     benefits:
@@ -362,7 +362,7 @@ export const opportunities: Opportunity[] = [
       'A transformative initiative developing the next generation of African leaders by providing comprehensive support for secondary and university education. Scholars receive holistic support including tuition, mentoring, and transition-to-work assistance across partner institutions globally.',
     keywords: ['leadership', 'research', 'entrepreneurship', 'business', 'community', 'governance'],
     deadline: 'Varies by Partner University',
-    link: 'https://www.mastercardfdn.org/all-people/scholars/',
+    link: 'https://www.mastercardfdn.org/',
     eligibility:
       'Academically talented young Africans from economically disadvantaged backgrounds who demonstrate leadership potential and a commitment to giving back to their communities.',
     benefits:
@@ -380,7 +380,7 @@ export const opportunities: Opportunity[] = [
       'A six-month leadership development program for emerging African leaders across government, civil society, and business, combining virtual and in-person convenings. Leaders design and implement a values-driven project in their community with Foundation support.',
     keywords: ['leadership', 'governance', 'policy', 'community', 'civic engagement', 'entrepreneurship'],
     deadline: 'March 2026',
-    link: 'https://www.obama.org/programs/leaders-africa/',
+    link: 'https://www.obama.org/',
     eligibility:
       'African citizens aged 24–45 with demonstrated leadership in their field and a commitment to ethical, inclusive leadership. Applicants must be working in Africa or on Africa-related issues.',
     benefits:
@@ -398,7 +398,7 @@ export const opportunities: Opportunity[] = [
       'A one-year leadership program for social changemakers building solutions to poverty across developing economies, grounded in moral leadership and adaptive problem-solving. Fellows join five in-person seminars and a peer network of 1,000+ social innovators.',
     keywords: ['leadership', 'entrepreneurship', 'business', 'community', 'economics', 'social impact'],
     deadline: 'Varies by Region',
-    link: 'https://acumen.org/fellowship/',
+    link: 'https://acumen.org/',
     eligibility:
       'Social entrepreneurs and leaders from eligible regions who are driving change within their communities. Applicants must be working on a project or organization addressing poverty.',
     benefits:
@@ -506,7 +506,7 @@ export const opportunities: Opportunity[] = [
       'A nine-month residency at Columbia University for rising leaders from around the world who are working to solve critical challenges in their communities. Scholars combine a rigorous academic curriculum with hands-on leadership development and action-oriented projects.',
     keywords: ['leadership', 'policy', 'governance', 'community', 'research', 'social impact'],
     deadline: 'May 2026',
-    link: 'https://www.obama.org/programs/scholars/',
+    link: 'https://www.obama.org/',
     eligibility:
       'Emerging leaders from around the world with 3–10 years of professional experience and a demonstrated commitment to public service. Applicants must be fluent in English and based in or focused on a developing economy.',
     benefits:
@@ -618,7 +618,7 @@ export const opportunities: Opportunity[] = [
       'A highly competitive internship offering graduate students hands-on experience in development research, policy analysis, and project operations at the World Bank Group. Interns contribute to real development projects affecting billions of people in client countries.',
     keywords: ['economics', 'policy', 'research', 'business', 'governance', 'development'],
     deadline: 'October 2026',
-    link: 'https://www.worldbank.org/en/about/careers/programs-and-internships',
+    link: 'https://www.worldbank.org/',
     eligibility:
       'Graduate students (master\'s or PhD) from World Bank member countries enrolled in a relevant field such as economics, finance, public policy, or international development. Fluency in English is required.',
     benefits:
@@ -636,7 +636,7 @@ export const opportunities: Opportunity[] = [
       'A 12-week internship for first and second-year undergraduate students from historically underrepresented groups in computer science, providing hands-on software engineering experience at Google. Interns work on real Google products with full-time engineers as mentors.',
     keywords: ['coding', 'technology', 'software', 'innovation', 'research', 'business'],
     deadline: 'November 2026',
-    link: 'https://buildyourfuture.withgoogle.com/programs/step/',
+    link: 'https://buildyourfuture.withgoogle.com/',
     eligibility:
       'First or second-year undergraduate students majoring or intending to major in computer science or a related field. The program prioritizes students from groups historically underrepresented in tech.',
     benefits:
@@ -654,7 +654,7 @@ export const opportunities: Opportunity[] = [
       'A 12-week summer internship for first-year undergraduate students offering hands-on project experience in software engineering and program management at Microsoft. Interns work in pod teams to build a product feature end-to-end, from design to deployment.',
     keywords: ['coding', 'technology', 'software', 'business', 'innovation', 'product'],
     deadline: 'January 2026',
-    link: 'https://careers.microsoft.com/v2/global/en/students.html',
+    link: 'https://careers.microsoft.com/',
     eligibility:
       'First-year undergraduate students enrolled in a bachelor\'s program in computer science or a related field. Applicants must be passionate about technology and available for a 12-week summer commitment.',
     benefits:
@@ -672,7 +672,7 @@ export const opportunities: Opportunity[] = [
       'An immersive internship program for students from historically underrepresented backgrounds, offering hands-on experience building products used by billions of people at Meta. Interns work on teams like Instagram, Facebook, and Reality Labs with dedicated mentorship.',
     keywords: ['coding', 'technology', 'software', 'innovation', 'business', 'product'],
     deadline: 'February 2026',
-    link: 'https://www.metacareers.com/university',
+    link: 'https://www.metacareers.com/',
     eligibility:
       'Undergraduate students from groups underrepresented in tech, enrolled in a computer science or related program. Applicants must be authorized to work in the country of their assigned office.',
     benefits:
@@ -708,7 +708,7 @@ export const opportunities: Opportunity[] = [
       'A remote-first internship where students contribute to the world\'s largest software development platform, working on products used by over 100 million developers. Interns ship code to production and pair with senior engineers across engineering and design teams.',
     keywords: ['coding', 'technology', 'software', 'open source', 'innovation', 'product'],
     deadline: 'December 2026',
-    link: 'https://github.com/about/careers',
+    link: 'https://github.com/',
     eligibility:
       'Undergraduate or graduate students enrolled in a computer science or related program with a passion for open source and developer tools. Remote eligibility varies by role and location.',
     benefits:
@@ -726,7 +726,7 @@ export const opportunities: Opportunity[] = [
       'A practical internship giving students and recent graduates hands-on experience in UNESCO\'s work in education, science, culture, and communication. Interns contribute to projects ranging from heritage preservation to digital literacy and freedom of expression.',
     keywords: ['policy', 'research', 'culture', 'education', 'governance', 'community'],
     deadline: 'Rolling',
-    link: 'https://www.unesco.org/en/careers/internships',
+    link: 'https://www.unesco.org/',
     eligibility:
       'Students aged 20+ enrolled in a graduate or postgraduate program, or recent graduates within 12 months of graduation. Applicants must be fluent in English or French and from a UNESCO member state.',
     benefits:
@@ -744,7 +744,7 @@ export const opportunities: Opportunity[] = [
       'An internship enabling young people from developing economies to contribute to UNICEF\'s mission of protecting children\'s rights worldwide. Interns support programs in health, education, nutrition, and child protection across country and regional offices.',
     keywords: ['community', 'policy', 'research', 'governance', 'health', 'education'],
     deadline: 'Rolling',
-    link: 'https://www.unicef.org/careers/internship',
+    link: 'https://www.unicef.org/',
     eligibility:
       'Students and recent graduates aged 18–30 from developing economies enrolled in or within two years of a graduate program. Applicants must be fluent in English and have relevant academic background.',
     benefits:
@@ -762,7 +762,7 @@ export const opportunities: Opportunity[] = [
       'A competitive internship offering African students the opportunity to gain hands-on experience in the AfDB\'s operations across infrastructure, agriculture, governance, and private sector development. Interns work alongside development experts driving Africa\'s transformation.',
     keywords: ['economics', 'business', 'policy', 'governance', 'research', 'development'],
     deadline: 'July 2026',
-    link: 'https://www.afdb.org/en/work-with-us/jobs',
+    link: 'https://www.afdb.org/',
     eligibility:
       'African students aged 18–30 currently enrolled in a master\'s program or equivalent in economics, engineering, finance, social sciences, or a related field. Applicants must be nationals of an AfDB member state.',
     benefits:
@@ -798,7 +798,7 @@ export const opportunities: Opportunity[] = [
       'An engineering internship for students from underrepresented backgrounds, offering the chance to build data integration and analytics platforms that solve critical problems for governments and large enterprises. Interns own meaningful engineering projects with production impact.',
     keywords: ['coding', 'technology', 'data science', 'software', 'business', 'innovation'],
     deadline: 'November 2026',
-    link: 'https://www.palantir.com/careers/',
+    link: 'https://www.palantir.com/',
     eligibility:
       'Undergraduate or graduate students from groups historically underrepresented in tech, enrolled in computer science or a related field. Applicants must have strong engineering fundamentals.',
     benefits:
@@ -816,7 +816,7 @@ export const opportunities: Opportunity[] = [
       'A 12-week internship giving students the opportunity to work on products used by billions, from iOS to machine learning, alongside world-class engineers at Apple. Interns own a project within a team and present their work to Apple leadership at the end of the program.',
     keywords: ['coding', 'technology', 'software', 'innovation', 'product', 'research'],
     deadline: 'January 2026',
-    link: 'https://jobs.apple.com/en-us/search?team=internships',
+    link: 'https://jobs.apple.com/',
     eligibility:
       'Undergraduate or graduate students pursuing a degree in computer science, electrical engineering, or a related technical field. Applicants must be authorized to work in the country of their assigned office.',
     benefits:
@@ -852,7 +852,7 @@ export const opportunities: Opportunity[] = [
       'A research internship at one of the world\'s leading AI labs, where interns work alongside DeepMind scientists on cutting-edge machine learning and artificial intelligence research. Interns contribute to projects spanning reinforcement learning, AI safety, and scientific discovery.',
     keywords: ['coding', 'research', 'technology', 'innovation', 'data science', 'ai'],
     deadline: 'February 2026',
-    link: 'https://www.deepmind.com/careers',
+    link: 'https://www.deepmind.com/',
     eligibility:
       'Advanced undergraduate, master\'s, or PhD students with a strong background in machine learning, mathematics, or computer science. Applicants must demonstrate research potential and programming proficiency.',
     benefits:
