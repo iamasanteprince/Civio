@@ -143,7 +143,7 @@ function SchoolCard({ school }: { school: University }) {
             <School className="h-5 w-5 text-slate-300" strokeWidth={1.75} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold leading-snug text-white">{school.name}</h3>
+            <h3 className="text-lg font-semibold leading-snug text-stone-900">{school.name}</h3>
             <div className="mt-1.5 flex items-center gap-2 text-sm text-slate-400">
               <Globe className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" strokeWidth={1.75} />
               <span>{school.city}, {school.country}</span>
@@ -250,7 +250,7 @@ function ApiSchoolCard({ apiUni }: { apiUni: ApiUniversity }) {
             <Building2 className="h-5 w-5 text-slate-300" strokeWidth={1.75} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold leading-snug text-white">{apiUni.name}</h3>
+            <h3 className="text-lg font-semibold leading-snug text-stone-900">{apiUni.name}</h3>
             <div className="mt-1.5 flex items-center gap-2 text-sm text-slate-400">
               <Globe className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" strokeWidth={1.75} />
               <span>{apiUni.country}</span>
@@ -411,8 +411,8 @@ export default function SchoolHub() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
       <header className="mb-10 max-w-3xl">
-        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Admissions directory</p>
-        <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Find universities and admissions details</h1>
+        <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">01 / Admissions Directory</p>
+        <h1 className="font-serif text-3xl font-semibold leading-tight tracking-tight text-stone-900 sm:text-4xl">Find universities and admissions details</h1>
         <p className="mt-4 max-w-2xl text-sm leading-relaxed text-slate-400 sm:text-base">
           Search directory records and compare application fees, waivers, deadlines, and language requirements where available. Confirm requirements with each institution.
         </p>
@@ -468,7 +468,7 @@ export default function SchoolHub() {
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Country</label>
               <div className="flex flex-wrap gap-1.5">
                 {countries.map((c) => (
-                  <button key={c} onClick={() => setSelectedCountry(c)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selectedCountry === c ? 'border-slate-600 bg-slate-800 text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{c}</button>
+                  <button key={c} onClick={() => setSelectedCountry(c)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selectedCountry === c ? 'border-stone-900 bg-stone-900 text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{c}</button>
                 ))}
               </div>
             </div>
@@ -477,7 +477,7 @@ export default function SchoolHub() {
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Degree Level</label>
               <div className="flex flex-wrap gap-1.5">
                 {degreeLevels.map((d) => (
-                  <button key={d} onClick={() => setSelectedDegree(d)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selectedDegree === d ? 'border-slate-600 bg-slate-800 text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{d}</button>
+                  <button key={d} onClick={() => setSelectedDegree(d)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selectedDegree === d ? 'border-stone-900 bg-stone-900 text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{d}</button>
                 ))}
               </div>
             </div>

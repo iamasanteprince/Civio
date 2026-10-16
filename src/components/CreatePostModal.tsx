@@ -119,7 +119,7 @@ export default function CreatePostModal({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-5 border-b border-slate-800">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <h2 className="font-serif text-lg font-semibold text-stone-900 flex items-center gap-2">
             <Plus className="w-5 h-5 text-indigo-400" />
             New Initiative
           </h2>

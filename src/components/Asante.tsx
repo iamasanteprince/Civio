@@ -1,6 +1,5 @@
 import { useState, useRef, useLayoutEffect } from 'react';
 import {
-  Sparkles,
   Send,
   User,
   ExternalLink,
@@ -127,8 +126,7 @@ function renderInline(text: string): React.ReactNode {
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return (
-        <strong key={i} className="font-semibold text-white">
-          {part.slice(2, -2)}
+        <strong key={i}         className="font-semibold text-stone-900">          {part.slice(2, -2)}
         </strong>
       );
     }
@@ -172,7 +170,7 @@ function UniversityResultCard({ university }: { university: University }) {
             <Building2 className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-bold text-white leading-tight">{university.name}</h4>
+            <h4 className="text-sm font-bold text-stone-900 leading-tight">{university.name}</h4>
             <p className="text-xs text-slate-400 mt-0.5">{university.city}, {university.country}</p>
           </div>
         </div>
@@ -268,12 +266,12 @@ function InitiativeResultCard({
       <div className="p-4">
         <div className="flex items-start gap-3 mb-2">
           <div className="flex items-center justify-center rounded-lg bg-blue-600 w-9 h-9 flex-shrink-0">
-            <Sparkles className="w-4 h-4 text-white" />
+            <Compass className="w-4 h-4 text-white" />
           </div>
           <div className="flex-1 min-w-0">
             {editing ? (
-              <input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={160} aria-label="Edit initiative title" className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-white" />
-            ) : <h4 className="text-sm font-bold text-white leading-tight">{initiative.title}</h4>}
+              <input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={160} aria-label="Edit initiative title" className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-stone-900" />
+            ) : <h4 className="text-sm font-bold text-stone-900 leading-tight">{initiative.title}</h4>}
               <p className="text-xs text-slate-400 mt-0.5">{initiative.organizer} · {initiative.postedAt}</p>
           </div>
         </div>
@@ -326,7 +324,7 @@ function InitiativeResultCard({
       )}
       {canManage && !editing && (
         <div className="flex gap-1 border-t border-slate-700/60 px-3 py-2">
-          <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-slate-400 hover:bg-slate-700 hover:text-white">
+          <button type="button" onClick={() => setEditing(true)} className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-slate-400 hover:bg-slate-700 hover:text-stone-900">
             <Pencil className="h-3 w-3" /> Edit
           </button>
           <button
@@ -354,7 +352,7 @@ function GlobalUniversityResultCard({ university }: { university: ApiUniversity 
             <Building2 className="h-4 w-4 text-white" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-sm font-bold text-white">{university.name}</h4>
+            <h4 className="text-sm font-bold text-stone-900">{university.name}</h4>
             <p className="mt-0.5 text-xs text-slate-400">{university.country}</p>
           </div>
         </div>
@@ -397,7 +395,7 @@ function OpportunityResultCard({ opportunity }: { opportunity: Opportunity }) {
             <Award className="h-4 w-4 text-white" />
           </div>
           <div className="min-w-0">
-            <h4 className="text-sm font-bold text-white">{opportunity.title}</h4>
+            <h4 className="text-sm font-bold text-stone-900">{opportunity.title}</h4>
             <p className="mt-0.5 text-xs text-slate-400">{opportunity.organization}</p>
           </div>
         </div>
@@ -447,18 +445,18 @@ function MessageBubble({
       <div
         className={`flex items-center justify-center rounded-xl w-9 h-9 flex-shrink-0 ${
           isUser
-            ? 'bg-indigo-600 text-white'
-            : 'bg-blue-600 text-white'
+            ? 'bg-stone-700 text-white'
+            : 'bg-stone-900 text-white'
         }`}
       >
-        {isUser ? <User className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+        {isUser ? <User className="w-4 h-4" /> : <Compass className="w-4 h-4" />}
       </div>
       <div className={`flex flex-col gap-3 max-w-[85%] ${isUser ? 'items-end' : 'items-start'}`}>
         <div
           className={`rounded-2xl px-4 py-3 ${
             isUser
-              ? 'bg-indigo-600/20 border border-indigo-500/30 text-slate-100'
-              : 'bg-slate-800/80 border border-slate-700/50 text-slate-200'
+              ? 'bg-stone-100 border border-stone-200 text-stone-900'
+              : 'bg-white border border-stone-200 text-stone-900'
           }`}
         >
           <div className="text-sm leading-relaxed">
@@ -588,18 +586,19 @@ export default function Asante({
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 pb-28 sm:px-6 lg:px-8 lg:pb-8">
-      <div className="mb-6 flex items-start gap-3 border-b border-slate-800 pb-5">
-        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-slate-800 bg-slate-900">
-          <Compass className="h-5 w-5 text-blue-300" />
+      <div className="mb-6 flex items-start gap-3 border-b border-stone-200 pb-5">
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg border border-stone-200 bg-white">
+          <Compass className="h-5 w-5 text-stone-700" />
         </div>
         <div className="min-w-0">
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">04 / Asante Intelligence Desk</p>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Asante</h1>
-            <span className="rounded border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+            <h1 className="font-serif text-2xl font-semibold leading-tight tracking-tight text-stone-900 sm:text-3xl">Asante</h1>
+            <span className="rounded border border-blue-500/30 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
               Intelligence Desk
             </span>
           </div>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-1 text-sm text-stone-600">
             Curated entry criteria, fee waiver lists, and verified consular protocols.
           </p>
         </div>
@@ -608,7 +607,7 @@ export default function Asante({
       <section className="mb-4 grid gap-5 sm:grid-cols-2">
         {RESEARCH_SECTIONS.map((section) => (
           <div key={section.heading}>
-            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+            <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-stone-500">
               {section.heading}
             </h2>
             <div className="space-y-2">
@@ -618,16 +617,16 @@ export default function Asante({
                   type="button"
                   onClick={() => sendMessage(prompt)}
                   disabled={isTyping}
-                  className="group flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-white p-3.5 text-left shadow-xs cursor-pointer transition-all duration-300 ease-in-out hover:border-slate-300 disabled:cursor-pointer disabled:opacity-60"
+                  className="group flex w-full items-center gap-3                   rounded-xl border border-stone-200 bg-white p-3.5 text-left shadow-xs cursor-pointer transition-all duration-300 ease-in-out hover:border-stone-300 disabled:cursor-pointer disabled:opacity-60"
                 >
-                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-700">
+                                    <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-stone-100 text-stone-700">
                     <Icon className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-sm font-medium leading-snug text-slate-900">{title}</span>
-                    <span className="mt-0.5 block text-[11px] font-medium text-slate-500">{tag}</span>
+                                      <span className="block text-sm font-medium leading-snug text-stone-900">{title}</span>
+                                      <span className="mt-0.5 block text-[11px] font-medium text-stone-500">{tag}</span>
                   </span>
-                  <ArrowUpRight className="h-4 w-4 flex-shrink-0 text-slate-400 transition-colors group-hover:text-slate-700" />
+                                    <ArrowUpRight className="h-4 w-4 flex-shrink-0 text-stone-400 transition-colors group-hover:text-stone-700" />
                 </button>
               ))}
             </div>
@@ -635,7 +634,7 @@ export default function Asante({
         ))}
       </section>
 
-      <div className="w-full min-w-0 rounded-xl border border-slate-800 bg-slate-900 overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}>
+      <div className="w-full min-w-0 rounded-xl border border-stone-200 bg-white shadow-xs overflow-hidden flex flex-col" style={{ height: 'calc(100vh - 280px)', minHeight: '500px' }}>
         <div
           ref={scrollRef}
           className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4 sm:p-6"
@@ -650,10 +649,10 @@ export default function Asante({
 
           {isTyping && (
             <div className="flex gap-3">
-              <div className="flex items-center justify-center rounded-lg bg-blue-600 w-9 h-9 flex-shrink-0">
-                <Sparkles className="w-4 h-4 text-white" />
+              <div className="flex items-center justify-center rounded-lg bg-stone-900 w-9 h-9 flex-shrink-0">
+                <Compass className="w-4 h-4 text-white" />
               </div>
-              <div className="rounded-2xl bg-slate-800/80 border border-slate-700/50 px-4 py-3">
+              <div className="rounded-2xl bg-white border border-slate-700/50 px-4 py-3">
                 <div className="flex gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '0ms' }} />
                   <span className="w-2 h-2 rounded-full bg-slate-500 animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -673,12 +672,12 @@ export default function Asante({
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask about visas, proof of funds, universities, fee waivers, or opportunities..."
               disabled={isTyping}
-              className="flex-1 rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-2.5 text-sm text-slate-100 placeholder-slate-500 outline-none transition-all focus:border-indigo-500/50 focus:bg-slate-800 disabled:opacity-50"
+              className="flex-1 rounded-xl border border-stone-300 bg-white px-4 py-2.5 text-sm text-stone-900 placeholder-stone-400 outline-none transition-all focus:border-stone-900 focus:ring-0 disabled:opacity-50"
             />
             <button
               type="submit"
               disabled={!input.trim() || isTyping}
-              className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex items-center justify-center rounded-xl bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-stone-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Send className="w-4 h-4" />
             </button>

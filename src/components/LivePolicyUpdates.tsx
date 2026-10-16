@@ -239,7 +239,7 @@ export default function LivePolicyUpdates() {
             <Rss className="h-5 w-5 text-blue-300" />
           </div>
           <div className="min-w-0">
-            <h2 className="break-words text-lg font-bold text-white">Live Embassy &amp; Policy Updates</h2>
+            <h2 className="break-words font-serif text-lg font-semibold text-stone-900">Live Embassy &amp; Policy Updates</h2>
             <p className="mt-1 text-xs text-slate-400">Official public feeds · auto-refreshes every 15 minutes</p>
           </div>
         </div>
@@ -256,7 +256,7 @@ export default function LivePolicyUpdates() {
             type="button"
             onClick={() => void refresh()}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-sky-500/40 hover:text-white disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-2 text-xs font-semibold text-slate-200 transition hover:border-sky-500/40 hover:text-stone-900 disabled:opacity-50"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             Refresh Feed

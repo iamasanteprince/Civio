@@ -62,27 +62,30 @@ export default function StudentForum({
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="mb-8 text-center">
-        <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-indigo-500/30 bg-indigo-500/10">
-          <MessageCircle className="h-7 w-7 text-indigo-300" />
+      <header className="mb-8 border-b border-stone-200 pb-6">
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">05 / Community Forum</p>
+        <div className="flex items-center gap-3">
+          <div className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-stone-200 bg-white">
+            <MessageCircle className="h-5 w-5 text-stone-700" />
+          </div>
+          <h1 className="font-serif text-3xl font-semibold leading-tight tracking-tight text-stone-900">Community Forum</h1>
         </div>
-        <h1 className="text-3xl font-bold tracking-tight text-white">Community Forum</h1>
-        <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-slate-400">
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-stone-600">
           Browse conversations by channel, ask questions, and share experiences with applicants.
         </p>
       </header>
 
-      <div className="mb-6 flex flex-wrap justify-center gap-2" role="group" aria-label="Forum discussion channels">
+      <div className="mb-6 flex flex-nowrap justify-start gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="group" aria-label="Forum discussion channels">
         {CHANNELS.map((channel) => (
           <button
             key={channel.id}
             type="button"
             aria-pressed={activeChannel === channel.id}
             onClick={() => setActiveChannel(channel.id)}
-            className={`rounded-full border px-3.5 py-2 text-xs font-semibold transition sm:text-sm ${
+            className={`shrink-0 whitespace-nowrap rounded-full border px-3.5 py-2 text-xs font-semibold transition sm:text-sm ${
               activeChannel === channel.id
-                ? 'border-indigo-500/50 bg-indigo-500/15 text-indigo-200'
-                : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                ? 'border-stone-900 bg-stone-900 text-white'
+                : 'border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:text-stone-900'
             }`}
           >
             {channel.label}
@@ -90,11 +93,14 @@ export default function StudentForum({
         ))}
       </div>
 
-      <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
-        <Users className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
-        <p className="text-xs leading-relaxed text-amber-100/80">
-          Discussions are stored in this browser and sync between Civiohub tabs on this device. They are not shared with other users or devices because no forum backend is configured. Do not post sensitive personal or visa-document information.
-        </p>
+      <div className="mb-6 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-50/60 p-4 text-amber-900">
+        <Users className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+        <div className="text-xs leading-relaxed">
+          <p className="font-semibold">Local Session</p>
+          <p>
+            Active on this device. Discussions are stored locally in your session. For privacy, avoid posting personal passport numbers, application IDs, or bank details.
+          </p>
+        </div>
       </div>
 
       {!discussionsReady ? (
@@ -104,7 +110,7 @@ export default function StudentForum({
           {visibleThreads.map((thread) => (
             <section key={thread.id} className="min-w-0 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900 transition-colors duration-200 hover:border-slate-700">
               <div className="p-5">
-                <h2 className="text-lg font-bold text-white">{thread.title}</h2>
+                <h2 className="font-serif text-lg font-semibold text-stone-900">{thread.title}</h2>
                 <p className="mt-1 text-sm text-slate-500">{thread.description}</p>
               </div>
               <DiscussionThread

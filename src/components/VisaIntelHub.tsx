@@ -50,7 +50,7 @@ function ProofOfFundsCalculator() {
           <Calculator className="h-5 w-5 text-blue-300" />
         </div>
         <div className="min-w-0">
-          <h2 className="text-lg font-bold text-white">Proof-of-Funds Quick Calculator</h2>
+          <h2 className="font-serif text-lg font-semibold text-stone-900">Proof-of-Funds Quick Calculator</h2>
           <p className="mt-1 text-sm text-slate-400">Estimate the first-year amount to document before scheduling an appointment.</p>
         </div>
       </div>
@@ -162,7 +162,8 @@ export default function VisaIntelHub() {
           <BadgeCheck className="h-4 w-4" />
           Official-source summaries and live policy feed
         </div>
-        <h1 className="mb-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">Student Visa &amp; Immigration Intel</h1>
+        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">02 / Visa Intelligence</p>
+        <h1 className="mb-3 font-serif text-3xl font-semibold leading-tight tracking-tight text-stone-900 sm:text-4xl">Student Visa &amp; Immigration Intel</h1>
         <p className="mx-auto max-w-3xl text-base text-slate-400 sm:text-lg">
           Live verified consular rules, proof-of-funds thresholds, English test waivers, and policy updates.
         </p>
@@ -200,7 +201,7 @@ export default function VisaIntelHub() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold uppercase tracking-wide text-sky-300">{visa.country}</p>
-                    <h2 className="mt-0.5 text-xl font-bold text-white">{visa.title}</h2>
+                    <h2 className="mt-0.5 font-serif text-xl font-semibold text-stone-900">{visa.title}</h2>
                   </div>
                   <ShieldCheck className="h-5 w-5 shrink-0 text-emerald-400" aria-label="Official-source references included" />
                 </div>

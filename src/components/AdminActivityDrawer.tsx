@@ -49,16 +49,16 @@ export default function AdminActivityDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="admin-drawer-title"
-        className="h-full w-full max-w-2xl overflow-y-auto border-l border-slate-700 bg-[#0a101d] shadow-2xl"
+        className="h-full w-full max-w-2xl overflow-y-auto border-l border-slate-700 bg-[#faf9f6] shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-800 bg-[#0a101d]/95 px-5 py-4 backdrop-blur">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-800 bg-[#faf9f6]/95 px-5 py-4 backdrop-blur">
           <div className="flex items-center gap-3">
             <div className="rounded-xl border border-amber-500/25 bg-amber-500/10 p-2">
               <ShieldCheck className="h-5 w-5 text-amber-300" />
             </div>
             <div>
-              <h2 id="admin-drawer-title" className="font-bold text-white">Admin Activity</h2>
+              <h2 id="admin-drawer-title" className="font-serif font-bold text-stone-900">Admin Activity</h2>
               <p className="text-xs text-slate-500">Restricted account analytics and moderation</p>
             </div>
           </div>
@@ -66,7 +66,7 @@ export default function AdminActivityDrawer({
             <button type="button" onClick={onRefresh} disabled={loading} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-2.5 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 disabled:opacity-50">
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} /> Refresh
             </button>
-            <button type="button" onClick={onClose} aria-label="Close admin activity" className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-white">
+            <button type="button" onClick={onClose} aria-label="Close admin activity" className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 hover:text-stone-900">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -78,7 +78,7 @@ export default function AdminActivityDrawer({
               <Users className="h-5 w-5 text-indigo-300" />
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Total registered students</p>
-                <p className="mt-1 text-3xl font-bold text-white">
+                <p className="mt-1 text-3xl font-bold text-stone-900">
                   {loading ? '…' : analytics ? analytics.totalMembers.toLocaleString() : '—'}
                 </p>
               </div>
@@ -90,7 +90,7 @@ export default function AdminActivityDrawer({
           <section>
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
-                <h3 className="font-semibold text-white">Recent sign-ups</h3>
+                <h3 className="font-semibold text-stone-900">Recent sign-ups</h3>
                 <p className="mt-1 text-xs text-slate-500">Latest 25 accounts · retrieved through an admin-only Supabase function</p>
               </div>
               <span className="rounded-full border border-slate-700 bg-slate-900 px-2.5 py-1 text-xs text-slate-400">
@@ -127,7 +127,7 @@ export default function AdminActivityDrawer({
 
           <section>
             <div className="mb-3">
-              <h3 className="font-semibold text-white">Community moderation</h3>
+              <h3 className="font-semibold text-stone-900">Community moderation</h3>
               <p className="mt-1 text-xs leading-relaxed text-amber-200/70">
                 These discussions are stored only in this browser. Removing a post here does not remove a copy from another visitor’s device.
               </p>

@@ -232,7 +232,7 @@ export default function SignInModal({
                   className="relative h-12 w-12 rounded-lg border border-slate-700 object-cover"
                 />
               </div>
-              <h2 id="auth-title" className="text-xl font-bold text-white">
+              <h2 id="auth-title" className="font-serif text-xl font-semibold text-stone-900">
                 {mode === 'sign-in'
                   ? 'Sign In to Civiohub'
                   : mode === 'sign-up'
@@ -466,14 +466,14 @@ export function UserMenu({
           type="button"
           onClick={() => setSettingsOpen(true)}
           aria-label="Account settings"
-          className="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-900/80 p-2 text-slate-300 transition-all hover:bg-slate-800 hover:text-white"
+          className="inline-flex items-center justify-center rounded-xl border border-slate-700 bg-slate-900/80 p-2 text-slate-300 transition-all hover:bg-slate-800 hover:text-stone-900"
         >
           <Settings className="h-4 w-4" />
         </button>
         <button
           type="button"
           onClick={onSignOut}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-medium text-slate-300 transition-all hover:bg-slate-800 hover:text-white"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900/80 px-3 py-2 text-sm font-medium text-slate-300 transition-all hover:bg-slate-800 hover:text-stone-900"
           title="Sign Out"
         >
           <LogOut className="h-4 w-4" />
@@ -573,10 +573,10 @@ function AccountSettingsModal({
       >
         <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h2 id="account-settings-title" className="text-xl font-bold text-white">Account Settings</h2>
+            <h2 id="account-settings-title" className="font-serif text-xl font-semibold text-stone-900">Account Settings</h2>
             <p className="mt-1 text-sm text-slate-400">Manage your account and personal data.</p>
           </div>
-          <button type="button" onClick={onClose} aria-label="Close account settings" className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white">
+          <button type="button" onClick={onClose} aria-label="Close account settings" className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-stone-900">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -751,7 +751,7 @@ export function SetNewPasswordModal({
         >
           <X className="h-5 w-5" />
         </button>
-        <h2 id="set-password-title" className="pr-8 text-xl font-bold text-white">
+        <h2 id="set-password-title" className="pr-8 font-serif text-xl font-semibold text-stone-900">
           Set New Password
         </h2>
         <p className="mt-1 text-sm text-slate-400">

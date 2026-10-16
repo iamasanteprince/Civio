@@ -41,11 +41,11 @@ function Logo() {
       <img
         src="/civio-logo.png"
         alt="Civiohub Logo"
-        className="w-10 h-10 rounded-lg object-cover border border-slate-700"
+        className="w-10 h-10 rounded-lg object-cover border border-stone-200"
       />
       <div className="hidden sm:block">
-        <h1 className="text-lg font-black text-white leading-none tracking-tight">Civiohub</h1>
-        <p className="text-xs text-blue-400 font-medium mt-0.5">Civic Engagement, Admissions &amp; Global Opportunities</p>
+        <h1 className="text-lg         font-serif font-bold text-stone-900 leading-none tracking-tight">Civiohub</h1>
+                <p className="text-xs text-stone-600 font-medium mt-0.5">Civic Engagement, Admissions &amp; Global Opportunities</p>
       </div>
     </div>
   );
@@ -367,9 +367,9 @@ export default function App() {
   };
 
   return (
-    <div className="w-full max-w-full min-h-screen bg-[#0A0D14] text-slate-100">
+    <div className="w-full max-w-full min-h-screen bg-[#faf9f6] text-stone-900">
       {/* Sticky Header */}
-      <header className="sticky top-0 z-40 w-full max-w-full border-b border-slate-800 bg-[#0A0D14]">
+      <header className="sticky top-0 z-40 w-full max-w-full border-b border-stone-200 bg-[#faf9f6]/90 text-stone-900 backdrop-blur-md">
         <div className="w-full max-w-full px-3 sm:px-6">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 py-3">
             <Logo />
@@ -382,7 +382,7 @@ export default function App() {
                     setAdminDrawerOpen(true);
                     setAdminRefreshKey((key) => key + 1);
                   }}
-                  className="inline-flex max-w-full items-center gap-1.5 rounded-xl border border-amber-500/25 bg-amber-500/10 px-2 py-2 text-[10px] font-semibold text-amber-200 transition hover:border-amber-400/50 hover:bg-amber-500/15 sm:px-3 sm:text-xs"
+                  className="inline-flex max-w-full items-center gap-1.5 rounded-xl border border-stone-200 bg-white px-2 py-2 text-[10px] font-semibold text-stone-700 transition hover:border-stone-300 sm:px-3 sm:text-xs"
                   aria-label={`Open admin analytics. Members: ${adminAnalytics?.totalMembers ?? 'unavailable'}`}
                 >
                   <ShieldCheck className="h-4 w-4 shrink-0" />
@@ -401,7 +401,7 @@ export default function App() {
               ) : (
                 <button
                   onClick={() => setSignInOpen(true)}
-                  className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-slate-800"
+                  className="flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors duration-150 hover:border-stone-300 hover:bg-stone-50"
                 >
                   <LogIn className="w-4 h-4" />
                   <span className="hidden sm:inline">Sign In</span>
@@ -410,7 +410,7 @@ export default function App() {
 
               <button
                 onClick={() => setCreatePostOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-2 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-blue-500 sm:px-3"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-stone-900 px-2 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-stone-700 sm:px-3"
               >
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">New Initiative</span>
@@ -435,13 +435,13 @@ export default function App() {
                   key={id}
                   onClick={() => setActiveView(id)}
                   className={`group relative inline-flex items-center gap-2 rounded-t-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                    active ? 'text-blue-300' : 'text-slate-400 hover:text-slate-200'
+                    active ? 'font-semibold text-stone-900' : 'text-stone-400 hover:text-stone-700'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
                   <span>{label}</span>
                   {active && (
-                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500 rounded-t-full" />
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-stone-900 rounded-t-full" />
                   )}
                 </button>
               );
@@ -451,7 +451,7 @@ export default function App() {
 
         {/* Mobile Nav Drawer */}
         {mobileNavOpen && (
-          <div className="lg:hidden border-t border-slate-800 bg-[#0A0D14]">
+          <div className="lg:hidden border-t border-stone-200 bg-[#faf9f6]">
             <div className="w-full max-w-full px-3 py-3 space-y-1 sm:px-4">
               {TABS.map(({ id, label, icon: Icon, description }) => {
                 const active = activeView === id;
@@ -464,8 +464,8 @@ export default function App() {
                     }}
                     className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                       active
-                        ? 'bg-blue-500/10 text-blue-300 border border-blue-500/30'
-                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border border-transparent'
+                        ? 'bg-white font-semibold text-stone-900 border border-stone-200'
+                        : 'text-stone-600 hover:bg-white hover:text-stone-900 border border-transparent'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -482,7 +482,7 @@ export default function App() {
       </header>
 
       {/* Mobile Bottom Nav */}
-      <nav className="fixed bottom-2 left-2 right-2 z-30 rounded-2xl border border-white/10 bg-[#0A0D14]/95 pb-[env(safe-area-inset-bottom)] shadow-xl backdrop-blur lg:hidden">
+      <nav className="fixed bottom-2 left-2 right-2 z-30 rounded-2xl border border-stone-200 bg-[#faf9f6]/95 pb-[env(safe-area-inset-bottom)] shadow-xl backdrop-blur-md lg:hidden">
         <div className="grid grid-cols-5 items-center gap-1 px-1.5 py-2">
           {TABS.map(({ id, mobileLabel, icon: Icon }) => {
             const active = activeView === id;
@@ -491,7 +491,7 @@ export default function App() {
                 key={id}
                 onClick={() => setActiveView(id)}
                 className={`flex min-w-0 w-full flex-col items-center gap-1 rounded-xl px-1 py-1.5 transition-all ${
-                  active ? 'text-blue-300' : 'text-slate-500'
+                  active ? 'font-semibold text-stone-900' : 'text-stone-400'
                 }`}
               >
                 <Icon className={`w-5 h-5 ${active ? 'scale-110' : ''} transition-transform`} />
@@ -546,7 +546,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-slate-800 bg-[#0A0D14]">
+      <footer className="relative z-10 border-t border-stone-200 bg-[#faf9f6]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-slate-500">

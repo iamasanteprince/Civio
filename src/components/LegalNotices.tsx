@@ -50,7 +50,7 @@ export default function LegalNotices({
             </button>
           ))}
         </div>
-        <h2 id="legal-notice-title" className="mb-3 text-lg font-bold text-white">
+        <h2 id="legal-notice-title" className="mb-3 font-serif text-lg font-semibold text-stone-900">
           {notice === 'terms' ? 'Terms of Service' : 'Privacy Policy'}
         </h2>
         {notice === 'terms' ? (
