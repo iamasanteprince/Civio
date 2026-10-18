@@ -410,10 +410,10 @@ export default function App() {
               ) : (
                 <button
                   onClick={() => setSignInOpen(true)}
-                  className="flex items-center gap-2 rounded-xl border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-700 transition-colors duration-150 hover:border-stone-300 hover:bg-stone-50"
+                  className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-[#003574] px-3 py-1.5 text-xs font-semibold text-white transition-colors duration-150 hover:bg-[#002756] sm:text-sm"
                 >
-                  <LogIn className="w-4 h-4" />
-                  <span className="hidden sm:inline">Sign In</span>
+                  <LogIn className="h-4 w-4" />
+                  <span>Sign In</span>
                 </button>
               )}
 
