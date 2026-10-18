@@ -135,6 +135,26 @@ function useDebounce<T>(value: T, delay: number): T {
   return debounced;
 }
 
+function hasActiveFeeWaiver(u: University): boolean {
+  return u.applicationFeeType === 'free' || u.applicationFeeType === 'waiver';
+}
+
+function completenessScore(u: University): number {
+  return (
+    (u.intel.deadlines.trim() ? 1 : 0) +
+    (u.englishWaiver.detail.trim() || u.englishWaiver.acceptedProofs.length > 0 ? 1 : 0) +
+    (u.degreeLevels.length > 0 ? 1 : 0)
+  );
+}
+
+function compareByDefaultPriority(a: University, b: University): number {
+  return (
+    Number(hasActiveFeeWaiver(b)) - Number(hasActiveFeeWaiver(a)) ||
+    completenessScore(b) - completenessScore(a) ||
+    a.name.localeCompare(b.name)
+  );
+}
+
 function SchoolCard({ school }: { school: University }) {
   const feeStyle = FEE_WAIVER_STYLES[school.feeWaiverDetail];
   const websiteUrl = getBaseWebsiteUrl(school.portalUrl);
@@ -153,6 +173,21 @@ function SchoolCard({ school }: { school: University }) {
             </div>
           </div>
         </div>
+
+        {(hasActiveFeeWaiver(school) || school.englishWaiver.available) && (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            {hasActiveFeeWaiver(school) && (
+              <span className="inline-flex items-center rounded-md border border-[#0498cc]/30 bg-[#0498cc]/10 px-2.5 py-1 text-xs font-semibold text-[#003574]">
+                {school.applicationFeeType === 'free' ? '✓ $0 Application Fee' : 'Fee Waiver Available'}
+              </span>
+            )}
+            {school.englishWaiver.available && (
+              <span className="inline-flex items-center rounded-md border border-[#0498cc]/30 bg-[#0498cc]/10 px-2.5 py-1 text-xs font-semibold text-[#003574]">
+                IELTS Exempt / English-Medium Accepted
+              </span>
+            )}
+          </div>
+        )}
 
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs text-slate-300">
@@ -376,6 +411,10 @@ export default function SchoolHub({
     if (selectedDegree !== 'All') result = result.filter((u) => u.degreeLevels.includes(selectedDegree as University['degreeLevels'][number]));
     if (freeOnly) result = result.filter((u) => u.applicationFeeType === 'free' || u.applicationFeeType === 'waiver');
     if (ieltsExemptOnly) result = result.filter((u) => u.englishWaiver.available);
+
+    if (!isSearching) {
+      result = [...result].sort(compareByDefaultPriority);
+    }
 
     return result;
   }, [debouncedQuery, isSearching, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly]);
