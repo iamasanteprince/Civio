@@ -3,6 +3,7 @@ import { universities } from '@/data/universities';
 import { opportunities } from '@/data/opportunities';
 import { searchGlobalUniversities } from '@/data/universityDirectory';
 import { getVisaIntelForQuery } from '@/data/visaIntel';
+import { prioritizePartners, withPartnerFlag } from '@/data/applyBoard';
 
 export interface AsanteAnswer {
   content: string;
@@ -82,12 +83,14 @@ function detectIntent(query: string): Intent {
 function searchUniversitiesByName(query: string): University[] {
   const q = query.toLowerCase().trim();
   if (!q) return [];
-  return universities.filter((u) => {
+  const matchedSchools = universities.filter((u) => {
     const nameHaystack = (u.name + ' ' + u.shortName + ' ' + u.city + ' ' + u.country).toLowerCase();
     return nameHaystack.includes(q) ||
       q.includes(u.name.toLowerCase()) ||
       q.includes(u.shortName.toLowerCase());
-  });
+  }).map(withPartnerFlag);
+  matchedSchools.sort((a, b) => Number(b.is_partner) - Number(a.is_partner));
+  return matchedSchools;
 }
 
 function extractInstitutionQuery(query: string): string {
@@ -116,13 +119,15 @@ function searchUniversitiesBroad(query: string): University[] {
   const q = query.toLowerCase().trim();
   if (!q) return [];
   const terms = q.split(/\s+/).filter((t) => t.length > 2);
-  return universities.filter((u) => {
+  const matchedSchools = universities.filter((u) => {
     const haystack = (
       u.name + ' ' + u.shortName + ' ' + u.city + ' ' + u.country + ' ' +
       u.intel.languageTesting + ' ' + u.intel.standardizedTests
     ).toLowerCase();
     return terms.some((term) => haystack.includes(term));
-  });
+  }).map(withPartnerFlag);
+  matchedSchools.sort((a, b) => Number(b.is_partner) - Number(a.is_partner));
+  return matchedSchools;
 }
 
 function searchInitiatives(query: string, initiativeData: Initiative[]): Initiative[] {
@@ -221,10 +226,10 @@ function handleUniversitySearch(query: string): AsanteAnswer {
 }
 
 function handleFeeWaiver(): AsanteAnswer {
-  const freeSchools = universities.filter((u) => u.applicationFeeType === 'free');
-  const waiverSchools = universities.filter((u) => u.applicationFeeType === 'waiver');
-  const paidSchools = universities.filter((u) => u.applicationFeeType === 'paid');
-  const all = [...freeSchools, ...waiverSchools, ...paidSchools];
+  const freeSchools = universities.filter((u) => u.applicationFeeType === 'free').map(withPartnerFlag);
+  const waiverSchools = universities.filter((u) => u.applicationFeeType === 'waiver').map(withPartnerFlag);
+  const paidSchools = universities.filter((u) => u.applicationFeeType === 'paid').map(withPartnerFlag);
+  const all = prioritizePartners([...freeSchools, ...waiverSchools, ...paidSchools]);
 
   let content = `These are the application fee statuses in Civio's local records. They are not independently verified and can change; confirm details with the institution before applying:\n\n`;
 
@@ -257,10 +262,10 @@ function handleFeeWaiver(): AsanteAnswer {
 
 function handleIeltsWaiver(query: string): AsanteAnswer {
   const asksForWaec = /\b(waec|wassce)\b/i.test(query);
-  const withWaiver = universities.filter((u) =>
+  const withWaiver = prioritizePartners(universities.filter((u) =>
     u.englishWaiver.available &&
     (!asksForWaec || u.englishWaiver.acceptedProofs.some((proof) => /\b(waec|wassce)\b/i.test(proof)))
-  );
+  ).map(withPartnerFlag));
   const withoutWaiver = asksForWaec
     ? []
     : universities.filter((u) => !u.englishWaiver.available);
@@ -552,7 +557,7 @@ export async function getAsanteAnswer(query: string, initiativeData: Initiative[
   if (!shouldSearchGlobalDirectory) return localAnswer;
 
   const name = globalDirectorySearch ? '' : institutionQuery || query.trim();
-  const results = (await searchGlobalUniversities(name)).slice(0, 12);
+  const results = prioritizePartners(await searchGlobalUniversities(name)).slice(0, 12);
   if (!results.length && localAnswer.results.length > 0 && !globalDirectorySearch) return localAnswer;
 
   const globalResults: AsanteResult[] = results.map((university) => ({

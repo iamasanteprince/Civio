@@ -1,5 +1,6 @@
 import globalUniversitiesUrl from './globalUniversities.json?url';
 import type { ApiUniversity } from '@/types';
+import { withPartnerFlag } from './applyBoard';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -29,14 +30,14 @@ function parseUniversity(value: unknown): ApiUniversity | null {
     : [];
   const stateProvince = value['state-province'];
 
-  return {
+  return withPartnerFlag({
     name,
     country,
     alpha_two_code: countryCode,
     web_pages: webPages,
     domains,
     state_province: typeof stateProvince === 'string' ? stateProvince : null,
-  };
+  });
 }
 
 let universityIndexPromise: Promise<ApiUniversity[]> | null = null;

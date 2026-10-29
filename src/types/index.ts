@@ -1,4 +1,4 @@
-export type View = 'visa' | 'hub' | 'opportunities' | 'asante' | 'forum';
+export type View = 'visa' | 'hub' | 'opportunities' | 'asante' | 'forum' | 'apply';
 
 export interface DiscussionComment {
   id: string;
@@ -90,6 +90,7 @@ export interface University {
   ranking: string;
   acceptanceRate: string;
   established: string;
+  is_partner?: boolean;
 }
 
 export interface AsanteMessage {
@@ -177,6 +178,7 @@ export interface ApiUniversity {
   web_pages: string[];
   domains: string[];
   state_province?: string | null;
+  is_partner?: boolean;
 }
 
 export type UniversitySearchResult = University | (ApiUniversity & { _merged?: false; _isApi: true });
