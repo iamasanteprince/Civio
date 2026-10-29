@@ -79,6 +79,16 @@ export default function LegalNotices({
             <p>Account data may be managed or deleted through Account Settings.</p>
           </div>
         )}
+
+        {/* Official Partnership Accreditation Footer */}
+        <div className="mt-6 border-t border-slate-800 pt-4 text-center">
+          <p className="text-xs tracking-wide text-slate-400">
+            Civiohub is operated in official partnership with{' '}
+            <span className="font-semibold text-slate-200">
+              Paramount Bridge Educational Consult
+            </span>
+          </p>
+        </div>
       </section>
     </div>
   );
