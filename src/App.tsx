@@ -617,11 +617,8 @@ export default function App() {
       />
     </div>
   );
-}<div className="mb-4 text-center">
-  <p className="text-xs tracking-wide text-stone-500">
-    Civiohub is operated in official partnership with{' '}
-    <span className="font-semibold text-stone-800">
-      Paramount Bridge Educational Consult
-    </span>
+}<div className="bg-slate-50 border-b border-slate-100 py-2 text-center">
+  <p className="text-xs tracking-wide text-stone-600">
+    Official Partnership: <span className="font-semibold text-stone-900">Paramount Bridge Educational Consult</span>
   </p>
 </div>
