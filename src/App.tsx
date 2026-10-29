@@ -46,6 +46,7 @@ function Logo({ onClick }: { onClick: () => void }) {
     </button>
   );
 }
+
 export default function App() {
   const [activeView, setActiveView] = useState<View>('hub');
   const [signInOpen, setSignInOpen] = useState(false);
@@ -581,11 +582,22 @@ export default function App() {
               </a>
             </p>
           </div>
-          <nav aria-label="Legal information" className="mt-4 flex justify-center gap-5 border-t border-slate-800 pt-4">
-            <button type="button" onClick={() => setLegalNotice('terms')} className="text-xs text-slate-400 transition-colors hover:text-slate-200">
+          
+          {/* Official Partnership Accreditation Notice */}
+          <div className="mt-4 border-t border-stone-200 pt-4 text-center">
+            <p className="text-xs tracking-wide text-stone-600">
+              Civiohub is operated in official partnership with{' '}
+              <span className="font-semibold text-stone-900">
+                Paramount Bridge Educational Consult
+              </span>
+            </p>
+          </div>
+
+          <nav aria-label="Legal information" className="mt-4 flex justify-center gap-5 border-t border-stone-200 pt-4">
+            <button type="button" onClick={() => setLegalNotice('terms')} className="text-xs text-stone-500 transition-colors hover:text-stone-800">
               Terms of Service
             </button>
-            <button type="button" onClick={() => setLegalNotice('privacy')} className="text-xs text-slate-400 transition-colors hover:text-slate-200">
+            <button type="button" onClick={() => setLegalNotice('privacy')} className="text-xs text-stone-500 transition-colors hover:text-stone-800">
               Privacy Policy
             </button>
           </nav>
@@ -617,8 +629,4 @@ export default function App() {
       />
     </div>
   );
-}<div className="bg-slate-50 border-b border-slate-100 py-2 text-center">
-  <p className="text-xs tracking-wide text-stone-600">
-    Official Partnership: <span className="font-semibold text-stone-900">Paramount Bridge Educational Consult</span>
-  </p>
-</div>
+}
