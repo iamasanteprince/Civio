@@ -24,7 +24,6 @@ import { supabase } from '@/lib/supabase';
 import { parseAdminAnalytics, type AdminAnalytics } from '@/lib/adminAnalytics';
 import { getGuestSessionId, resetGuestSessionId, sanitizePlainText } from '@/utils/inputSecurity';
 import LegalNotices, { type LegalNotice } from '@/components/LegalNotices';
-import ApplyPage from '@/pages/ApplyPage';
 
 const ADMIN_EMAIL = 'iamasanteprince@gmail.com';
 
@@ -71,15 +70,6 @@ export default function App() {
   const [adminAnalyticsError, setAdminAnalyticsError] = useState<string | null>(null);
   const [legalNotice, setLegalNotice] = useState<LegalNotice | null>(null);
   const isAdmin = currentUser?.email.trim().toLowerCase() === ADMIN_EMAIL;
-
-  const openView = (view: View) => {
-    setActiveView(view);
-    setMobileNavOpen(false);
-    const nextPath = view === 'apply' ? '/apply' : '/';
-    if (window.location.pathname !== nextPath) {
-      window.history.pushState({ view }, '', nextPath);
-    }
-  };
 
   useEffect(() => {
     if (!supabase) return;
@@ -145,20 +135,9 @@ export default function App() {
         setResetPasswordOpen(true);
       }
     };
-    const syncPathView = () => {
-      const path = window.location.pathname.replace(/\/+$/, '') || '/';
-      if (path === '/apply' || window.location.hash.toLowerCase() === '#apply') {
-        setActiveView('apply');
-      }
-    };
     openRecoveryFromHash();
-    syncPathView();
     window.addEventListener('hashchange', openRecoveryFromHash);
-    window.addEventListener('popstate', syncPathView);
-    return () => {
-      window.removeEventListener('hashchange', openRecoveryFromHash);
-      window.removeEventListener('popstate', syncPathView);
-    };
+    return () => window.removeEventListener('hashchange', openRecoveryFromHash);
   }, []);
 
   useEffect(() => {
@@ -269,7 +248,7 @@ export default function App() {
     setCurrentUser(null);
     setInitiatives([]);
     setDiscussions({});
-    openView('hub');
+    setActiveView('hub');
     setAdminDrawerOpen(false);
     setAdminAnalytics(null);
     setAuthError(null);
@@ -393,7 +372,7 @@ export default function App() {
       <header className="sticky top-0 z-40 w-full max-w-full border-b border-stone-200 bg-[#faf9f6]/90 text-stone-900 backdrop-blur-md">
         <div className="w-full max-w-full px-3 sm:px-6">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 py-3">
-            <Logo onClick={() => openView('hub')} />
+            <Logo onClick={() => setActiveView('hub')} />
 
             <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
               {isAdmin && (
@@ -413,14 +392,6 @@ export default function App() {
                   <span className="hidden sm:inline">Members: {adminAnalyticsLoading ? '...' : adminAnalytics?.totalMembers.toLocaleString() ?? '-'}</span>
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => openView('apply')}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-3 py-2 sm:px-4 transition shadow-sm text-xs sm:text-sm"
-              >
-                <span className="sm:hidden">Apply</span>
-                <span className="hidden sm:inline">Apply to 1,500+ Universities</span>
-              </button>
               <a
                 href="mailto:Civiohub.app@gmail.com?subject=CivioHub%20Feedback%20%26%20Inquiry&body=Hi%20CivioHub%20team,%0A%0AI%20wanted%20to%20share%20some%20feedback%20on%20the%20app:%0A%0A"
                 aria-label="Send feedback or contact the founder"
@@ -471,7 +442,7 @@ export default function App() {
               return (
                 <button
                   key={id}
-                  onClick={() => openView(id)}
+                  onClick={() => setActiveView(id)}
                   className={`group relative inline-flex items-center gap-2 rounded-t-xl px-4 py-2.5 text-sm font-medium transition-all ${
                     active ? 'font-semibold text-[#003574]' : 'text-stone-400 hover:text-stone-600'
                   }`}
@@ -491,19 +462,15 @@ export default function App() {
         {mobileNavOpen && (
           <div className="lg:hidden border-t border-stone-200 bg-[#faf9f6]">
             <div className="w-full max-w-full px-3 py-3 space-y-1 sm:px-4">
-              <button
-                type="button"
-                onClick={() => openView('apply')}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 transition shadow-sm"
-              >
-                Apply to 1,500+ Universities
-              </button>
               {TABS.map(({ id, label, icon: Icon, description }) => {
                 const active = activeView === id;
                 return (
                   <button
                     key={id}
-                    onClick={() => openView(id)}
+                    onClick={() => {
+                      setActiveView(id);
+                      setMobileNavOpen(false);
+                    }}
                     className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all ${
                       active
                         ? 'bg-white font-semibold text-stone-900 border border-stone-200'
@@ -531,7 +498,7 @@ export default function App() {
             return (
               <button
                 key={id}
-                onClick={() => openView(id)}
+                onClick={() => setActiveView(id)}
                 className={`flex min-w-0 w-full flex-col items-center gap-1 rounded-xl px-1 py-1.5 transition-all ${
                   active ? 'font-semibold text-[#003574]' : 'text-stone-400 hover:text-stone-600'
                 }`}
@@ -555,9 +522,6 @@ export default function App() {
           <div role="alert" className="mx-auto mt-4 w-full max-w-7xl rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
             {authError}
           </div>
-        )}
-        {activeView === 'apply' && (
-          <ApplyPage />
         )}
         {activeView === 'visa' && (
           <VisaIntelHub />

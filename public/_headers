@@ -1,2 +1,2 @@
 /*
-  Content-Security-Policy: frame-src https://app.applyboard.com https://*.applyboard.com;
+  Content-Security-Policy: frame-src 'none';

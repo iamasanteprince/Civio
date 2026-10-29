@@ -3,7 +3,6 @@ import type { ReactNode } from 'react';
 import { ArrowLeft, ChevronDown, CloudUpload, FileDown, Plus, Trash2, Wand2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { CivioUser } from '@/types';
-import { APPLYBOARD_PARTNER_URL } from '@/data/applyBoard';
 
 const STORAGE_KEY = 'civiohub-resume-draft-v1';
 const CLOUD_TITLE = 'My Academic CV';
@@ -516,20 +515,6 @@ export default function ResumeBuilder({
             >
               <FileDown className="h-4 w-4" /> Export PDF
             </button>
-          </div>
-          <div className="mb-5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 text-center print:hidden">
-            <h2 className="text-base font-semibold text-stone-900">Your Academic CV is Ready</h2>
-            <p className="mt-2 text-sm leading-relaxed text-stone-600">
-              Match your profile with over 1,500 accredited universities worldwide and submit your application with verified fee-waiver support.
-            </p>
-            <a
-              href={APPLYBOARD_PARTNER_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-4 inline-flex bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 transition shadow-sm"
-            >
-              Launch University Application Portal →
-            </a>
           </div>
 
           <article id="cv-preview" className="rounded-xl border border-stone-200 bg-white p-6 font-serif text-stone-900 shadow-sm sm:p-8">

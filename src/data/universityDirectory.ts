@@ -1,6 +1,5 @@
 import type { ApiUniversity } from '@/types';
 import { loadGlobalUniversityIndex } from './globalUniversityIndex';
-import { prioritizePartners } from './applyBoard';
 
 export async function searchGlobalUniversities(
   query: string,
@@ -16,9 +15,9 @@ export async function searchGlobalUniversities(
     .trim()
     .split(/\s+/)
     .filter(Boolean);
-  if (terms.length === 0) return prioritizePartners(universities);
+  if (terms.length === 0) return universities;
 
-  const matchedSchools = universities.filter((university) => {
+  return universities.filter((university) => {
     const searchableText = [
       university.name,
       university.country,
@@ -31,8 +30,6 @@ export async function searchGlobalUniversities(
       .toLowerCase();
     return terms.every((term) => searchableText.includes(term));
   });
-  matchedSchools.sort((a, b) => Number(b.is_partner) - Number(a.is_partner));
-  return matchedSchools;
 }
 
 export function getBaseWebsiteUrl(candidate: string): string {

@@ -32,7 +32,6 @@ import type {
 } from '@/types';
 import { getAsanteAnswer, getAsanteLocalAnswer } from '@/data/asanteEngine';
 import { getAdmissionsSearchUrl, getSafeExternalUrl, getUniversityWebsite } from '@/data/universityDirectory';
-import { APPLYBOARD_PARTNER_URL, withPartnerFlag } from '@/data/applyBoard';
 import { getGuestSessionId, sanitizePlainText } from '@/utils/inputSecurity';
 
 const QUICK_PROMPTS = [
@@ -151,7 +150,6 @@ interface InitiativeManagementProps {
 }
 
 function UniversityResultCard({ university }: { university: University }) {
-  const school = withPartnerFlag(university);
   const feeStatusLabel = university.applicationFeeType === 'free'
     ? '$0 App Fee'
     : university.applicationFeeType === 'waiver'
@@ -178,11 +176,6 @@ function UniversityResultCard({ university }: { university: University }) {
         </div>
 
         <div className="flex flex-wrap gap-1.5 mb-3">
-          {school.is_partner && (
-            <span className="inline-flex items-center rounded-md border border-blue-600/30 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
-              Official Partner — Fast-Track &amp; Fee Waiver Desk
-            </span>
-          )}
           <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${feeColor}`}>
             <DollarSign className="w-3 h-3" />
             {feeStatusLabel}{university.applicationFeeType === 'paid' ? ` · ${university.applicationFeeDisplay}` : ''}
@@ -221,16 +214,12 @@ function UniversityResultCard({ university }: { university: University }) {
       </div>
 
       <a
-        href={school.is_partner ? APPLYBOARD_PARTNER_URL : getSafeExternalUrl(university.portalUrl, university.name)}
+        href={getSafeExternalUrl(university.portalUrl, university.name)}
         target="_blank"
         rel="noopener noreferrer"
-        className={`flex items-center justify-center gap-1.5 w-full border-t border-slate-700/60 px-4 py-2.5 text-xs font-semibold ${
-          school.is_partner
-            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-            : 'bg-slate-800/80 text-[#0498cc] transition-all hover:bg-slate-700/50 hover:text-[#003574]'
-        }`}
+        className="flex items-center justify-center gap-1.5 w-full border-t border-slate-700/60 bg-slate-800/80 px-4 py-2.5 text-xs font-semibold text-[#0498cc] transition-all hover:bg-slate-700/50 hover:text-[#003574]"
       >
-        {school.is_partner ? 'Apply via Partner Desk →' : 'Visit Official Website →'}
+        Official Application Portal
         <ExternalLink className="w-3.5 h-3.5" />
       </a>
     </div>
@@ -354,7 +343,6 @@ function InitiativeResultCard({
 }
 
 function GlobalUniversityResultCard({ university }: { university: ApiUniversity }) {
-  const school = withPartnerFlag(university);
   const portal = getUniversityWebsite(university);
   return (
     <div className="rounded-xl border border-slate-700/60 bg-slate-800/50 overflow-hidden">
@@ -366,11 +354,6 @@ function GlobalUniversityResultCard({ university }: { university: ApiUniversity 
           <div className="min-w-0">
             <h4 className="text-sm font-bold text-stone-900">{university.name}</h4>
             <p className="mt-0.5 text-xs text-slate-400">{university.country}</p>
-            {school.is_partner && (
-              <span className="mt-2 inline-flex items-center rounded-md border border-blue-600/30 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
-                Official Partner — Fast-Track &amp; Fee Waiver Desk
-              </span>
-            )}
           </div>
         </div>
         <p className="mt-3 text-xs leading-relaxed text-slate-400">
@@ -380,25 +363,24 @@ function GlobalUniversityResultCard({ university }: { university: ApiUniversity 
         </p>
       </div>
       <div className="flex border-t border-slate-700/60">
-        {school.is_partner ? (
+        {portal && (
           <a
-            href={APPLYBOARD_PARTNER_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-1 items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-3 py-2.5 text-xs transition shadow-sm"
-          >
-            Apply via Partner Desk →
-          </a>
-        ) : (
-          <a
-            href={portal || getAdmissionsSearchUrl(university.name)}
+            href={portal}
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-1 items-center justify-center gap-1.5 bg-slate-800/80 px-3 py-2.5 text-xs font-semibold text-[#0498cc] hover:bg-slate-700/50"
           >
-            Visit Official Website → <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
+            Visit Website <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
           </a>
         )}
+        <a
+          href={getAdmissionsSearchUrl(university.name)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-1 items-center justify-center gap-1.5 border-l border-slate-700/60 bg-slate-800/80 px-3 py-2.5 text-xs font-semibold text-slate-300 hover:bg-slate-700/50"
+        >
+          Search Admissions <ExternalLink className="h-3.5 w-3.5 flex-shrink-0" />
+        </a>
       </div>
     </div>
   );

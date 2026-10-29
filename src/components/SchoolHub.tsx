@@ -20,10 +20,8 @@ import type { University, FeeWaiverDetail, ApiUniversity, CivioUser } from '@/ty
 import { universities, countries, degreeLevels } from '@/data/universities';
 import { loadGlobalUniversityIndex } from '@/data/globalUniversityIndex';
 import { getAdmissionsSearchUrl, getBaseWebsiteUrl, getUniversityWebsite } from '@/data/universityDirectory';
-import { withPartnerFlag } from '@/data/applyBoard';
 import SkeletonCards from '@/components/SkeletonCards';
 import ResumeBuilder from '@/components/ResumeBuilder';
-import PartnerSearchWidget from '@/components/PartnerSearchWidget';
 
 const FEE_WAIVER_STYLES: Record<FeeWaiverDetail, { banner: string }> = {
   'always-free': { banner: 'border-emerald-800 text-emerald-300' },
@@ -47,8 +45,8 @@ const INTEL_ITEMS = [
 ];
 
 type SearchResult =
-  | { kind: 'local'; university: University; is_partner: boolean }
-  | { kind: 'api'; apiUni: ApiUniversity; is_partner: boolean };
+  | { kind: 'local'; university: University }
+  | { kind: 'api'; apiUni: ApiUniversity };
 
 function normalizeSearchText(value: string): string {
   return value
@@ -59,24 +57,14 @@ function normalizeSearchText(value: string): string {
     .trim();
 }
 
-function toApplyBoardSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/st\.\s+/g, 'st-')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
 function findLocalMatch(apiUni: ApiUniversity): University | undefined {
   const apiName = normalizeSearchText(apiUni.name);
   return universities.find((u) => {
     const localName = normalizeSearchText(u.name);
     const localShortName = normalizeSearchText(u.shortName);
-    return (
-      localName === apiName ||
+    return localName === apiName ||
       (localName.length > 8 && (localName.includes(apiName) || apiName.includes(localName))) ||
-      (localShortName.length > 3 && localShortName === apiName)
-    );
+      (localShortName.length > 3 && localShortName === apiName);
   });
 }
 
@@ -123,14 +111,11 @@ function scoreUniversityMatch(university: ApiUniversity, query: string): number 
   for (const token of queryTokens) {
     let matched = false;
     for (let fieldIndex = 0; fieldIndex < fieldTokens.length; fieldIndex++) {
-      if (
-        fieldTokens[fieldIndex].some(
-          (word) =>
-            word.includes(token) ||
-            (word.length >= 3 && token.includes(word)) ||
-            (token.length >= 5 && isWithinOneEdit(token, word))
-        )
-      ) {
+      if (fieldTokens[fieldIndex].some((word) =>
+        word.includes(token) ||
+        (word.length >= 3 && token.includes(word)) ||
+        (token.length >= 5 && isWithinOneEdit(token, word))
+      )) {
         if (fieldIndex === 0) nameMatches++;
         matched = true;
         break;
@@ -164,64 +149,9 @@ function completenessScore(u: University): number {
 
 function compareByDefaultPriority(a: University, b: University): number {
   return (
-    Number(b.is_partner) - Number(a.is_partner) ||
     Number(hasActiveFeeWaiver(b)) - Number(hasActiveFeeWaiver(a)) ||
     completenessScore(b) - completenessScore(a) ||
     a.name.localeCompare(b.name)
-  );
-}
-
-function PartnerBadge() {
-  return (
-    <span className="inline-flex items-center rounded-md border border-blue-600/30 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
-      Official Partner — Fast-Track &amp; Fee Waiver Desk
-    </span>
-  );
-}
-
-function DirectoryCtas({
-  isPartner,
-  schoolName,
-  officialUrl,
-}: {
-  isPartner: boolean;
-  schoolName: string;
-  officialUrl: string;
-}) {
-  if (isPartner) {
-    const slug = toApplyBoardSlug(schoolName);
-    const directSchoolUrl = `https://www.applyboard.com/schools/${slug}?partner_id=2369466`;
-
-    return (
-      <a
-        href={directSchoolUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex flex-1 items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 transition shadow-sm text-sm"
-      >
-        Apply via Partner Desk →
-      </a>
-    );
-  }
-
-  return officialUrl ? (
-    <a
-      href={officialUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#003574] px-3 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#002756]"
-    >
-      Visit Official Website → <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
-    </a>
-  ) : (
-    <a
-      href={getAdmissionsSearchUrl(schoolName || 'university')}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#003574] px-3 py-2.5 text-sm font-semibold text-white"
-    >
-      Visit Official Website →
-    </a>
   );
 }
 
@@ -239,16 +169,13 @@ function SchoolCard({ school }: { school: University }) {
             <h3 className="text-lg font-semibold leading-snug text-stone-900">{school.name}</h3>
             <div className="mt-1.5 flex items-center gap-2 text-sm text-slate-400">
               <Globe className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" strokeWidth={1.75} />
-              <span>
-                {school.city}, {school.country}
-              </span>
+              <span>{school.city}, {school.country}</span>
             </div>
           </div>
         </div>
 
-        {(school.is_partner || hasActiveFeeWaiver(school) || school.englishWaiver.available) && (
+        {(hasActiveFeeWaiver(school) || school.englishWaiver.available) && (
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            {school.is_partner && <PartnerBadge />}
             {hasActiveFeeWaiver(school) && (
               <span className="inline-flex items-center rounded-md border border-[#0498cc]/30 bg-[#0498cc]/10 px-2.5 py-1 text-xs font-semibold text-[#003574]">
                 {school.applicationFeeType === 'free' ? '✓ $0 Application Fee' : 'Fee Waiver Available'}
@@ -268,10 +195,7 @@ function SchoolCard({ school }: { school: University }) {
             {school.type}
           </span>
           {school.degreeLevels.map((level) => (
-            <span
-              key={level}
-              className="inline-flex items-center gap-1.5 rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs text-slate-300"
-            >
+            <span key={level} className="inline-flex items-center gap-1.5 rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs text-slate-300">
               <GraduationCap className="h-3.5 w-3.5 text-slate-500" strokeWidth={1.75} />
               {level}
             </span>
@@ -295,12 +219,7 @@ function SchoolCard({ school }: { school: University }) {
                 <p className="text-xs leading-relaxed text-slate-400">{school.englishWaiver.detail}</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {school.englishWaiver.acceptedProofs.map((proof) => (
-                    <span
-                      key={proof}
-                      className="inline-flex items-center rounded-md border border-emerald-900 bg-emerald-950/40 px-2 py-1 text-[10px] font-medium text-emerald-200"
-                    >
-                      {proof}
-                    </span>
+                    <span key={proof} className="inline-flex items-center rounded-md border border-emerald-900 bg-emerald-950/40 px-2 py-1 text-[10px] font-medium text-emerald-200">{proof}</span>
                   ))}
                 </div>
               </div>
@@ -344,12 +263,15 @@ function SchoolCard({ school }: { school: University }) {
         </div>
       </div>
 
-      <div className="mt-auto flex flex-col gap-2 border-t border-slate-800 p-4 sm:flex-row">
-        <DirectoryCtas
-          isPartner={Boolean(school.is_partner)}
-          schoolName={school.name}
-          officialUrl={websiteUrl || getAdmissionsSearchUrl(school.name)}
-        />
+      <div className="mt-auto flex gap-2 border-t border-slate-800 p-4">
+        {websiteUrl && (
+          <a href={websiteUrl} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#003574] px-3 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#003574]">
+            Visit Website <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+          </a>
+        )}
+        <a href={getAdmissionsSearchUrl(school.name)} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm font-semibold text-slate-200 transition-colors duration-150 hover:bg-slate-800">
+          Search Admissions <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+        </a>
       </div>
     </div>
   );
@@ -370,9 +292,7 @@ function ApiSchoolCard({ apiUni }: { apiUni: ApiUniversity }) {
             <div className="mt-1.5 flex items-center gap-2 text-sm text-slate-400">
               <Globe className="h-3.5 w-3.5 flex-shrink-0 text-slate-500" strokeWidth={1.75} />
               <span>{apiUni.country}</span>
-              <span className="inline-flex items-center justify-center rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 border border-slate-700">
-                {apiUni.alpha_two_code}
-              </span>
+              <span className="inline-flex items-center justify-center rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400 border border-slate-700">{apiUni.alpha_two_code}</span>
             </div>
             {apiUni.state_province && (
               <p className="mt-1 text-xs text-slate-500">{apiUni.state_province}</p>
@@ -381,7 +301,6 @@ function ApiSchoolCard({ apiUni }: { apiUni: ApiUniversity }) {
         </div>
 
         <div className="mb-5 flex flex-wrap gap-2">
-          {apiUni.is_partner && <PartnerBadge />}
           <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs text-slate-300">
             <Globe className="h-3.5 w-3.5 text-slate-500" strokeWidth={1.75} />
             Directory record
@@ -403,23 +322,21 @@ function ApiSchoolCard({ apiUni }: { apiUni: ApiUniversity }) {
         {apiUni.domains.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-4">
             {apiUni.domains.slice(0, 3).map((d) => (
-              <span
-                key={d}
-                className="inline-flex items-center rounded-md bg-slate-800/60 border border-slate-700/50 px-2 py-0.5 text-[10px] font-mono text-slate-400"
-              >
-                {d}
-              </span>
+              <span key={d} className="inline-flex items-center rounded-md bg-slate-800/60 border border-slate-700/50 px-2 py-0.5 text-[10px] font-mono text-slate-400">{d}</span>
             ))}
           </div>
         )}
       </div>
 
-      <div className="mt-auto flex flex-col gap-2 border-t border-slate-800 p-4 sm:flex-row">
-        <DirectoryCtas
-          isPartner={Boolean(apiUni.is_partner)}
-          schoolName={apiUni.name}
-          officialUrl={portalUrl || getAdmissionsSearchUrl(apiUni.name)}
-        />
+      <div className="mt-auto flex gap-2 border-t border-slate-800 p-4">
+        {portalUrl && (
+          <a href={portalUrl} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md bg-[#003574] px-3 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#003574]">
+            Visit Website <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+          </a>
+        )}
+        <a href={getAdmissionsSearchUrl(apiUni.name)} target="_blank" rel="noopener noreferrer" className="flex flex-1 items-center justify-center gap-2 rounded-md border border-slate-700 bg-slate-900 px-3 py-2.5 text-sm font-semibold text-slate-200 transition-colors duration-150 hover:bg-slate-800">
+          Search Admissions <ExternalLink className="h-4 w-4 flex-shrink-0" strokeWidth={1.75} />
+        </a>
       </div>
     </div>
   );
@@ -438,7 +355,6 @@ export default function SchoolHub({
   const [selectedDegree, setSelectedDegree] = useState('All');
   const [freeOnly, setFreeOnly] = useState(false);
   const [ieltsExemptOnly, setIeltsExemptOnly] = useState(false);
-  const [partnersOnly, setPartnersOnly] = useState(false);
   const [globalUniversities, setGlobalUniversities] = useState<ApiUniversity[]>([]);
   const [directoryLoading, setDirectoryLoading] = useState(true);
   const [directoryError, setDirectoryError] = useState<string | null>(null);
@@ -469,10 +385,10 @@ export default function SchoolHub({
 
   useEffect(() => {
     setVisibleResultCount(30);
-  }, [debouncedQuery, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly, partnersOnly]);
+  }, [debouncedQuery, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly]);
 
   const localFiltered = useMemo(() => {
-    let result = universities.map(withPartnerFlag);
+    let result = universities;
 
     if (isSearching) {
       const q = debouncedQuery.trim().toLowerCase();
@@ -495,53 +411,44 @@ export default function SchoolHub({
     if (selectedDegree !== 'All') result = result.filter((u) => u.degreeLevels.includes(selectedDegree as University['degreeLevels'][number]));
     if (freeOnly) result = result.filter((u) => u.applicationFeeType === 'free' || u.applicationFeeType === 'waiver');
     if (ieltsExemptOnly) result = result.filter((u) => u.englishWaiver.available);
-    if (partnersOnly) result = result.filter((u) => u.is_partner);
 
-    result = [...result].sort(compareByDefaultPriority);
+    if (!isSearching) {
+      result = [...result].sort(compareByDefaultPriority);
+    }
 
     return result;
-  }, [debouncedQuery, isSearching, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly, partnersOnly]);
+  }, [debouncedQuery, isSearching, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly]);
 
   const globalResults = useMemo(() => {
     if (selectedDegree !== 'All' || freeOnly || ieltsExemptOnly) return [];
 
     return globalUniversities
-      .map(withPartnerFlag)
-      .filter(
-        (university) =>
-          (selectedCountry === 'All' || university.country === selectedCountry) &&
-          (!partnersOnly || university.is_partner)
+      .filter((university) =>
+        selectedCountry === 'All' || university.country === selectedCountry
       )
       .map((university) => ({
         university,
         score: scoreUniversityMatch(university, normalizedQuery),
       }))
-      .filter((result): result is { university: ApiUniversity & { is_partner: boolean }; score: number } => result.score !== null)
-      .sort(
-        (left, right) =>
-          Number(right.university.is_partner) - Number(left.university.is_partner) ||
-          right.score - left.score
-      );
-  }, [globalUniversities, normalizedQuery, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly, partnersOnly]);
+      .filter((result): result is { university: ApiUniversity; score: number } => result.score !== null)
+      .sort((left, right) => right.score - left.score);
+  }, [globalUniversities, normalizedQuery, selectedCountry, selectedDegree, freeOnly, ieltsExemptOnly]);
 
   const allResults = useMemo(() => {
     const matchedLocalIds = new Set<string>();
     const global: SearchResult[] = globalResults.map(({ university }) => {
       const matched = findLocalMatch(university);
       if (matched) {
-        const flagged = withPartnerFlag(matched);
-        matchedLocalIds.add(flagged.id);
-        return { kind: 'local', university: flagged, is_partner: flagged.is_partner };
+        matchedLocalIds.add(matched.id);
+        return { kind: 'local', university: matched };
       }
-      return { kind: 'api', apiUni: university, is_partner: Boolean(university.is_partner) };
+      return { kind: 'api', apiUni: university };
     });
     const localOnly: SearchResult[] = localFiltered
       .filter((university) => !matchedLocalIds.has(university.id))
-      .map((university) => ({ kind: 'local', university, is_partner: Boolean(university.is_partner) }));
+      .map((university) => ({ kind: 'local', university }));
 
-    const matchedSchools = [...localOnly, ...global];
-    matchedSchools.sort((a, b) => Number(b.is_partner) - Number(a.is_partner));
-    return matchedSchools;
+    return [...localOnly, ...global];
   }, [globalResults, localFiltered]);
   const visibleResults = allResults.slice(0, visibleResultCount);
 
@@ -579,11 +486,6 @@ export default function SchoolHub({
         </span>
         <ArrowUpRight className="h-4 w-4 shrink-0 text-[#0498cc] transition-colors group-hover:text-[#003574]" />
       </button>
-
-      <div className="mb-8 overflow-hidden rounded-xl border border-slate-200 bg-white p-4 sm:p-6">
-        <p className="mb-3 text-sm font-semibold text-stone-900">Search 1,500+ partner universities</p>
-        <PartnerSearchWidget />
-      </div>
 
       <div className="mb-8 rounded-xl border border-slate-800 bg-slate-950 p-5 sm:p-6">
         <label htmlFor="global-university-search" className="mb-2 block text-sm font-semibold text-slate-200">
@@ -635,17 +537,7 @@ export default function SchoolHub({
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Country</label>
               <div className="flex flex-wrap gap-1.5">
                 {countries.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setSelectedCountry(c)}
-                    className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-                      selectedCountry === c
-                        ? 'border-[#003574] bg-[#003574] text-white'
-                        : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'
-                    }`}
-                  >
-                    {c}
-                  </button>
+                  <button key={c} onClick={() => setSelectedCountry(c)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selectedCountry === c ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{c}</button>
                 ))}
               </div>
             </div>
@@ -654,17 +546,7 @@ export default function SchoolHub({
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Degree Level</label>
               <div className="flex flex-wrap gap-1.5">
                 {degreeLevels.map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => setSelectedDegree(d)}
-                    className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-                      selectedDegree === d
-                        ? 'border-[#003574] bg-[#003574] text-white'
-                        : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'
-                    }`}
-                  >
-                    {d}
-                  </button>
+                  <button key={d} onClick={() => setSelectedDegree(d)} className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${selectedDegree === d ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>{d}</button>
                 ))}
               </div>
             </div>
@@ -672,31 +554,11 @@ export default function SchoolHub({
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">Fee & Waiver Filters</label>
               <div className="flex flex-wrap gap-1.5">
-                <button
-                  onClick={() => setFreeOnly(!freeOnly)}
-                  className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-                    freeOnly ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'
-                  }`}
-                >
-                  <DollarSign className="h-3.5 w-3.5" strokeWidth={1.75} />
-                  $0 / Waivers
+                <button onClick={() => setFreeOnly(!freeOnly)} className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${freeOnly ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>
+                  <DollarSign className="h-3.5 w-3.5" strokeWidth={1.75} />$0 / Waivers
                 </button>
-                <button
-                  onClick={() => setIeltsExemptOnly(!ieltsExemptOnly)}
-                  className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-                    ieltsExemptOnly ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'
-                  }`}
-                >
-                  <Languages className="h-3.5 w-3.5" strokeWidth={1.75} />
-                  IELTS Exempt
-                </button>
-                <button
-                  onClick={() => setPartnersOnly(!partnersOnly)}
-                  className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${
-                    partnersOnly ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'
-                  }`}
-                >
-                  Partner schools
+                <button onClick={() => setIeltsExemptOnly(!ieltsExemptOnly)} className={`inline-flex items-center gap-2 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${ieltsExemptOnly ? 'border-[#003574] bg-[#003574] text-white' : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700 hover:text-slate-200'}`}>
+                  <Languages className="h-3.5 w-3.5" strokeWidth={1.75} />IELTS Exempt
                 </button>
               </div>
             </div>
@@ -709,11 +571,7 @@ export default function SchoolHub({
               {' · '}Found <span className="text-slate-300 font-semibold">{totalCount.toLocaleString()}</span> matching universities
               {isSearching && <> for "<span className="text-slate-300 font-semibold">{debouncedQuery}</span>"</>}
               {directoryLoading && <span className="ml-2 text-slate-400">· Loading bundled directory</span>}
-              {directoryError && (
-                <span role="status" className="ml-2 text-slate-400">
-                  · {directoryError} Saved university records remain available.
-                </span>
-              )}
+              {directoryError && <span role="status" className="ml-2 text-slate-400">· {directoryError} Saved university records remain available.</span>}
             </span>
           </div>
         </div>
@@ -731,7 +589,6 @@ export default function SchoolHub({
               setSelectedDegree('All');
               setFreeOnly(false);
               setIeltsExemptOnly(false);
-              setPartnersOnly(false);
             }}
             className="mt-5 inline-flex items-center rounded-md bg-[#003574] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#003574]"
           >
@@ -743,17 +600,19 @@ export default function SchoolHub({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {visibleResults.map((result, idx) =>
               result.kind === 'local' ? (
-                <SchoolCard key={`local-${result.university.id}`} school={result.university} />
+                <SchoolCard
+                  key={`local-${result.university.id}`}
+                  school={result.university}
+                />
               ) : (
-                <ApiSchoolCard key={`api-${result.apiUni.name}-${idx}`} apiUni={result.apiUni} />
+                <ApiSchoolCard
+                  key={`api-${result.apiUni.name}-${idx}`}
+                  apiUni={result.apiUni}
+                />
               )
             )}
           </div>
-          {directoryLoading && (
-            <div className="mt-5">
-              <SkeletonCards count={3} />
-            </div>
-          )}
+          {directoryLoading && <div className="mt-5"><SkeletonCards count={3} /></div>}
           {visibleResultCount < allResults.length && (
             <div className="mt-8">
               <button
