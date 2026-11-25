@@ -135,10 +135,6 @@ function useDebounce<T>(value: T, delay: number): T {
   return debounced;
 }
 
-function hasActiveFeeWaiver(u: University): boolean {
-  return u.applicationFeeType === 'free' || u.applicationFeeType === 'waiver';
-}
-
 function completenessScore(u: University): number {
   return (
     (u.intel.deadlines.trim() ? 1 : 0) +
@@ -147,12 +143,49 @@ function completenessScore(u: University): number {
   );
 }
 
+function hasActiveFeeWaiver(u: University): boolean {
+  return u.applicationFeeType === 'free' || u.applicationFeeType === 'waiver';
+}
+
+function hasIeltsExemption(u: University): boolean {
+  return u.englishWaiver.available;
+}
+
+// Force University of the People to always render at index 0
+function forceUoPeopleFirst(a: University, b: University): number {
+  const uoPeopleId = 'uopeople';
+  const aIsUoPeople = a.id === uoPeopleId || a.name.toLowerCase().includes('university of the people');
+  const bIsUoPeople = b.id === uoPeopleId || b.name.toLowerCase().includes('university of the people');
+
+  if (aIsUoPeople && !bIsUoPeople) return -1;
+  if (!aIsUoPeople && bIsUoPeople) return 1;
+  if (aIsUoPeople && bIsUoPeople) return 0;
+  return null; // fall through to tiered sorting
+}
+
 function compareByDefaultPriority(a: University, b: University): number {
-  return (
-    Number(hasActiveFeeWaiver(b)) - Number(hasActiveFeeWaiver(a)) ||
-    completenessScore(b) - completenessScore(a) ||
-    a.name.localeCompare(b.name)
-  );
+  // Step 1: Force University of the People to always be first
+  const uoPeoplePriority = forceUoPeopleFirst(a, b);
+  if (uoPeoplePriority !== null) return uoPeoplePriority;
+
+  // Step 2: Tiered sorting after UoPeople
+  // Tier 1: BOTH active fee waiver AND IELTS/MOI exemption
+  const aBoth = hasActiveFeeWaiver(a) && hasIeltsExemption(a);
+  const bBoth = hasActiveFeeWaiver(b) && hasIeltsExemption(b);
+  if (aBoth && !bBoth) return -1;
+  if (!aBoth && bBoth) return 1;
+
+  // Tier 2: EITHER fee waiver OR IELTS exemption (but not both)
+  const aEither = hasActiveFeeWaiver(a) || hasIeltsExemption(a);
+  const bEither = hasActiveFeeWaiver(b) || hasIeltsExemption(b);
+  if (aEither && !bEither) return -1;
+  if (!aEither && bEither) return 1;
+
+  // Tier 3: remaining — sort by completeness then alphabetical
+  const completenessA = completenessScore(a);
+  const completenessB = completenessScore(b);
+  if (completenessB !== completenessA) return completenessB - completenessA;
+  return a.name.localeCompare(b.name);
 }
 
 function SchoolCard({ school }: { school: University }) {
