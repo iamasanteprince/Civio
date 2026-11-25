@@ -1187,6 +1187,36 @@ export const universities: University[] = [
     acceptanceRate: 'Varies by program',
     established: '1919',
   },
+  {
+    id: 'uopeople',
+    name: 'University of the People',
+    shortName: 'UoPeople',
+    city: 'Online',
+    country: 'USA',
+    countryFlag: 'US',
+    type: 'Private Nonprofit Online University',
+    degreeLevels: ['Undergraduate', "Graduate / Master's"],
+    applicationFeeType: 'waiver',
+    applicationFeeDisplay: 'Waiver Upon Request',
+    feeNote: '100% tuition-free — no application fees for associate, bachelor, or graduate programs',
+    feeWaiverDetail: 'always-free',
+    intel: {
+      languageTesting:
+        'IELTS Waived for applicants with prior English-medium instruction. Duolingo English Test accepted (min. 100).',
+      standardizedTests: 'GRE / GMAT Optional for most programs',
+      keyIntakes: 'Fall (September) & Spring (January) intakes',
+      deadlines: 'Fall: Aug 1 · Spring: Jan 1',
+    },
+    englishWaiver: {
+      available: true,
+      detail: 'IELTS and TOEFL waived for applicants with prior English-medium instruction. Duolingo English Test accepted (min. 100).',
+      acceptedProofs: ['Duolingo English Test (100+)', 'Prior English-medium instruction letter'],
+    },
+    portalUrl: 'https://www.uopeople.edu/',
+    ranking: '#1 Online University (Class Central)',
+    acceptanceRate: 'Varies by program',
+    established: '2009',
+  },
 ];
 
 export const countries: string[] = [
