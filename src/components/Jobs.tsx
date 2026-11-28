@@ -299,7 +299,7 @@ export default function Jobs() {
                 <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-stone-600">{cleanExcerpt(job.excerpt)}</p>
               )}
               <p className="mt-auto pt-4 text-xs text-stone-500">Source: {job.source}</p>
-              <div className="mt-2 flex flex-wrap items-center justify-end gap-2 border-t border-stone-100 pt-3">
+              <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-stone-100 pt-3">
                 {job.companyUrl && isHttpsUrl(job.companyUrl) && (
                   <a
                     href={job.companyUrl}
@@ -315,7 +315,7 @@ export default function Jobs() {
                   href={job.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-auto inline-flex items-center gap-1.5 text-sm font-semibold text-[#003574] underline-offset-2 hover:underline"
+                  className={`${job.companyUrl && isHttpsUrl(job.companyUrl) ? '' : 'ml-auto '}inline-flex items-center gap-1.5 text-sm font-semibold text-[#003574] underline-offset-2 hover:underline`}
                 >
                   View original listing <ExternalLink className="h-3.5 w-3.5" />
                 </a>
