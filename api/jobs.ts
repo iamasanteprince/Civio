@@ -1,5 +1,5 @@
-import { loadJobs } from '../src/server/jobs';
-import type { JobsDiagnostic } from '../src/server/jobs';
+import { loadJobs } from '../src/server/jobs.js';
+import type { JobFeedStatus, JobsDiagnostic } from '../src/server/jobs.js';
 
 interface ApiRequest {
   method?: string;
@@ -35,16 +35,23 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     response.status(200).json(payload);
   } catch (error) {
     console.error('Could not prepare the jobs response.', error);
-    const diagnostic: JobsDiagnostic = {
-      source: 'Remote OK',
+    const sources: JobFeedStatus[] = [
+      { source: 'Remote OK', status: 'failed', jobCount: 0 },
+      { source: 'Jobicy', status: 'failed', jobCount: 0 },
+      { source: 'Himalayas', status: 'failed', jobCount: 0 },
+    ];
+    const diagnostics: JobsDiagnostic[] = sources.map(({ source }) => ({
+      source,
       code: 'service_error',
-      message: 'The jobs service is temporarily unavailable.',
-    };
+      message: `${source} could not be queried because the jobs service failed.`,
+    }));
     setCacheHeaders(response, true);
-    response.status(200).json({
+    response.status(503).json({
       jobs: [],
       error: true,
-      diagnostics: [diagnostic],
+      details: 'The jobs service failed before feed results were available. Please try again shortly.',
+      sources,
+      diagnostics,
     });
   }
 }

@@ -1,4 +1,4 @@
-import { loadPolicyFeeds } from '../src/server/policyFeeds';
+import { loadPolicyFeeds } from '../src/server/policyFeeds.js';
 
 interface ApiRequest {
   method?: string;

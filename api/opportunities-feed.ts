@@ -1,4 +1,4 @@
-import { loadOpportunityFeeds } from '../src/server/opportunityFeeds';
+import { loadOpportunityFeeds } from '../src/server/opportunityFeeds.js';
 
 interface ApiRequest {
   method?: string;

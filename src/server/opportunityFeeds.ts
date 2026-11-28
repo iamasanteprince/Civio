@@ -1,4 +1,4 @@
-import type { FundingType, Opportunity, OpportunityCategory, TargetAudience } from '../types';
+import type { FundingType, Opportunity, OpportunityCategory, TargetAudience } from '../types/index.js';
 
 interface FeedSource {
   id: string;

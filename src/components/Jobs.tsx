@@ -23,27 +23,35 @@ function getDiagnosticMessage(value: unknown): string | undefined {
   }
   const diagnostic = value.find(isRecord);
   if (!diagnostic || typeof diagnostic.code !== 'string') return undefined;
+  const source = typeof diagnostic.source === 'string' ? diagnostic.source : 'Remote job feeds';
 
   switch (diagnostic.code) {
     case 'blocked':
-      return 'Remote OK is temporarily blocking job requests. Please try again later.';
+      return `${source} is temporarily blocking job requests. Please try again later.`;
     case 'rate_limited':
-      return 'Remote OK is temporarily limiting requests. Please try again later.';
+      return `${source} is temporarily limiting requests. Please try again later.`;
     case 'timeout':
-      return 'Remote OK is taking too long to respond. Please try again shortly.';
+      return `${source} is taking too long to respond. Please try again shortly.`;
     case 'network':
-      return 'Remote OK could not be reached. Please try again shortly.';
+      return `${source} could not be reached. Please try again shortly.`;
     case 'invalid_response':
-      return 'Remote OK returned an unexpected response. Please try again later.';
+      return `${source} returned no usable listings. Please try again later.`;
     case 'service_error':
-      return 'The CivioHub jobs service is temporarily unavailable. Please try again shortly.';
+      return `${source} is temporarily unavailable. Please try again shortly.`;
     case 'upstream_http':
       return typeof diagnostic.status === 'number'
-        ? `Remote OK is temporarily unavailable (HTTP ${diagnostic.status}). Please try again later.`
-        : 'Remote OK is temporarily unavailable. Please try again later.';
+        ? `${source} is temporarily unavailable (HTTP ${diagnostic.status}). Please try again later.`
+        : `${source} is temporarily unavailable. Please try again later.`;
     default:
       return undefined;
   }
+}
+
+function getPayloadMessage(value: unknown): string | undefined {
+  if (!isRecord(value)) return undefined;
+  if (typeof value.details === 'string' && value.details.trim()) return value.details;
+  if (typeof value.error === 'string' && value.error.trim()) return value.error;
+  return getDiagnosticMessage(value.diagnostics);
 }
 
 function httpErrorMessage(status: number): string {
@@ -104,7 +112,7 @@ export default function Jobs() {
   const [jobs, setJobs] = useState<RemoteJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sourceError, setSourceError] = useState(false);
+  const [sourceDetails, setSourceDetails] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All categories');
   const [region, setRegion] = useState('All regions');
@@ -126,18 +134,20 @@ export default function Jobs() {
         throw new Error('The jobs service returned an invalid response. Please try again shortly.');
       }
       if (!response.ok) {
-        throw new Error(getDiagnosticMessage(isRecord(payload) ? payload.diagnostics : undefined) ??
-          httpErrorMessage(response.status));
+        throw new Error(getPayloadMessage(payload) ?? httpErrorMessage(response.status));
       }
-      if (!isRecord(payload) || !Array.isArray(payload.jobs) ||
-        typeof payload.error !== 'boolean' || !payload.jobs.every(isRemoteJob)) {
-        throw new Error('The jobs service returned an unexpected response. Please try again shortly.');
+      if (!isRecord(payload) || !Array.isArray(payload.jobs) || !payload.jobs.every(isRemoteJob)) {
+        throw new Error(getPayloadMessage(payload) ??
+          'The jobs service returned an unexpected response. Please try again shortly.');
       }
       if (controller.signal.aborted) return;
       setJobs(payload.jobs);
-      setSourceError(payload.error);
-      setError(payload.error
-        ? getDiagnosticMessage(payload.diagnostics) ?? 'Remote OK is temporarily unavailable. Please try again later.'
+      const details = getPayloadMessage(payload) ?? null;
+      const hasError = payload.error === true && payload.jobs.length === 0;
+      setSourceDetails(details);
+      setError(hasError
+        ? details ??
+          'All remote job feeds are temporarily unavailable. Please try again later.'
         : null);
     } catch (cause) {
       if (controller.signal.aborted) return;
@@ -148,7 +158,7 @@ export default function Jobs() {
           : 'Remote jobs are temporarily unavailable. Please try again later.';
       setError(message);
       setJobs([]);
-      setSourceError(false);
+      setSourceDetails(null);
     } finally {
       if (!controller.signal.aborted && requestRef.current === controller) setLoading(false);
     }
@@ -251,14 +261,14 @@ export default function Jobs() {
           Loading remote jobs…
         </p>
       )}
-      {!error && !loading && sourceError && jobs.length === 0 && (
-        <p role="alert" className="rounded-xl border border-amber-300 bg-amber-50 px-5 py-8 text-center text-sm text-amber-900">
-          Job listings are temporarily unavailable. Please try again later.
+      {!error && !loading && jobs.length === 0 && (
+        <p role="status" className="rounded-xl border border-stone-200 bg-white px-5 py-10 text-center text-sm text-stone-500">
+          {sourceDetails ?? 'No remote job listings are available right now.'}
         </p>
       )}
-      {!error && !loading && !sourceError && jobs.length === 0 && (
-        <p className="rounded-xl border border-stone-200 bg-white px-5 py-10 text-center text-sm text-stone-500">
-          No remote job listings are available right now.
+      {!error && !loading && jobs.length > 0 && sourceDetails && (
+        <p role="status" className="mb-4 rounded-xl border border-amber-300 bg-amber-50 px-5 py-3 text-sm text-amber-900">
+          {sourceDetails}
         </p>
       )}
       {!error && !loading && jobs.length > 0 && visibleJobs.length === 0 && (

@@ -1,8 +1,8 @@
-import type { JobSource, RemoteJob } from '../types';
+import type { JobSource, RemoteJob } from '../types/index.js';
 
 const REMOTE_OK_URL = 'https://remoteok.com/api';
-const REQUEST_TIMEOUT_MS = 10_000;
-const FALLBACK_TIMEOUT_MS = 8_000;
+const REQUEST_TIMEOUT_MS = 4_000;
+const FALLBACK_TIMEOUT_MS = 4_000;
 const USER_AGENT = 'Mozilla/5.0 (compatible; CivioHubJobs/1.0)';
 const REMOTE_OK: JobSource = 'Remote OK';
 const JOBICY: JobSource = 'Jobicy';
@@ -27,6 +27,15 @@ export interface JobsPayload {
   jobs: RemoteJob[];
   error: boolean;
   diagnostics: JobsDiagnostic[];
+  details: string | null;
+  sources: JobFeedStatus[];
+}
+
+export interface JobFeedStatus {
+  source: JobSource;
+  status: 'ok' | 'empty' | 'failed';
+  jobCount: number;
+  details?: string;
 }
 
 class RemoteOkError extends Error {
@@ -325,6 +334,14 @@ function feedItems(payload: unknown, source: JobSource): Record<string, unknown>
   });
 }
 
+function feedDiagnostic(source: JobSource, message: string): JobsDiagnostic {
+  return {
+    source,
+    code: 'invalid_response',
+    message,
+  };
+}
+
 async function loadFallbackFeed(source: JobSource, endpoint: string): Promise<RemoteJob[]> {
   let response: Response;
   try {
@@ -410,12 +427,21 @@ function deduplicateAndSort(jobs: RemoteJob[]): RemoteJob[] {
 
 export async function loadJobs(): Promise<JobsPayload> {
   let remoteOkJobs: RemoteJob[] = [];
-  let remoteOkFailed = false;
+  const sources: JobFeedStatus[] = [];
+  const diagnostics: JobsDiagnostic[] = [];
   let remoteOkDiagnostic: JobsDiagnostic | undefined;
   try {
     remoteOkJobs = await loadRemoteOk();
+    sources.push({
+      source: REMOTE_OK,
+      status: remoteOkJobs.length ? 'ok' : 'empty',
+      jobCount: remoteOkJobs.length,
+      ...(remoteOkJobs.length ? {} : { details: 'Remote OK returned no usable listings.' }),
+    });
+    if (!remoteOkJobs.length) {
+      remoteOkDiagnostic = feedDiagnostic(REMOTE_OK, 'Remote OK returned no usable listings.');
+    }
   } catch (error) {
-    remoteOkFailed = true;
     if (error instanceof RemoteOkError) {
       remoteOkDiagnostic = error.diagnostic;
       console.warn('Remote OK jobs feed failed.', error.diagnostic);
@@ -427,10 +453,22 @@ export async function loadJobs(): Promise<JobsPayload> {
         message: 'Remote OK is temporarily unavailable.',
       };
     }
+    sources.push({
+      source: REMOTE_OK,
+      status: 'failed',
+      jobCount: 0,
+      details: remoteOkDiagnostic.message,
+    });
   }
 
   if (remoteOkJobs.length > 0) {
-    return { jobs: deduplicateAndSort(remoteOkJobs), error: false, diagnostics: [] };
+    return {
+      jobs: deduplicateAndSort(remoteOkJobs),
+      error: false,
+      diagnostics: [],
+      details: null,
+      sources,
+    };
   }
 
   const fallbackFeeds = [
@@ -438,31 +476,60 @@ export async function loadJobs(): Promise<JobsPayload> {
     { source: HIMALAYAS, request: loadFallbackFeed(HIMALAYAS, 'https://himalayas.app/jobs/api') },
   ];
   const fallbackResults = await Promise.allSettled(fallbackFeeds.map(({ request }) => request));
-  const diagnostics: JobsDiagnostic[] = [];
   if (remoteOkDiagnostic) diagnostics.push(remoteOkDiagnostic);
   const jobs = fallbackResults.flatMap((result, index): RemoteJob[] => {
-    if (result.status === 'fulfilled') return result.value;
+    const source = fallbackFeeds[index].source;
+    if (result.status === 'fulfilled') {
+      const feedJobs = result.value;
+      sources.push({
+        source,
+        status: feedJobs.length ? 'ok' : 'empty',
+        jobCount: feedJobs.length,
+        ...(feedJobs.length ? {} : { details: `${source} returned no usable listings.` }),
+      });
+      if (!feedJobs.length) {
+        diagnostics.push(feedDiagnostic(source, `${source} returned no usable listings.`));
+      }
+      return feedJobs;
+    }
     if (result.reason instanceof JobsFeedError) {
       console.warn(`${result.reason.diagnostic.source} jobs feed failed.`, result.reason.diagnostic);
       diagnostics.push(result.reason.diagnostic);
+      sources.push({
+        source,
+        status: 'failed',
+        jobCount: 0,
+        details: result.reason.diagnostic.message,
+      });
     } else {
       console.warn('A fallback jobs feed failed with an unexpected error.');
+      const message = `${source} is temporarily unavailable.`;
       diagnostics.push({
-        source: fallbackFeeds[index].source,
+        source,
         code: 'service_error',
-        message: 'A fallback jobs feed is temporarily unavailable.',
+        message,
       });
+      sources.push({ source, status: 'failed', jobCount: 0, details: message });
     }
     return [];
   });
 
-  const allFeedsFailed = remoteOkFailed && fallbackResults.every(
-    (result) => result.status === 'rejected'
-  );
+  const sortedJobs = deduplicateAndSort(jobs);
+  const allFeedsFailed = sortedJobs.length === 0;
+  const details = allFeedsFailed
+    ? 'No usable job listings were returned. ' +
+      sources.map(({ source, details: sourceDetails }) =>
+        `${source}: ${sourceDetails ?? 'no listings returned'}`
+      ).join(' ')
+    : sources.some(({ status }) => status !== 'ok')
+      ? 'Some job feeds were unavailable or returned no usable listings; results are shown from the feeds that responded.'
+      : null;
 
   return {
-    jobs: deduplicateAndSort(jobs),
+    jobs: sortedJobs,
     error: allFeedsFailed,
-    diagnostics: allFeedsFailed ? diagnostics : [],
+    diagnostics,
+    details,
+    sources,
   };
 }

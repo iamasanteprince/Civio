@@ -1,4 +1,4 @@
-import { generateAsanteResponse } from '../src/server/gemini';
+import { generateAsanteResponse } from '../src/server/gemini.js';
 
 interface ApiRequest {
   method?: string;

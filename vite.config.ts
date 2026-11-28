@@ -85,12 +85,18 @@ function devApiPlugin(): Plugin {
           );
           response.end(JSON.stringify(payload));
         } catch (error) {
-          console.error('Could not prepare the Remote OK jobs response.', error);
+          console.error('Could not prepare the jobs response.', error);
           response.statusCode = 200;
           response.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
           response.end(JSON.stringify({
             jobs: [],
             error: true,
+            details: 'The jobs service failed before feed results were available. Please try again shortly.',
+            sources: [
+              { source: 'Remote OK', status: 'failed', jobCount: 0 },
+              { source: 'Jobicy', status: 'failed', jobCount: 0 },
+              { source: 'Himalayas', status: 'failed', jobCount: 0 },
+            ],
             diagnostics: [{
               source: 'Remote OK',
               code: 'service_error',
