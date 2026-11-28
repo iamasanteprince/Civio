@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import {
   ShieldCheck,
   GraduationCap,
@@ -7,12 +8,15 @@ import {
   Plus,
   LogIn,
   Briefcase,
+  Laptop,
   MessageSquare,
   Users,
+  Sparkles,
 } from 'lucide-react';
 import type { View, Initiative, CivioUser, DiscussionComment, DiscussionStore } from '@/types';
 import SchoolHub from '@/components/SchoolHub';
 import OpportunitiesHub from '@/components/OpportunitiesHub';
+import Jobs from '@/components/Jobs';
 import Asante from '@/components/Asante';
 import VisaIntelHub from '@/components/VisaIntelHub';
 import StudentForum from '@/components/StudentForum';
@@ -31,9 +35,48 @@ const TABS: { id: View; label: string; icon: typeof ShieldCheck; description: st
   { id: 'hub', label: 'Admissions Hub', icon: GraduationCap, description: 'Universities, $0 App Fees, Waivers', mobileLabel: 'Hub' },
   { id: 'visa', label: 'Visa & Immigration', icon: ShieldCheck, description: 'Student Visa & Immigration Intel', mobileLabel: 'Visa Intel' },
   { id: 'opportunities', label: 'Opportunities', icon: Briefcase, description: 'Conferences, Fellowships, Internships', mobileLabel: 'Opps' },
+  { id: 'jobs', label: 'Remote Jobs', icon: Laptop, description: 'Browse remote job listings', mobileLabel: 'Jobs' },
   { id: 'asante', label: 'Asante', icon: Compass, description: 'Admissions, opportunities & intelligence', mobileLabel: 'Asante' },
   { id: 'forum', label: 'Forum', icon: MessageSquare, description: 'Applicant discussions and questions', mobileLabel: 'Forum' },
 ];
+
+const MOBILE_TABS = TABS.filter(({ id }) => id !== 'asante');
+const ASANTE_BUTTON_SIZE = 64;
+const ASANTE_BUTTON_MARGIN = 12;
+const MOBILE_NAV_CLEARANCE = 108;
+
+interface FloatingPosition {
+  x: number;
+  y: number;
+}
+
+interface PointerDrag {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  originX: number;
+  originY: number;
+  dragged: boolean;
+}
+
+function clampFloatingPosition(position: FloatingPosition): FloatingPosition {
+  const maxX = Math.max(ASANTE_BUTTON_MARGIN, window.innerWidth - ASANTE_BUTTON_SIZE - ASANTE_BUTTON_MARGIN);
+  const maxY = Math.max(ASANTE_BUTTON_MARGIN, window.innerHeight - ASANTE_BUTTON_SIZE - ASANTE_BUTTON_MARGIN);
+  return {
+    x: Math.min(Math.max(position.x, ASANTE_BUTTON_MARGIN), maxX),
+    y: Math.min(Math.max(position.y, ASANTE_BUTTON_MARGIN), maxY),
+  };
+}
+
+function getInitialFloatingPosition(): FloatingPosition {
+  const bottomClearance = window.innerWidth < 1024
+    ? MOBILE_NAV_CLEARANCE
+    : ASANTE_BUTTON_MARGIN;
+  return clampFloatingPosition({
+    x: window.innerWidth - ASANTE_BUTTON_SIZE - ASANTE_BUTTON_MARGIN,
+    y: window.innerHeight - ASANTE_BUTTON_SIZE - bottomClearance,
+  });
+}
 
 function Logo({ onClick }: { onClick: () => void }) {
   return (
@@ -49,6 +92,10 @@ function Logo({ onClick }: { onClick: () => void }) {
 
 export default function App() {
   const [activeView, setActiveView] = useState<View>('hub');
+  const [asanteButtonPosition, setAsanteButtonPosition] = useState<FloatingPosition | null>(null);
+  const [asanteButtonDragging, setAsanteButtonDragging] = useState(false);
+  const pointerDragRef = useRef<PointerDrag | null>(null);
+  const suppressAsanteClickRef = useRef(false);
   const [signInOpen, setSignInOpen] = useState(false);
   const [signInPrompt, setSignInPrompt] = useState('');
 
@@ -71,6 +118,81 @@ export default function App() {
   const [adminAnalyticsError, setAdminAnalyticsError] = useState<string | null>(null);
   const [legalNotice, setLegalNotice] = useState<LegalNotice | null>(null);
   const isAdmin = currentUser?.email.trim().toLowerCase() === ADMIN_EMAIL;
+
+  useEffect(() => {
+    setAsanteButtonPosition(getInitialFloatingPosition());
+    const handleResize = () => {
+      setAsanteButtonPosition((position) =>
+        position ? clampFloatingPosition(position) : getInitialFloatingPosition()
+      );
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleAsantePointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (event.button !== 0 && event.pointerType !== 'touch') return;
+    event.preventDefault();
+    const position = asanteButtonPosition ?? getInitialFloatingPosition();
+    pointerDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: position.x,
+      originY: position.y,
+      dragged: false,
+    };
+    suppressAsanteClickRef.current = false;
+    setAsanteButtonPosition(position);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleAsantePointerMove = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = pointerDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+    if (!drag.dragged && Math.hypot(deltaX, deltaY) > 6) {
+      drag.dragged = true;
+      setAsanteButtonDragging(true);
+    }
+    if (drag.dragged) {
+      setAsanteButtonPosition(clampFloatingPosition({
+        x: drag.originX + deltaX,
+        y: drag.originY + deltaY,
+      }));
+    }
+  };
+
+  const handleAsantePointerUp = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const drag = pointerDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+    const wasDragged = drag.dragged || Math.hypot(
+      event.clientX - drag.startX,
+      event.clientY - drag.startY
+    ) > 6;
+    if (wasDragged) {
+      setAsanteButtonPosition(clampFloatingPosition({
+        x: drag.originX + event.clientX - drag.startX,
+        y: drag.originY + event.clientY - drag.startY,
+      }));
+    }
+    pointerDragRef.current = null;
+    setAsanteButtonDragging(false);
+    suppressAsanteClickRef.current = wasDragged;
+    window.setTimeout(() => {
+      suppressAsanteClickRef.current = false;
+    }, 0);
+  };
+
+  const handleAsanteClick = () => {
+    if (suppressAsanteClickRef.current) {
+      suppressAsanteClickRef.current = false;
+      return;
+    }
+    setActiveView('asante');
+    setMobileNavOpen(false);
+  };
 
   useEffect(() => {
     if (!supabase) return;
@@ -494,7 +616,7 @@ export default function App() {
       {/* Mobile Bottom Nav */}
       <nav className="fixed bottom-2 left-2 right-2 z-30 box-border max-w-full rounded-2xl border border-stone-200 bg-[#faf9f6]/95 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-xl backdrop-blur-md lg:hidden">
         <div className="grid grid-cols-5 items-center gap-1 px-1.5 py-2">
-          {TABS.map(({ id, mobileLabel, icon: Icon }) => {
+          {MOBILE_TABS.map(({ id, mobileLabel, icon: Icon }) => {
             const active = activeView === id;
             return (
               <button
@@ -511,6 +633,38 @@ export default function App() {
           })}
         </div>
       </nav>
+
+      {asanteButtonPosition && (
+        <button
+          type="button"
+          aria-label="Open Asante AI assistant"
+          aria-pressed={activeView === 'asante'}
+          title="Open Asante AI assistant · drag to move"
+          onPointerDown={handleAsantePointerDown}
+          onPointerMove={handleAsantePointerMove}
+          onPointerUp={handleAsantePointerUp}
+          onPointerCancel={() => {
+            pointerDragRef.current = null;
+            setAsanteButtonDragging(false);
+            suppressAsanteClickRef.current = true;
+            window.setTimeout(() => {
+              suppressAsanteClickRef.current = false;
+            }, 0);
+          }}
+          onClick={handleAsanteClick}
+          className="fixed z-40 flex h-16 w-16 select-none items-center justify-center rounded-full border border-white/30 bg-gradient-to-br from-[#0498cc] to-[#003574] text-white shadow-xl shadow-[#003574]/30 transition-transform hover:scale-105 focus-visible:outline-white active:scale-95"
+          style={{
+            left: asanteButtonPosition.x,
+            top: asanteButtonPosition.y,
+            touchAction: 'none',
+            transition: asanteButtonDragging
+              ? 'none'
+              : 'left 120ms ease-out, top 120ms ease-out, transform 150ms ease-out',
+          }}
+        >
+          <Sparkles className="h-7 w-7" aria-hidden="true" />
+        </button>
+      )}
 
       {/* Main Content */}
       <main className="relative z-10 w-full max-w-full overflow-x-hidden pb-24 lg:pb-0">
@@ -538,6 +692,9 @@ export default function App() {
         )}
         {activeView === 'opportunities' && (
           <OpportunitiesHub />
+        )}
+        {activeView === 'jobs' && (
+          <Jobs />
         )}
         {activeView === 'asante' && (
           <Asante

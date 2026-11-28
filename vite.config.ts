@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 import { generateAsanteResponse } from './src/server/gemini';
 import { loadPolicyFeeds } from './src/server/policyFeeds';
+import { loadJobs } from './src/server/jobs';
 
 function devApiPlugin(): Plugin {
   return {
@@ -62,6 +63,25 @@ function devApiPlugin(): Plugin {
         } catch {
           response.statusCode = 502;
           response.end(JSON.stringify({ error: 'Policy feed is temporarily unavailable.' }));
+        }
+      });
+      server.middlewares.use('/api/jobs', async (request, response) => {
+        response.setHeader('Content-Type', 'application/json; charset=utf-8');
+        response.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
+        if (request.method !== 'GET') {
+          response.statusCode = 405;
+          response.end(JSON.stringify({ error: 'Method not allowed.' }));
+          return;
+        }
+
+        try {
+          const payload = await loadJobs();
+          response.statusCode = 200;
+          response.end(JSON.stringify(payload));
+        } catch (error) {
+          console.error('Could not load remote jobs.', error);
+          response.statusCode = 200;
+          response.end(JSON.stringify({ jobs: [], error: true }));
         }
       });
     },

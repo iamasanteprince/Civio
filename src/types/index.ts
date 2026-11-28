@@ -1,4 +1,21 @@
-export type View = 'visa' | 'hub' | 'opportunities' | 'asante' | 'forum';
+export type View = 'visa' | 'hub' | 'opportunities' | 'jobs' | 'asante' | 'forum';
+
+export type JobSource = 'Remote OK';
+
+export interface RemoteJob {
+  id: string;
+  title: string;
+  company: string;
+  source: JobSource;
+  category: string;
+  location: string;
+  regions: string[];
+  keywords: string[];
+  url: string;
+  companyUrl?: string;
+  publishedAt: string | null;
+  excerpt: string;
+}
 
 export interface DiscussionComment {
   id: string;
