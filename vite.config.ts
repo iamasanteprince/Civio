@@ -67,9 +67,9 @@ function devApiPlugin(): Plugin {
       });
       server.middlewares.use('/api/jobs', async (request, response) => {
         response.setHeader('Content-Type', 'application/json; charset=utf-8');
-        response.setHeader('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=86400');
         if (request.method !== 'GET') {
           response.statusCode = 405;
+          response.setHeader('Cache-Control', 'no-store');
           response.end(JSON.stringify({ error: 'Method not allowed.' }));
           return;
         }
@@ -77,11 +77,26 @@ function devApiPlugin(): Plugin {
         try {
           const payload = await loadJobs();
           response.statusCode = 200;
+          response.setHeader(
+            'Cache-Control',
+            payload.error
+              ? 'public, s-maxage=60, stale-while-revalidate=300'
+              : 'public, s-maxage=21600, stale-while-revalidate=86400'
+          );
           response.end(JSON.stringify(payload));
         } catch (error) {
-          console.error('Could not load remote jobs.', error);
+          console.error('Could not prepare the Remote OK jobs response.', error);
           response.statusCode = 200;
-          response.end(JSON.stringify({ jobs: [], error: true }));
+          response.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+          response.end(JSON.stringify({
+            jobs: [],
+            error: true,
+            diagnostics: [{
+              source: 'Remote OK',
+              code: 'service_error',
+              message: 'The jobs service is temporarily unavailable.',
+            }],
+          }));
         }
       });
     },

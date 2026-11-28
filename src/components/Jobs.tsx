@@ -12,6 +12,44 @@ function isHttpsUrl(value: string): boolean {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function getDiagnosticMessage(value: unknown): string | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const diagnostic = value.find(isRecord);
+  if (!diagnostic || typeof diagnostic.code !== 'string') return undefined;
+
+  switch (diagnostic.code) {
+    case 'blocked':
+      return 'Remote OK is temporarily blocking job requests. Please try again later.';
+    case 'rate_limited':
+      return 'Remote OK is temporarily limiting requests. Please try again later.';
+    case 'timeout':
+      return 'Remote OK is taking too long to respond. Please try again shortly.';
+    case 'network':
+      return 'Remote OK could not be reached. Please try again shortly.';
+    case 'invalid_response':
+      return 'Remote OK returned an unexpected response. Please try again later.';
+    case 'service_error':
+      return 'The CivioHub jobs service is temporarily unavailable. Please try again shortly.';
+    case 'upstream_http':
+      return typeof diagnostic.status === 'number'
+        ? `Remote OK is temporarily unavailable (HTTP ${diagnostic.status}). Please try again later.`
+        : 'Remote OK is temporarily unavailable. Please try again later.';
+    default:
+      return undefined;
+  }
+}
+
+function httpErrorMessage(status: number): string {
+  if (status === 403) return 'The jobs service could not access Remote OK right now. Please try again later.';
+  if (status === 429) return 'The jobs service is temporarily rate-limited. Please try again later.';
+  if (status >= 500) return 'The jobs service is temporarily unavailable. Please try again shortly.';
+  return `The jobs service returned HTTP ${status}. Please try again later.`;
+}
+
 function isRemoteJob(value: unknown): value is RemoteJob {
   if (!value || typeof value !== 'object') return false;
   const job = value as Record<string, unknown>;
@@ -77,19 +115,35 @@ export default function Jobs() {
     setError(null);
     try {
       const response = await fetch('/api/jobs', { signal: controller.signal });
-      if (!response.ok) throw new Error(`Jobs feed returned HTTP ${response.status}.`);
-      const payload: unknown = await response.json();
-      if (!payload || typeof payload !== 'object') throw new Error('Jobs response was invalid.');
-      const data = payload as { jobs?: unknown; error?: unknown };
-      if (!Array.isArray(data.jobs) || typeof data.error !== 'boolean' || !data.jobs.every(isRemoteJob)) {
-        throw new Error('Jobs response did not contain valid listings.');
+      let payload: unknown;
+      try {
+        payload = await response.json();
+      } catch {
+        if (!response.ok) throw new Error(httpErrorMessage(response.status));
+        throw new Error('The jobs service returned an invalid response. Please try again shortly.');
+      }
+      if (!response.ok) {
+        throw new Error(getDiagnosticMessage(isRecord(payload) ? payload.diagnostics : undefined) ??
+          httpErrorMessage(response.status));
+      }
+      if (!isRecord(payload) || !Array.isArray(payload.jobs) ||
+        typeof payload.error !== 'boolean' || !payload.jobs.every(isRemoteJob)) {
+        throw new Error('The jobs service returned an unexpected response. Please try again shortly.');
       }
       if (controller.signal.aborted) return;
-      setJobs(data.jobs);
-      setSourceError(data.error);
+      setJobs(payload.jobs);
+      setSourceError(payload.error);
+      setError(payload.error
+        ? getDiagnosticMessage(payload.diagnostics) ?? 'Remote OK is temporarily unavailable. Please try again later.'
+        : null);
     } catch (cause) {
       if (controller.signal.aborted) return;
-      setError(cause instanceof Error ? cause.message : 'Remote jobs are temporarily unavailable.');
+      const message = cause instanceof TypeError
+        ? 'Could not reach the CivioHub jobs service. Please check your connection and try again.'
+        : cause instanceof Error
+          ? cause.message
+          : 'Remote jobs are temporarily unavailable. Please try again later.';
+      setError(message);
       setJobs([]);
       setSourceError(false);
     } finally {

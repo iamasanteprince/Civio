@@ -41,7 +41,8 @@ const TABS: { id: View; label: string; icon: typeof ShieldCheck; description: st
 ];
 
 const MOBILE_TABS = TABS.filter(({ id }) => id !== 'asante');
-const ASANTE_BUTTON_SIZE = 64;
+const ASANTE_CONTROL_WIDTH = 84;
+const ASANTE_CONTROL_HEIGHT = 70;
 const ASANTE_BUTTON_MARGIN = 12;
 const MOBILE_NAV_CLEARANCE = 108;
 
@@ -60,8 +61,8 @@ interface PointerDrag {
 }
 
 function clampFloatingPosition(position: FloatingPosition): FloatingPosition {
-  const maxX = Math.max(ASANTE_BUTTON_MARGIN, window.innerWidth - ASANTE_BUTTON_SIZE - ASANTE_BUTTON_MARGIN);
-  const maxY = Math.max(ASANTE_BUTTON_MARGIN, window.innerHeight - ASANTE_BUTTON_SIZE - ASANTE_BUTTON_MARGIN);
+  const maxX = Math.max(ASANTE_BUTTON_MARGIN, window.innerWidth - ASANTE_CONTROL_WIDTH - ASANTE_BUTTON_MARGIN);
+  const maxY = Math.max(ASANTE_BUTTON_MARGIN, window.innerHeight - ASANTE_CONTROL_HEIGHT - ASANTE_BUTTON_MARGIN);
   return {
     x: Math.min(Math.max(position.x, ASANTE_BUTTON_MARGIN), maxX),
     y: Math.min(Math.max(position.y, ASANTE_BUTTON_MARGIN), maxY),
@@ -73,8 +74,8 @@ function getInitialFloatingPosition(): FloatingPosition {
     ? MOBILE_NAV_CLEARANCE
     : ASANTE_BUTTON_MARGIN;
   return clampFloatingPosition({
-    x: window.innerWidth - ASANTE_BUTTON_SIZE - ASANTE_BUTTON_MARGIN,
-    y: window.innerHeight - ASANTE_BUTTON_SIZE - bottomClearance,
+    x: window.innerWidth - ASANTE_CONTROL_WIDTH - ASANTE_BUTTON_MARGIN,
+    y: window.innerHeight - ASANTE_CONTROL_HEIGHT - bottomClearance,
   });
 }
 
@@ -652,17 +653,22 @@ export default function App() {
             }, 0);
           }}
           onClick={handleAsanteClick}
-          className="fixed z-40 flex h-16 w-16 select-none items-center justify-center rounded-full border border-white/30 bg-gradient-to-br from-[#0498cc] to-[#003574] text-white shadow-xl shadow-[#003574]/30 transition-transform hover:scale-105 focus-visible:outline-white active:scale-95"
+          className="fixed z-40 flex h-[70px] w-[84px] select-none flex-col items-center gap-1 border-0 bg-transparent p-0 text-white focus-visible:outline-white"
           style={{
             left: asanteButtonPosition.x,
             top: asanteButtonPosition.y,
             touchAction: 'none',
             transition: asanteButtonDragging
               ? 'none'
-              : 'left 120ms ease-out, top 120ms ease-out, transform 150ms ease-out',
+              : 'left 120ms ease-out, top 120ms ease-out',
           }}
         >
-          <Sparkles className="h-7 w-7" aria-hidden="true" />
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/40 bg-gradient-to-br from-[#0498cc] to-[#003574] shadow-lg shadow-[#003574]/30 transition-colors hover:brightness-110">
+            <Sparkles className="h-6 w-6" aria-hidden="true" />
+          </span>
+          <span className="pointer-events-none rounded-full border border-stone-300/80 bg-white/95 px-2 py-0.5 text-[10px] font-semibold leading-3 text-[#003574] shadow-md shadow-stone-900/15">
+            Asante AI
+          </span>
         </button>
       )}
 

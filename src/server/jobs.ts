@@ -1,7 +1,8 @@
 import type { JobSource, RemoteJob } from '../types';
 
 const REMOTE_OK_URL = 'https://remoteok.com/api';
-const REQUEST_TIMEOUT_MS = 8_000;
+const REQUEST_TIMEOUT_MS = 10_000;
+const USER_AGENT = 'Mozilla/5.0 (compatible; CivioHubJobs/1.0)';
 const SOURCE: JobSource = 'Remote OK';
 
 const REGION_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
@@ -12,9 +13,24 @@ const REGION_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
   { label: 'Worldwide', pattern: /\b(?:worldwide|world wide|global|anywhere)\b/i },
 ];
 
-interface JobsPayload {
+export interface JobsDiagnostic {
+  source: 'Remote OK';
+  code: 'blocked' | 'rate_limited' | 'upstream_http' | 'timeout' | 'network' | 'invalid_response' | 'service_error';
+  message: string;
+  status?: number;
+}
+
+export interface JobsPayload {
   jobs: RemoteJob[];
   error: boolean;
+  diagnostics: JobsDiagnostic[];
+}
+
+class RemoteOkError extends Error {
+  constructor(readonly diagnostic: JobsDiagnostic) {
+    super(diagnostic.message);
+    this.name = 'RemoteOkError';
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -127,7 +143,13 @@ function normalize(value: string): string {
 }
 
 function parseRemoteOk(payload: unknown): RemoteJob[] {
-  if (!Array.isArray(payload)) throw new Error('Remote OK returned an invalid response.');
+  if (!Array.isArray(payload)) {
+    throw new RemoteOkError({
+      source: SOURCE,
+      code: 'invalid_response',
+      message: 'Remote OK returned data in an unexpected format.',
+    });
+  }
 
   const jobs = payload.filter(isRecord);
   return jobs.flatMap((item): RemoteJob[] => {
@@ -164,19 +186,86 @@ function parseRemoteOk(payload: unknown): RemoteJob[] {
 }
 
 async function loadRemoteOk(): Promise<RemoteJob[]> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  let response: Response;
   try {
-    const response = await fetch(REMOTE_OK_URL, {
-      headers: { Accept: 'application/json' },
-      signal: controller.signal,
+    response = await fetch(REMOTE_OK_URL, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': USER_AGENT,
+      },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
-    if (!response.ok) throw new Error(`Remote OK returned HTTP ${response.status}.`);
-    const payload: unknown = await response.json();
-    return parseRemoteOk(payload);
-  } finally {
-    clearTimeout(timeout);
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === 'TimeoutError';
+    throw new RemoteOkError({
+      source: SOURCE,
+      code: timedOut ? 'timeout' : 'network',
+      message: timedOut
+        ? 'Remote OK did not respond before the request timed out.'
+        : 'Could not connect to Remote OK.',
+    });
   }
+
+  if (!response.ok) {
+    const code = response.status === 403
+      ? 'blocked'
+      : response.status === 429
+        ? 'rate_limited'
+        : 'upstream_http';
+    const message = response.status === 403
+      ? 'Remote OK temporarily blocked this request.'
+      : response.status === 429
+        ? 'Remote OK is rate-limiting requests. Please try again later.'
+        : `Remote OK returned HTTP ${response.status}.`;
+    throw new RemoteOkError({
+      source: SOURCE,
+      code,
+      message,
+      status: response.status,
+    });
+  }
+
+  const contentType = response.headers.get('content-type') ?? '';
+  if (!contentType.toLowerCase().includes('application/json')) {
+    throw new RemoteOkError({
+      source: SOURCE,
+      code: 'invalid_response',
+      message: 'Remote OK returned a response that was not JSON.',
+    });
+  }
+
+  let body: string;
+  try {
+    body = await response.text();
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === 'TimeoutError';
+    throw new RemoteOkError({
+      source: SOURCE,
+      code: timedOut ? 'timeout' : 'network',
+      message: timedOut
+        ? 'Remote OK did not finish sending the response before the request timed out.'
+        : 'The Remote OK response could not be read.',
+    });
+  }
+  if (!body.trim()) {
+    throw new RemoteOkError({
+      source: SOURCE,
+      code: 'invalid_response',
+      message: 'Remote OK returned an empty response.',
+    });
+  }
+
+  let payload: unknown;
+  try {
+    payload = JSON.parse(body) as unknown;
+  } catch {
+    throw new RemoteOkError({
+      source: SOURCE,
+      code: 'invalid_response',
+      message: 'Remote OK returned malformed JSON.',
+    });
+  }
+  return parseRemoteOk(payload);
 }
 
 function deduplicateAndSort(jobs: RemoteJob[]): RemoteJob[] {
@@ -197,14 +286,24 @@ function deduplicateAndSort(jobs: RemoteJob[]): RemoteJob[] {
 
 export async function loadJobs(): Promise<JobsPayload> {
   const results = await Promise.allSettled([loadRemoteOk()]);
-  const jobs = results.flatMap((result) => {
-    if (result.status === 'fulfilled') return result.value;
-    console.warn('Remote OK jobs feed failed.', result.reason);
-    return [];
+  const diagnostics = results.flatMap((result): JobsDiagnostic[] => {
+    if (result.status === 'fulfilled') return [];
+    if (result.reason instanceof RemoteOkError) {
+      console.warn('Remote OK jobs feed failed.', result.reason.diagnostic);
+      return [result.reason.diagnostic];
+    }
+    console.warn('Remote OK jobs feed failed with an unexpected error.');
+    return [{
+      source: SOURCE,
+      code: 'service_error',
+      message: 'Remote OK is temporarily unavailable.',
+    }];
   });
+  const jobs = results.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
 
   return {
     jobs: deduplicateAndSort(jobs),
-    error: results.some((result) => result.status === 'rejected'),
+    error: diagnostics.length > 0,
+    diagnostics,
   };
 }
