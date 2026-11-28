@@ -34,7 +34,7 @@ export default async function handler(request: ApiRequest, response: ApiResponse
     setCacheHeaders(response, payload.error);
     response.status(200).json(payload);
   } catch (error) {
-    console.error('Could not prepare the Remote OK jobs response.', error);
+    console.error('Could not prepare the jobs response.', error);
     const diagnostic: JobsDiagnostic = {
       source: 'Remote OK',
       code: 'service_error',

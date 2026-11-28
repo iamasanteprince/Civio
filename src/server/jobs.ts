@@ -2,8 +2,11 @@ import type { JobSource, RemoteJob } from '../types';
 
 const REMOTE_OK_URL = 'https://remoteok.com/api';
 const REQUEST_TIMEOUT_MS = 10_000;
+const FALLBACK_TIMEOUT_MS = 8_000;
 const USER_AGENT = 'Mozilla/5.0 (compatible; CivioHubJobs/1.0)';
-const SOURCE: JobSource = 'Remote OK';
+const REMOTE_OK: JobSource = 'Remote OK';
+const JOBICY: JobSource = 'Jobicy';
+const HIMALAYAS: JobSource = 'Himalayas';
 
 const REGION_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
   { label: 'United States', pattern: /\b(?:us|usa|u s|u s a|united states|america)\b/i },
@@ -14,7 +17,7 @@ const REGION_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
 ];
 
 export interface JobsDiagnostic {
-  source: 'Remote OK';
+  source: JobSource;
   code: 'blocked' | 'rate_limited' | 'upstream_http' | 'timeout' | 'network' | 'invalid_response' | 'service_error';
   message: string;
   status?: number;
@@ -30,6 +33,13 @@ class RemoteOkError extends Error {
   constructor(readonly diagnostic: JobsDiagnostic) {
     super(diagnostic.message);
     this.name = 'RemoteOkError';
+  }
+}
+
+class JobsFeedError extends Error {
+  constructor(readonly diagnostic: JobsDiagnostic) {
+    super(diagnostic.message);
+    this.name = 'JobsFeedError';
   }
 }
 
@@ -98,8 +108,12 @@ function excerpt(value: string): string {
 function stringArray(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.flatMap((entry) => {
-    if (typeof entry !== 'string') return [];
-    const clean = plainText(entry);
+    const raw = typeof entry === 'string'
+      ? entry
+      : isRecord(entry)
+        ? text(entry.name) || text(entry.title) || text(entry.label)
+        : '';
+    const clean = plainText(raw);
     return clean ? [clean] : [];
   });
 }
@@ -142,10 +156,64 @@ function normalize(value: string): string {
     .trim();
 }
 
+function normalizeJob(item: Record<string, unknown>, source: JobSource): RemoteJob | undefined {
+  const title = plainText(
+    text(item.position) || text(item.jobTitle) || text(item.title) || text(item.name)
+  );
+  const company = plainText(
+    text(item.company) || text(item.companyName) || text(item.employer)
+  );
+  const url = normalizeHttpsUrl(
+    item.url ?? item.jobUrl ?? item.job_url ?? item.jobLink ?? item.guid
+  );
+  if (!title || !company || !url) return undefined;
+
+  const tags = [
+    ...stringArray(item.tags),
+    ...stringArray(item.jobIndustry),
+    ...stringArray(item.categories),
+    ...stringArray(item.category),
+    ...stringArray(item.jobType),
+    ...stringArray(item.jobLevel),
+  ];
+  const description = text(item.description) || text(item.jobDescription) ||
+    text(item.jobExcerpt) || text(item.excerpt) || text(item.summary);
+  const locationText = plainText(
+    text(item.location) || text(item.jobGeo) || text(item.locationName) || text(item.region)
+  );
+  const regions = regionsFrom([locationText, ...tags, plainText(description)]);
+  const location = locationText || (regions.length ? regions.join(', ') : 'Remote');
+  const category = plainText(
+    text(item.category) || text(item.jobCategory) || tags[0] || 'Remote Jobs'
+  );
+  const companyUrl = normalizeHttpsUrl(
+    item.apply_url ?? item.jobApplyLink ?? item.applicationLink ??
+      item.applicationUrl ?? item.applyUrl ?? item.companyUrl ?? item.companyWebsite
+  );
+  const id = text(item.id) || text(item.slug) || text(item.guid) ||
+    `${normalize(company)}-${normalize(title)}`;
+
+  return {
+    id: `${normalize(source).replace(/\s/g, '')}:${id}`,
+    title,
+    company,
+    source,
+    category,
+    location,
+    regions,
+    keywords: [...new Set([...tags, ...regions, ...regionKeywords(regions)])],
+    url,
+    ...(companyUrl ? { companyUrl } : {}),
+    publishedAt: dateValue(item.date) ?? dateValue(item.epoch) ??
+      dateValue(item.pubDate) ?? dateValue(item.publishedAt),
+    excerpt: excerpt(description),
+  };
+}
+
 function parseRemoteOk(payload: unknown): RemoteJob[] {
   if (!Array.isArray(payload)) {
     throw new RemoteOkError({
-      source: SOURCE,
+      source: REMOTE_OK,
       code: 'invalid_response',
       message: 'Remote OK returned data in an unexpected format.',
     });
@@ -153,35 +221,8 @@ function parseRemoteOk(payload: unknown): RemoteJob[] {
 
   const jobs = payload.filter(isRecord);
   return jobs.flatMap((item): RemoteJob[] => {
-    const title = plainText(text(item.position));
-    const company = plainText(text(item.company));
-    const url = normalizeHttpsUrl(item.url);
-    if (!title || !company || !url) return [];
-
-    const tags = stringArray(item.tags);
-    const description = text(item.description);
-    const cleanDescription = plainText(description);
-    const locationText = plainText(text(item.location));
-    const regions = regionsFrom([locationText, ...tags, cleanDescription]);
-    const location = locationText || (regions.length ? regions.join(', ') : 'Remote');
-    const category = plainText(text(item.category)) || tags[0] || 'Remote Jobs';
-    const companyUrl = normalizeHttpsUrl(item.apply_url);
-    const id = text(item.id) || text(item.slug) || `${normalize(company)}-${normalize(title)}`;
-
-    return [{
-      id: `remoteok:${id}`,
-      title,
-      company,
-      source: SOURCE,
-      category,
-      location,
-      regions,
-      keywords: [...new Set([...tags, ...regions, ...regionKeywords(regions)])],
-      url,
-      ...(companyUrl ? { companyUrl } : {}),
-      publishedAt: dateValue(item.date) ?? dateValue(item.epoch),
-      excerpt: excerpt(description),
-    }];
+    const job = normalizeJob(item, REMOTE_OK);
+    return job ? [job] : [];
   });
 }
 
@@ -198,7 +239,7 @@ async function loadRemoteOk(): Promise<RemoteJob[]> {
   } catch (error) {
     const timedOut = error instanceof Error && error.name === 'TimeoutError';
     throw new RemoteOkError({
-      source: SOURCE,
+      source: REMOTE_OK,
       code: timedOut ? 'timeout' : 'network',
       message: timedOut
         ? 'Remote OK did not respond before the request timed out.'
@@ -218,7 +259,7 @@ async function loadRemoteOk(): Promise<RemoteJob[]> {
         ? 'Remote OK is rate-limiting requests. Please try again later.'
         : `Remote OK returned HTTP ${response.status}.`;
     throw new RemoteOkError({
-      source: SOURCE,
+      source: REMOTE_OK,
       code,
       message,
       status: response.status,
@@ -228,7 +269,7 @@ async function loadRemoteOk(): Promise<RemoteJob[]> {
   const contentType = response.headers.get('content-type') ?? '';
   if (!contentType.toLowerCase().includes('application/json')) {
     throw new RemoteOkError({
-      source: SOURCE,
+      source: REMOTE_OK,
       code: 'invalid_response',
       message: 'Remote OK returned a response that was not JSON.',
     });
@@ -240,7 +281,7 @@ async function loadRemoteOk(): Promise<RemoteJob[]> {
   } catch (error) {
     const timedOut = error instanceof Error && error.name === 'TimeoutError';
     throw new RemoteOkError({
-      source: SOURCE,
+      source: REMOTE_OK,
       code: timedOut ? 'timeout' : 'network',
       message: timedOut
         ? 'Remote OK did not finish sending the response before the request timed out.'
@@ -249,7 +290,7 @@ async function loadRemoteOk(): Promise<RemoteJob[]> {
   }
   if (!body.trim()) {
     throw new RemoteOkError({
-      source: SOURCE,
+      source: REMOTE_OK,
       code: 'invalid_response',
       message: 'Remote OK returned an empty response.',
     });
@@ -260,12 +301,95 @@ async function loadRemoteOk(): Promise<RemoteJob[]> {
     payload = JSON.parse(body) as unknown;
   } catch {
     throw new RemoteOkError({
-      source: SOURCE,
+      source: REMOTE_OK,
       code: 'invalid_response',
       message: 'Remote OK returned malformed JSON.',
     });
   }
   return parseRemoteOk(payload);
+}
+
+function feedItems(payload: unknown, source: JobSource): Record<string, unknown>[] {
+  if (Array.isArray(payload)) return payload.filter(isRecord);
+  if (isRecord(payload)) {
+    for (const key of ['jobs', 'data', 'results']) {
+      if (Array.isArray(payload[key])) {
+        return (payload[key] as unknown[]).filter(isRecord);
+      }
+    }
+  }
+  throw new JobsFeedError({
+    source,
+    code: 'invalid_response',
+    message: `${source} returned data in an unexpected format.`,
+  });
+}
+
+async function loadFallbackFeed(source: JobSource, endpoint: string): Promise<RemoteJob[]> {
+  let response: Response;
+  try {
+    response = await fetch(endpoint, {
+      headers: {
+        Accept: 'application/json',
+        'User-Agent': USER_AGENT,
+      },
+      signal: AbortSignal.timeout(FALLBACK_TIMEOUT_MS),
+    });
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === 'TimeoutError';
+    throw new JobsFeedError({
+      source,
+      code: timedOut ? 'timeout' : 'network',
+      message: timedOut
+        ? `${source} did not respond before the request timed out.`
+        : `Could not connect to ${source}.`,
+    });
+  }
+
+  if (!response.ok) {
+    throw new JobsFeedError({
+      source,
+      code: 'upstream_http',
+      message: `${source} returned HTTP ${response.status}.`,
+      status: response.status,
+    });
+  }
+
+  let body: string;
+  try {
+    body = await response.text();
+  } catch (error) {
+    const timedOut = error instanceof Error && error.name === 'TimeoutError';
+    throw new JobsFeedError({
+      source,
+      code: timedOut ? 'timeout' : 'network',
+      message: timedOut
+        ? `${source} did not finish sending the response before the request timed out.`
+        : `The ${source} response could not be read.`,
+    });
+  }
+  if (!body.trim()) {
+    throw new JobsFeedError({
+      source,
+      code: 'invalid_response',
+      message: `${source} returned an empty response.`,
+    });
+  }
+
+  let payload: unknown;
+  try {
+    payload = JSON.parse(body) as unknown;
+  } catch {
+    throw new JobsFeedError({
+      source,
+      code: 'invalid_response',
+      message: `${source} returned malformed JSON.`,
+    });
+  }
+  return feedItems(payload, source).flatMap((item) => {
+    const job = normalizeJob(item, source);
+    return job ? [job] : [];
+  });
 }
 
 function deduplicateAndSort(jobs: RemoteJob[]): RemoteJob[] {
@@ -285,25 +409,60 @@ function deduplicateAndSort(jobs: RemoteJob[]): RemoteJob[] {
 }
 
 export async function loadJobs(): Promise<JobsPayload> {
-  const results = await Promise.allSettled([loadRemoteOk()]);
-  const diagnostics = results.flatMap((result): JobsDiagnostic[] => {
-    if (result.status === 'fulfilled') return [];
-    if (result.reason instanceof RemoteOkError) {
-      console.warn('Remote OK jobs feed failed.', result.reason.diagnostic);
-      return [result.reason.diagnostic];
+  let remoteOkJobs: RemoteJob[] = [];
+  let remoteOkFailed = false;
+  let remoteOkDiagnostic: JobsDiagnostic | undefined;
+  try {
+    remoteOkJobs = await loadRemoteOk();
+  } catch (error) {
+    remoteOkFailed = true;
+    if (error instanceof RemoteOkError) {
+      remoteOkDiagnostic = error.diagnostic;
+      console.warn('Remote OK jobs feed failed.', error.diagnostic);
+    } else {
+      console.warn('Remote OK jobs feed failed with an unexpected error.');
+      remoteOkDiagnostic = {
+        source: REMOTE_OK,
+        code: 'service_error',
+        message: 'Remote OK is temporarily unavailable.',
+      };
     }
-    console.warn('Remote OK jobs feed failed with an unexpected error.');
-    return [{
-      source: SOURCE,
-      code: 'service_error',
-      message: 'Remote OK is temporarily unavailable.',
-    }];
+  }
+
+  if (remoteOkJobs.length > 0) {
+    return { jobs: deduplicateAndSort(remoteOkJobs), error: false, diagnostics: [] };
+  }
+
+  const fallbackFeeds = [
+    { source: JOBICY, request: loadFallbackFeed(JOBICY, 'https://jobicy.com/api/v2/remote-jobs') },
+    { source: HIMALAYAS, request: loadFallbackFeed(HIMALAYAS, 'https://himalayas.app/jobs/api') },
+  ];
+  const fallbackResults = await Promise.allSettled(fallbackFeeds.map(({ request }) => request));
+  const diagnostics: JobsDiagnostic[] = [];
+  if (remoteOkDiagnostic) diagnostics.push(remoteOkDiagnostic);
+  const jobs = fallbackResults.flatMap((result, index): RemoteJob[] => {
+    if (result.status === 'fulfilled') return result.value;
+    if (result.reason instanceof JobsFeedError) {
+      console.warn(`${result.reason.diagnostic.source} jobs feed failed.`, result.reason.diagnostic);
+      diagnostics.push(result.reason.diagnostic);
+    } else {
+      console.warn('A fallback jobs feed failed with an unexpected error.');
+      diagnostics.push({
+        source: fallbackFeeds[index].source,
+        code: 'service_error',
+        message: 'A fallback jobs feed is temporarily unavailable.',
+      });
+    }
+    return [];
   });
-  const jobs = results.flatMap((result) => result.status === 'fulfilled' ? result.value : []);
+
+  const allFeedsFailed = remoteOkFailed && fallbackResults.every(
+    (result) => result.status === 'rejected'
+  );
 
   return {
     jobs: deduplicateAndSort(jobs),
-    error: diagnostics.length > 0,
-    diagnostics,
+    error: allFeedsFailed,
+    diagnostics: allFeedsFailed ? diagnostics : [],
   };
 }

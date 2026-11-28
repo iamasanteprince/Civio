@@ -1,6 +1,6 @@
 export type View = 'visa' | 'hub' | 'opportunities' | 'jobs' | 'asante' | 'forum';
 
-export type JobSource = 'Remote OK';
+export type JobSource = 'Remote OK' | 'Jobicy' | 'Himalayas';
 
 export interface RemoteJob {
   id: string;

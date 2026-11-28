@@ -18,6 +18,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function getDiagnosticMessage(value: unknown): string | undefined {
   if (!Array.isArray(value)) return undefined;
+  if (value.length > 1 && value.every(isRecord)) {
+    return 'All remote job feeds are temporarily unavailable. Please try again later.';
+  }
   const diagnostic = value.find(isRecord);
   if (!diagnostic || typeof diagnostic.code !== 'string') return undefined;
 
@@ -59,12 +62,12 @@ function isRemoteJob(value: unknown): value is RemoteJob {
   return typeof job.id === 'string' &&
     typeof job.title === 'string' &&
     typeof job.company === 'string' &&
-    job.source === 'Remote OK' &&
+    (job.source === 'Remote OK' || job.source === 'Jobicy' || job.source === 'Himalayas') &&
     typeof job.category === 'string' &&
     typeof job.location === 'string' &&
     Array.isArray(job.regions) && job.regions.every((region) => typeof region === 'string') &&
     Array.isArray(job.keywords) && job.keywords.every((keyword) => typeof keyword === 'string') &&
-    typeof job.url === 'string' &&
+    typeof job.url === 'string' && isHttpsUrl(job.url) &&
     companyUrlIsValid &&
     (job.publishedAt === null || typeof job.publishedAt === 'string') &&
     typeof job.excerpt === 'string';
@@ -312,7 +315,7 @@ export default function Jobs() {
         </div>
       )}
       <p className="mt-6 border-t border-stone-200 pt-4 text-center text-xs leading-relaxed text-stone-500">
-        Jobs sourced from Remote OK. Click through to view the original listing and apply.
+        Jobs sourced from public remote job feeds. Click through to view the original listing and apply.
       </p>
     </section>
   );
